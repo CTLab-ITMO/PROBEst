@@ -1,0 +1,71 @@
+<!ELEMENT probe_samples (doi, sample_group+)>
+  <!ELEMENT doi (#PCDATA)>
+
+  <!ELEMENT probe_group (id_group, experiment_ids, result_ids, probe_sequences)>
+    <!ELEMENT id_group (#PCDATA)>
+    
+    <!ELEMENT results (results+)>
+      <!ELEMENT result (id_exp+)>
+        <!ELEMENT id_exp (#PCDATA)>
+        <!ELEMENT outcome (#PCDATA)>
+        <!ELEMENT fluorescence (#PCDATA)>
+
+    <!ELEMENT sequences (related_sequences, probe_sequences)>
+      <!ELEMENT probes (probe+)>
+        <!ELEMENT probe (id_probe, probe_sequence, modification+)>
+          <!ELEMENT id_probe (#PCDATA)>
+          <!ELEMENT probe_sequence (#PCDATA)>
+          <!ELEMENT modification (modification_pos, modification_type)>
+            <!ELEMENT modification_pos (#PCDATA)>
+            <!ELEMENT modification_type (#PCDATA)>
+            
+      <!ELEMENT related_sequences (related_sequence+)>
+        <!ELEMENT related_sequence (#PCDATA)>
+        
+<!--
+  Explanation of elements:
+  
+  probe_samples: the root element containing the DOI of the article and one or more probe groups.
+  
+  doi: a unique identifier for the article in DOI format. Must be filled out.
+  
+  probe_group: a group of samples containing a unique identifier for the sample group, an array of experiment identifiers,
+  results of experiments, and related sequences.
+  
+  id_group: integer. a unique identifier for the sample group. Must be filled out.
+  
+  results: an element that contains one or more results from experiments. Might be several.
+  
+  result: an element representing a single result, which includes an experiment ID, an outcome description,
+  and fluorescence measurement.
+  
+  id_exp: integer, a unique identifier for the experiment. Must be filled out.
+  
+  outcome: boolean, result of the experiment. Must be filled out.
+  
+  fluorescence: a measurement of fluorescence associated with the experiment result.
+  
+  sequences: an element containing information about related sequences and probe sequences used in experiments.
+  
+  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. Might be several.
+  
+  related_sequence: a single related sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated).
+  
+  probes: an element containing one or more probes used in the experiments.
+  
+  probe: an element representing a single probe, which includes its ID, sequence, and any modifications. Might be several.
+  
+  id_probe: integer, a unique identifier for the probe. Must be filled out.
+  
+  probe_sequence: a probe sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated).
+  
+  modification: an element representing modifications to the probe sequence, including position and type. Might be several.
+  
+  modification_pos: the position of the modification in the probe sequence.
+  
+  modification_type: the type of modification applied to the probe.
+  
+-->
+
+<!-- EOF -->
+
