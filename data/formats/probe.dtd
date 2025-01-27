@@ -10,17 +10,15 @@
         <!ELEMENT outcome (#PCDATA)>
         <!ELEMENT fluorescence (#PCDATA)>
 
-    <!ELEMENT sequences (related_sequences, probe_sequences)>
-      <!ELEMENT probes (probe+)>
-        <!ELEMENT probe (id_probe, probe_sequence, modification+)>
-          <!ELEMENT id_probe (#PCDATA)>
-          <!ELEMENT probe_sequence (#PCDATA)>
-          <!ELEMENT modification (modification_pos, modification_type)>
-            <!ELEMENT modification_pos (#PCDATA)>
-            <!ELEMENT modification_type (#PCDATA)>
-            
-      <!ELEMENT related_sequences (related_sequence+)>
-        <!ELEMENT related_sequence (#PCDATA)>
+    <!ELEMENT probes (probe+)>
+      <!ELEMENT probe (id_probe, probe_sequence, modification+, related_sequences)>
+        <!ELEMENT id_probe (#PCDATA)>
+        <!ELEMENT probe_sequence (#PCDATA)>
+        <!ELEMENT modification (modification_pos, modification_type)>
+          <!ELEMENT modification_pos (#PCDATA)>
+          <!ELEMENT modification_type (#PCDATA)>
+        <!ELEMENT related_sequences (related_sequence+)>
+          <!ELEMENT related_sequence (#PCDATA)>
         
 <!--
   Explanation of elements:
@@ -49,7 +47,7 @@
   
   related_sequences: an element containing one or more related sequences that are pertinent to the experiment. Might be several.
   
-  related_sequence: a single related sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated).
+  related_sequence: a single related sequence in text format (primers for example). Must contain nucleotides (A, T, C, G, or degenerated).
   
   probes: an element containing one or more probes used in the experiments.
   
