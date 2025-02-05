@@ -21,6 +21,12 @@ import numpy as np
 import pandas as pd
 import re
 import random
+import sys
+
+
+# Add 'src' folder to sys.path for imports to work
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 # 0 Imports: absolute import ----
 from PROBESt.primer3 import primer_template, parse_primer3_output
