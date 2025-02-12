@@ -47,11 +47,19 @@ def out_dir(iter):
 def merge_iter(iter):
     out = out_dir(iter)
     merge(algo=args.algorithm,
-          input=out + "output.fa",
-          output=out + "merged.fa",
-          tmp=out + "fasta_table.tsv",
-          N=10,
-          script_path=script_path)
+            input=out + "output.fa",
+            output=out + "merged.fa",
+            tmp=out + "fasta_table.tsv",
+            N=10,
+            script_path=script_path)
+
+
+def write_stats(stats: dict, output_dir: str):
+    stats_file = output_dir + '/stats.csv'
+    with open(stats_file, 'w') as f:
+        f.write('iteration,max_hits,mean_hits\n')
+        for iter, stats in stats.items():
+            f.write(f'{iter},{stats['max_hits']},{stats['mean_hits']}\n')
 
 
 # 0. Argparsing ----
@@ -105,7 +113,7 @@ parser.add_argument("-T", "--top",
                     help="Top probes to mutate and use in next generation")
 
 parser.add_argument("-M", "--mutation_rate",
-                    default=0.05, type=int,
+                    default=0.05, type=float,
                     help="Mutation probability per position of primer")
 
 parser.add_argument("-S", "--set_size",
@@ -282,6 +290,8 @@ probe_check = "bash " + script_path + "/probe_check.sh" + \
     " -a " + args.multimap_max + \
     " -b " + args.negative_max
 
+stats = {}  # Hit stats for each iteration
+
 for iter in range(1, args.iterations+1):
     print("\nIteration", iter, "----")
     os.makedirs(out_dir(iter), exist_ok=True)
@@ -316,9 +326,9 @@ for iter in range(1, args.iterations+1):
     # 4. probes matching ----
     try:
         probe_out = pd.read_table(out_dir(iter) + "clear_hits.tsv",
-                                  sep=' ', header=None)
+                                sep=' ', header=None)
     except:
-        InterruptedError(
+        raise InterruptedError(
             "Empty file after filtration, try to use other probe_check properties and review false databases")
 
     probe_vals = probe_out.iloc[:, 0].value_counts()
@@ -326,8 +336,14 @@ for iter in range(1, args.iterations+1):
     probe_list = list(set(probe_out.iloc[:, 0]))
     probe_list_hash = [hash(_) for _ in probe_list]
 
-    print("Maximum hits:", probe_vals.iloc[0])
-    print("Mean hits:", round(sum(probe_vals)/len(probe_vals), 1))
+    max_hits = probe_vals.iloc[0]
+    mean_hits = round(sum(probe_vals)/len(probe_vals), 1)
+    stats[iter] = {
+        'max_hits': max_hits,
+        'mean_hits': mean_hits
+    }
+    print("Maximum hits:", max_hits)
+    print("Mean hits:", mean_hits)
 
     # grep in probes.fa from previous iter
     fasta = open(out_dir(iter-1) + "output.fa", "r")
@@ -391,4 +407,6 @@ for fname in sorted(seqs.keys()):
     fasta.write(">"+"H"+seqs_hits+"_"+fname+"\n" + seqs[fname]+"\n")
 
 fasta.close()
+
+write_stats(stats, args.output)
 print("Done\n\nFinish")
