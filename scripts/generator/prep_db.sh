@@ -17,15 +17,18 @@ mkdir $tmp -p
 
 #mkdb
 dbdir=$(echo $database_name | sed "s/\/.*/\//g")
-mkdir $dbdir
+mkdir $dbdir -p
 
 #merge fasta in tmp
 for fname in "$@"; do
     clear_name=$(echo $fname | sed "s/.*\///g" | sed "s/\..*//g")
+    #unzip gzipped
+    gzip -dq $fname
+    fname2=$(echo $fname | sed "s/\.gz$//g")
     
     echo "Add $clear_name"
 
-    sed 's/ .*//g' $fname >> $tmp/$clear_name.fa
+    sed 's/ .*//g' $fname2 >> $tmp/$clear_name.fa
     #sed -e 's/[\.,]/_/g' 
     
     grep "^>" $tmp/$clear_name.fa |\
