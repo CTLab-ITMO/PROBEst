@@ -1,10 +1,10 @@
 #!/bin/bash
-# Script: merge_fasta_and_create_blastdb.sh
+# Script: prep_db.sh
 # Description: This script merges multiple FASTA files into a single file, processes sequence headers,
 #              and creates a BLAST database from the merged sequences. It supports gzipped FASTA files
 #              and allows customization of the output database name and temporary directory.
 #
-# Usage: ./merge_fasta_and_create_blastdb.sh -n <database_name> -c <contig_name> -t <tmp_dir> <fasta_files>
+# Usage: ./prep_db.sh -n <database_name> -c <contig_name> -t <tmp_dir> <fasta_files>
 #
 # Options:
 #   -n <database_name>: Name of the output BLAST database (required).
@@ -13,7 +13,7 @@
 #   <fasta_files>:     List of input FASTA files (gzipped or uncompressed).
 #
 # Example:
-#   ./merge_fasta_and_create_blastdb.sh -n my_database -c contig_names.txt -t ./temp file1.fa.gz file2.fasta
+#   ./prep_db.sh -n my_database -c contig_names.txt -t ./temp file1.fa.gz file2.fasta
 
 # Parse command-line options
 while getopts n:c:t: flag
@@ -65,4 +65,4 @@ makeblastdb -in $tmp/merged.fa -out $database_name -dbtype nucl > /dev/null
 # Clean up temporary files and directory
 rm -r $tmp
 
-echo "BLAST database created successfully: $database_name/n"
+echo -e "BLAST database created successfully: $database_name \n"

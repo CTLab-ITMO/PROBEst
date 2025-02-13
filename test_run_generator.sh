@@ -15,7 +15,7 @@
 
 # Function to prepare BLAST databases and contigs table
 prepare () {
-    echo "---- Preparation stage ----\n"
+    echo -e "---- Preparation stage ----\n"
 
     # Clean up previous output directories
     rm -rf data/test/general/contigs
@@ -47,7 +47,7 @@ prepare () {
 # Execute the preparation function
 prepare
 
-echo -e "\nAll BLASTn database created" 
+echo -e "All BLASTn database created" 
 
 # Execute the Python pipeline for probe generation and analysis
 python pipeline.py \
