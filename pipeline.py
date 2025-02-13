@@ -127,7 +127,7 @@ parser.add_argument("-A", "--append",
 # Exec
 parser.add_argument("--primer3",
                     required=False,
-                    default="primer3",
+                    default="primer3_core",
                     help="primer3_core path or command to exec. 'primer3' as default")
 
 parser.add_argument("--blastn",
@@ -215,7 +215,7 @@ args = parser.parse_args()
 
 
 # 1. Initial set generation ----
-print("\n---- PROBESt v.0.1 ----\n")
+print("\n---- PROBESt v.0.1.1 ----\n")
 print("Arguments passed")
 
 script_path = os.path.dirname(

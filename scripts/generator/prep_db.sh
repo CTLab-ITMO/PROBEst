@@ -58,13 +58,11 @@ done
 # Merge all processed FASTA files into a single file
 cat $tmp/*.fa 1>> $tmp/merged.fa 2>/dev/null
 cat $tmp/*.fasta 1>> $tmp/merged.fa 2>/dev/null
-zcat $tmp/*.fa.gz 1>> $tmp/merged.fa 2>/dev/null
-zcat $tmp/*.fasta.gz 1>> $tmp/merged.fa 2>/dev/null
 
 # Create a BLAST database from the merged FASTA file
-makeblastdb -in $tmp/merged.fa -out $database_name -dbtype nucl
+makeblastdb -in $tmp/merged.fa -out $database_name -dbtype nucl > /dev/null
 
 # Clean up temporary files and directory
-#rm -r $tmp
+rm -r $tmp
 
-echo "BLAST database created successfully: $database_name"
+echo "BLAST database created successfully: $database_name/n"
