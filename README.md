@@ -1,5 +1,9 @@
-# PROBEst
-St. Petersburg tool for genereting nucleotide probes with specified properties
+# PROBEst <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
+### St. Petersburg tool for genereting nucleotide probes with specified properties
+
+PROBEst is a sophisticated tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
+
+At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for initial primer generation, BLASTn for specificity and universality checks, and a mutation module for probe optimization. The tool allows users to input target sequences, select reference files for universality and specificity validation, and customize layouts for probe design. The evolutionary algorithm iteratively refines the probes by introducing mutations and evaluating their performance, ensuring that the final output is both specific to the target and universally applicable across related sequences. This AI-driven approach significantly enhances the efficiency and accuracy of probe generation, making PROBEst a valuable resource for molecular biology research.
 
 # Algorithm
 
@@ -33,12 +37,16 @@ This section outlines the algorithm used for probe generation, including checks 
       
    d. **Mutation in Probe**
       - Introduce mutations in the probe based on the parsed data to optimize performance.
+  
+   e. **AI corrections**
+      - Probe evaluation based on AI optimizing function
 
 
-# Download
+# Download and installation
 
 ```bash
 git clone github.com/CTLab-ITMO/PROBEst/
+python setup.py develop
 ```
 
 # Testing
@@ -133,5 +141,6 @@ optional arguments:
                         probe_check template option. maximum negative hits
   --min_ident MIN_IDENT
                         probe_check template option. minimal identity, percent
+```
 ```
 ```
