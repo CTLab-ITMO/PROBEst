@@ -1,8 +1,8 @@
 #create dbs and contigs table
 prepare () {
-    rm data/test/contigs
-    rm -r data/test/blastn_base
-    rm -r data/test/output
+    rm -rf data/test/contigs
+    rm -rf data/test/blastn_base
+    rm -rf data/test/output
     
     bash scripts/generator/prep_db.sh \
     -n data/test/blastn_base/true_base \
