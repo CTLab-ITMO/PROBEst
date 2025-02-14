@@ -1,1 +1,4 @@
-data/test/general/
+data/test/general/blastn_base
+data/test/general/output
+data/test/general/contigs
+data/test/grid/fasta_base
