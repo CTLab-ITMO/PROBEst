@@ -291,6 +291,11 @@ probe_check = "bash " + script_path + "/probe_check.sh" + \
     " -b " + args.negative_max
 
 stats = {}  # Hit stats for each iteration
+# Trim trailing spaces in db path to avoid blastn crash
+args.true_base = args.true_base[:-1] if args.true_base.endswith('/') else args.true_base
+for i, db_neg in enumerate(args.false_base):
+    if db_neg.endswith('/'):
+        args.false_base[i] = db_neg[:-1]
 
 for iter in range(1, args.iterations+1):
     print("\nIteration", iter, "----")
