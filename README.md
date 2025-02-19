@@ -63,20 +63,20 @@ python setup.py develop
 
 ```bash
 bash scripts/generator/prep_db.sh \
-  -n {database_name} \
-  -c {contig_name} \
-  -t {tmp_dir} \
-  [fasta_files]
+  -n {DATABASE_NAME} \
+  -c {CONTIG_NAME} \
+  -t {TMP_DIR} \
+  [FASTA]
 ```
 
 ### Arguments:
-- **`-n {database_name}`**:  
+- `-n DATABASE_NAME`:  
   Name of the output BLAST database (required).  
-- **`-c {contig_name}`**:  
+- `-c CONTIG_NAME`:  
   Output file to store contig names and their corresponding sequence headers (required).  
-- **`-t {tmp_dir}`**:  
+- `-t TMP_DIR`:  
   Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
-- **`[fasta_files]`**:  
+- `FASTA`:  
   List of input FASTA files (gzipped or uncompressed). 
 
 ## Generation
