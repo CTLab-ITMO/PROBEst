@@ -55,90 +55,54 @@ python setup.py develop
 
 - For developers: use `.test/`
 
-# Main usage
+# Usage
+
+## Preparation
+
+`pipeline.py` relies on pre-prepared BLASTn databases. To create the required `true_base`, `false_base`, and `contig_table`, you can use the following script:
 
 ```bash
-usage: pipeline.py [-h] -i INPUT -tb TRUE_BASE -fb [FALSE_BASE [FALSE_BASE ...]] -c
-                   CONTIG_TABLE -o OUTPUT [-t THREADS] [-a ALGORITHM] [-ot OUTPUT_TMP]
-                   [-N ITERATIONS] [-T TOP] [-M MUTATION_RATE] [-S SET_SIZE] [-A APPEND]
-                   [--primer3 PRIMER3] [--blastn BLASTN] [--add_set [ADD_SET [ADD_SET ...]]]
-                   [--PRIMER_PICK_PRIMER PRIMER_PICK_PRIMER]
-                   [--PRIMER_NUM_RETURN PRIMER_NUM_RETURN]
-                   [--PRIMER_OPT_SIZE PRIMER_OPT_SIZE] [--PRIMER_MIN_SIZE PRIMER_MIN_SIZE]
-                   [--PRIMER_MAX_SIZE PRIMER_MAX_SIZE]
-                   [--PRIMER_PRODUCT_SIZE_RANGE PRIMER_PRODUCT_SIZE_RANGE]
-                   [--word_size WORD_SIZE] [--reward REWARD] [--penalty PENALTY]
-                   [--gapopen GAPOPEN] [--gapextend GAPEXTEND] [--evalue EVALUE]
-                   [--max_mismatch MAX_MISMATCH] [--multimap_max MULTIMAP_MAX]
-                   [--negative_max NEGATIVE_MAX] [--min_ident MIN_IDENT]
+bash scripts/generator/prep_db.sh \
+  -n {database_name} \
+  -c {contig_name} \
+  -t {tmp_dir} \
+  [fasta_files]
+```
 
-Generation of probes based on fasta-files and blastn databases. To use it, select one
-reference file to generate the initial primer set; blastn base to check primer universality
-and cut off multimapping; blastn bases to remove non-specific probes Requires primer3 and
-blastn pre-installed
+### Arguments:
+- **`-n {database_name}`**:  
+  Name of the output BLAST database (required).  
+- **`-c {contig_name}`**:  
+  Output file to store contig names and their corresponding sequence headers (required).  
+- **`-t {tmp_dir}`**:  
+  Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
+- **`[fasta_files]`**:  
+  List of input FASTA files (gzipped or uncompressed). 
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -i INPUT, --input INPUT
-                        Input FASTA file for generation. probes are generated for different
-                        contigs separatly. Only gene-coding regions recommended (.fna)
-  -tb TRUE_BASE, --true_base TRUE_BASE
-                        Input blastn database path for primer adjusting
-  -fb [FALSE_BASE [FALSE_BASE ...]], --false_base [FALSE_BASE [FALSE_BASE ...]]
-                        Input blastn database path for non-specific testing. Wildcards are
-                        not accepted
-  -c CONTIG_TABLE, --contig_table CONTIG_TABLE
-                        .tsv table with blast db information
-  -o OUTPUT, --output OUTPUT
-                        Output path
-  -t THREADS, --threads THREADS
-                        number of threads
-  -a ALGORITHM, --algorithm ALGORITHM
-                        algorithm for probes generation. 'FISH' as default, also could be
-                        'primer'
-  -ot OUTPUT_TMP, --output_tmp OUTPUT_TMP
-                        Output .tmp dicrectory path for calculations and data processing.
-                        .tmp in output directory as default
-  -N ITERATIONS, --iterations ITERATIONS
-                        Maximum iterations of evolutionary algorithm. 100 by default
-  -T TOP, --top TOP     Top probes to mutate and use in next generation
-  -M MUTATION_RATE, --mutation_rate MUTATION_RATE
-                        Mutation probability per position of primer
-  -S SET_SIZE, --set_size SET_SIZE
-                        Size of mutated probes per primer
-  -A APPEND, --append APPEND
-                        Append best probes to array in evolutionary algoritm
-  --primer3 PRIMER3     primer3_core path or command to exec. 'primer3' as default
-  --blastn BLASTN       blastn path or command to exec. 'blastn' as default
-  --add_set [ADD_SET [ADD_SET ...]]
-                        file to set of probes to append to initial primer3 generation. empty
-                        by default
-  --PRIMER_PICK_PRIMER PRIMER_PICK_PRIMER
-                        primer3 template option. Number of probes to pick
-  --PRIMER_NUM_RETURN PRIMER_NUM_RETURN
-                        primer3 template option. initial set size per gene
-  --PRIMER_OPT_SIZE PRIMER_OPT_SIZE
-                        primer3 template option
-  --PRIMER_MIN_SIZE PRIMER_MIN_SIZE
-                        primer3 template option
-  --PRIMER_MAX_SIZE PRIMER_MAX_SIZE
-                        primer3 template option
-  --PRIMER_PRODUCT_SIZE_RANGE PRIMER_PRODUCT_SIZE_RANGE
-                        primer3 template option. 2 values sepatated by '-'
-  --word_size WORD_SIZE
-                        blastn template option
-  --reward REWARD       blastn template option
-  --penalty PENALTY     blastn template option
-  --gapopen GAPOPEN     blastn template option
-  --gapextend GAPEXTEND
-                        blastn template option
-  --evalue EVALUE       blastn template option
-  --max_mismatch MAX_MISMATCH
-                        probe_check template option. maximum avialable mismatch
-  --multimap_max MULTIMAP_MAX
-                        probe_check template option. maximum multimapped hits
-  --negative_max NEGATIVE_MAX
-                        probe_check template option. maximum negative hits
-  --min_ident MIN_IDENT
-                        probe_check template option. minimal identity, percent
+## Generation
+
+PROBEst can be run using the following command:
+
+```bash
+python pipeline.py [-h] \
+  -i {INPUT} \
+  -tb {TRUE_BASE} \
+  -fb [FALSE_BASE [FALSE_BASE ...]] \
+  -c {CONTIG_TABLE} \
+  -o {OUTPUT}
+```
+
+### Key Arguments:
+- `-i INPUT`: Input FASTA file for probe generation.
+- `-tb TRUE_BASE`: Input BLASTn database path for primer adjusting.
+- `-fb FALSE_BASE`: Input BLASTn database path for non-specific testing.
+- `-c CONTIG_TABLE`: .tsv table with BLAST database information.
+- `-o OUTPUT`: Output path for results.
+- `-t THREADS`: Number of threads to use.
+- `-a ALGORITHM`: Algorithm for probe generation (`FISH` or `primer`).
+
+For a full list of arguments, run:
+
+```bash
+python pipeline.py --help
 ```
