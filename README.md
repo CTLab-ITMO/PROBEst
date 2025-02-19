@@ -70,14 +70,10 @@ bash scripts/generator/prep_db.sh \
 ```
 
 ### Arguments:
-- `-n DATABASE_NAME`:  
-  Name of the output BLAST database (required).  
-- `-c CONTIG_NAME`:  
-  Output file to store contig names and their corresponding sequence headers (required).  
-- `-t TMP_DIR`:  
-  Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
-- `FASTA`:  
-  List of input FASTA files (gzipped or uncompressed). 
+- `-n DATABASE_NAME`:  Name of the output BLAST database (required).  
+- `-c CONTIG_NAME`:  Output file to store contig names and their corresponding sequence headers (required).  
+- `-t TMP_DIR`:  Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
+- `FASTA`:  List of input FASTA files (gzipped or uncompressed). 
 
 ## Generation
 
