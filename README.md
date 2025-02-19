@@ -11,36 +11,27 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 
 ## Algorithm Steps
 
-1. **Select File for Probe Generation**
-   - Choose the primary file that will be used to generate the probe.
+0. **Prepare BLASTn databases**
 
-2. **Select Files for Universality Check**
-   - Identify and select files that will be used to assess the universality of the probe.
+1. **Select File for Probe Generation** (`INPUT`)
 
-3. **Select Files for Specificity Check**
-   - Identify and select files that will be used to evaluate the specificity of the probe.
+2. **Select Files for Universality Check** (`TRUE_BASE`)
 
-4. **Select Layouts**
-   - Determine the layouts that will be utilized during the probe generation process.
-
-5. **Run Wrapped Evolutionary Algorithm**
+3. **Select Files for Specificity Check** (`FALSE_BASE`)
+   
+4. **Select Layouts and Run Wrapped Evolutionary Algorithm** (`pipeline.py`)
    - Execute the following steps within the evolutionary algorithm:
    
    a. **Primer3 Generation**
-      - Generate primers using the Primer3 tool.
       
    b. **BLASTn Check**
-      - Perform a BLASTn check to ensure the generated probes are suitable.
       
    c. **Parsing**
-      - Parse the results from the BLASTn check to extract relevant information.
       
    d. **Mutation in Probe**
-      - Introduce mutations in the probe based on the parsed data to optimize performance.
-  
+   
    e. **AI corrections**
-      - Probe evaluation based on AI optimizing function
-
+    
 
 # Download and installation
 
@@ -71,7 +62,7 @@ bash scripts/generator/prep_db.sh \
 
 ### Arguments:
 - `-n DATABASE_NAME`:  Name of the output BLAST database (required).  
-- `-c CONTIG_NAME`:  Output file to store contig names and their corresponding sequence headers (required).  
+- `-c CONTIG_TABLE`:  Output file to store contig names and their corresponding sequence headers (required).  
 - `-t TMP_DIR`:  Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
 - `FASTA`:  List of input FASTA files (gzipped or uncompressed). 
 
