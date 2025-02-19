@@ -1,4 +1,4 @@
-# PROBEst v.0.1. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
+# PROBEst v.0.1.2. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
 ### St. Petersburg tool for genereting nucleotide probes with specified properties
 
 PROBEst is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
@@ -7,32 +7,6 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 
 **Warning**: tool is under development
 
-# Algorithm
-
-## Algorithm Steps
-
-0. **Prepare BLASTn databases**
-
-1. **Select File for Probe Generation** (`INPUT`)
-
-2. **Select Files for Universality Check** (`TRUE_BASE`)
-
-3. **Select Files for Specificity Check** (`FALSE_BASE`)
-   
-4. **Select Layouts and Run Wrapped Evolutionary Algorithm** (`pipeline.py`)
-   - Execute the following steps within the evolutionary algorithm:
-   
-   a. **Primer3 Generation**
-      
-   b. **BLASTn Check**
-      
-   c. **Parsing**
-      
-   d. **Mutation in Probe**
-   
-   e. **AI corrections**
-    
-
 # Download and installation
 
 ```bash
@@ -40,11 +14,12 @@ git clone github.com/CTLab-ITMO/PROBEst/
 python setup.py develop
 ```
 
-# Testing
+# Tool parts
+PROBEst consists of two main components: **databases and their parsers**, and the **probe generation tool**.
 
-- To check the installation: `bash test_run_generator.sh`
+- Databases and Parsers focuses on managing and processing data related to nucleotide probes.
 
-- For developers: use `.test/`
+- Probe Generation Tool
 
 # Usage
 
@@ -93,3 +68,56 @@ For a full list of arguments, run:
 ```bash
 python pipeline.py --help
 ```
+
+
+# Algorithm
+
+## Algorithm Steps
+
+0. **Prepare BLASTn databases**
+
+1. **Select File for Probe Generation** (`INPUT`)
+
+2. **Select Files for Universality Check** (`TRUE_BASE`)
+
+3. **Select Files for Specificity Check** (`FALSE_BASE`)
+   
+4. **Select Layouts and Run Wrapped Evolutionary Algorithm** (`pipeline.py`)
+   - Execute the following steps within the evolutionary algorithm:
+   
+   a. **Primer3 Generation**
+      
+   b. **BLASTn Check**
+      
+   c. **Parsing**
+      
+   d. **Mutation in Probe**
+   
+   e. **AI corrections**
+    
+
+
+# Testing
+
+- To check the installation: `bash test_run_generator.sh`
+
+- For developers: use `.test/`
+
+
+# License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+# Contribution
+
+We welcome contributions from the community! To contribute:
+1. Fork the repository.
+2. Create a new branch for your feature or bugfix.
+3. Commit your changes and push to the branch.
+4. Open a pull request with a detailed description of your changes.
+
+Please read the [Contribution Guidelines](CONTRIBUTING.md) for more details.
+
+# Wiki
+
+Tool have its own Wiki pages with detailed information on usage cases, data description and another neccessary information
