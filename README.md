@@ -11,6 +11,7 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 
 ```bash
 git clone https://github.com/CTLab-ITMO/PROBEst
+cd PROBEst
 python setup.py develop
 ```
 
@@ -67,6 +68,13 @@ For a full list of arguments, run:
 
 ```bash
 python pipeline.py --help
+```
+
+For parameter selection, grid search is implemented. You can specify parameters in json (see for example `data/test/general/param_grid_light.json`) and run 
+
+```bash
+python test_parameters.py \
+  -p {JSON}
 ```
 
 

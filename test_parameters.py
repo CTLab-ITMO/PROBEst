@@ -34,7 +34,7 @@ def parse_args():
         '-o',
         '--output',
         type=Path,
-        default='./param_search',
+        default='./data/param_search',
         help='Output files directory.'
     )
 
