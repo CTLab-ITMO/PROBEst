@@ -10,7 +10,7 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 # Download and installation
 
 ```bash
-git clone github.com/CTLab-ITMO/PROBEst/
+git clone https://github.com/CTLab-ITMO/PROBEst
 python setup.py develop
 ```
 
