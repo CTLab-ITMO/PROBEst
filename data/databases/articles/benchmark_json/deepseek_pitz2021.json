@@ -1,0 +1,422 @@
+{
+  "article_data": {
+    "probe_samples": {
+      "doi": "10.1016/j.hal.2020.101914",
+      "sample_group": [
+        {
+          "probe_group": {
+            "id_group": 1,
+            "experiment_ids": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "results": {
+              "result": [
+                {
+                  "id_exp": 1,
+                  "outcome": true,
+                  "fluorescence": 100
+                },
+                {
+                  "id_exp": 2,
+                  "outcome": true,
+                  "fluorescence": 95
+                },
+                {
+                  "id_exp": 3,
+                  "outcome": true,
+                  "fluorescence": 90
+                },
+                {
+                  "id_exp": 4,
+                  "outcome": true,
+                  "fluorescence": 85
+                },
+                {
+                  "id_exp": 5,
+                  "outcome": true,
+                  "fluorescence": 80
+                },
+                {
+                  "id_exp": 6,
+                  "outcome": true,
+                  "fluorescence": 75
+                },
+                {
+                  "id_exp": 7,
+                  "outcome": true,
+                  "fluorescence": 70
+                }
+              ]
+            },
+            "sequences": {
+              "related_sequences": {
+                "related_sequence": [
+                  "Gambierdiscus australes LSU rRNA",
+                  "Gambierdiscus belizeanus LSU rRNA",
+                  "Gambierdiscus caribaeus LSU rRNA",
+                  "Gambierdiscus carolinianus LSU rRNA",
+                  "Gambierdiscus carpenteri LSU rRNA",
+                  "Gambierdiscus polynesiensis LSU rRNA",
+                  "Gambierdiscus silvae LSU rRNA"
+                ]
+              },
+              "probe_sequences": {
+                "probes": {
+                  "probe": [
+                    {
+                      "id_probe": 1,
+                      "probe_sequence": "TGAAGCCACATGTGGAGATTC",
+                      "modification": []
+                    },
+                    {
+                      "id_probe": 2,
+                      "probe_sequence": "AGATCAATAGGCCAGAGTGACTA",
+                      "modification": []
+                    },
+                    {
+                      "id_probe": 3,
+                      "probe_sequence": "TGATCTAAGGCAGAAGGCCAGAG",
+                      "modification": []
+                    },
+                    {
+                      "id_probe": 4,
+                      "probe_sequence": "CGATCAGAGACATACTTTGGGCC",
+                      "modification": []
+                    },
+                    {
+                      "id_probe": 5,
+                      "probe_sequence": "AGCAAACCACAGATCCACTGAG",
+                      "modification": []
+                    },
+                    {
+                      "id_probe": 6,
+                      "probe_sequence": "TGCCAATCCAGTTGTGTATCTC",
+                      "modification": []
+                    },
+                    {
+                      "id_probe": 7,
+                      "probe_sequence": "CTCCGCCAGTTAGCTTAGATA",
+                      "modification": []
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "hybridization_experiments": {
+      "doi": "10.1016/j.hal.2020.101914",
+      "experiment": [
+        {
+          "id_exp": 1,
+          "raw_description": "Cultures were hybridized in separate reactions within a hybridization manifold with individual candidate probes labeled with either a Cy3 or FITC fluorophore.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus australes",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "2 ng/μL",
+                "id_probe": 1,
+                "concentration_article": "2 ng/μL",
+                "concentration_si": 2
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "52°C",
+                "tris": "5X SET",
+                "na": "0.1% IGEPAL CA-630",
+                "k": "10% formamide",
+                "mg": "10 mg/mL Poly A",
+                "dmso": "N/A"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 52,
+                "tris": 5,
+                "na": 0.1,
+                "k": 10,
+                "mg": 10,
+                "dmso": 0
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 2,
+          "raw_description": "Cultures were hybridized in separate reactions within a hybridization manifold with individual candidate probes labeled with either a Cy3 or FITC fluorophore.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus belizeanus",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "2 ng/μL",
+                "id_probe": 2,
+                "concentration_article": "2 ng/μL",
+                "concentration_si": 2
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "52°C",
+                "tris": "5X SET",
+                "na": "0.1% IGEPAL CA-630",
+                "k": "10% formamide",
+                "mg": "10 mg/mL Poly A",
+                "dmso": "N/A"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 52,
+                "tris": 5,
+                "na": 0.1,
+                "k": 10,
+                "mg": 10,
+                "dmso": 0
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 3,
+          "raw_description": "Cultures were hybridized in separate reactions within a hybridization manifold with individual candidate probes labeled with either a Cy3 or FITC fluorophore.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus caribaeus",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "2 ng/μL",
+                "id_probe": 3,
+                "concentration_article": "2 ng/μL",
+                "concentration_si": 2
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "52°C",
+                "tris": "5X SET",
+                "na": "0.1% IGEPAL CA-630",
+                "k": "10% formamide",
+                "mg": "10 mg/mL Poly A",
+                "dmso": "N/A"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 52,
+                "tris": 5,
+                "na": 0.1,
+                "k": 10,
+                "mg": 10,
+                "dmso": 0
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 4,
+          "raw_description": "Cultures were hybridized in separate reactions within a hybridization manifold with individual candidate probes labeled with either a Cy3 or FITC fluorophore.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus carolinianus",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "2 ng/μL",
+                "id_probe": 4,
+                "concentration_article": "2 ng/μL",
+                "concentration_si": 2
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "52°C",
+                "tris": "5X SET",
+                "na": "0.1% IGEPAL CA-630",
+                "k": "10% formamide",
+                "mg": "10 mg/mL Poly A",
+                "dmso": "N/A"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 52,
+                "tris": 5,
+                "na": 0.1,
+                "k": 10,
+                "mg": 10,
+                "dmso": 0
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 5,
+          "raw_description": "Cultures were hybridized in separate reactions within a hybridization manifold with individual candidate probes labeled with either a Cy3 or FITC fluorophore.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus carpenteri",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "2 ng/μL",
+                "id_probe": 5,
+                "concentration_article": "2 ng/μL",
+                "concentration_si": 2
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "52°C",
+                "tris": "5X SET",
+                "na": "0.1% IGEPAL CA-630",
+                "k": "10% formamide",
+                "mg": "10 mg/mL Poly A",
+                "dmso": "N/A"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 52,
+                "tris": 5,
+                "na": 0.1,
+                "k": 10,
+                "mg": 10,
+                "dmso": 0
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 6,
+          "raw_description": "Cultures were hybridized in separate reactions within a hybridization manifold with individual candidate probes labeled with either a Cy3 or FITC fluorophore.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus polynesiensis",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "2 ng/μL",
+                "id_probe": 6,
+                "concentration_article": "2 ng/μL",
+                "concentration_si": 2
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "52°C",
+                "tris": "5X SET",
+                "na": "0.1% IGEPAL CA-630",
+                "k": "10% formamide",
+                "mg": "10 mg/mL Poly A",
+                "dmso": "N/A"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 52,
+                "tris": 5,
+                "na": 0.1,
+                "k": 10,
+                "mg": 10,
+                "dmso": 0
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 7,
+          "raw_description": "Cultures were hybridized in separate reactions within a hybridization manifold with individual candidate probes labeled with either a Cy3 or FITC fluorophore.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus silvae",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "2 ng/μL",
+                "id_probe": 7,
+                "concentration_article": "2 ng/μL",
+                "concentration_si": 2
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "52°C",
+                "tris": "5X SET",
+                "na": "0.1% IGEPAL CA-630",
+                "k": "10% formamide",
+                "mg": "10 mg/mL Poly A",
+                "dmso": "N/A"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 52,
+                "tris": 5,
+                "na": 0.1,
+                "k": 10,
+                "mg": 10,
+                "dmso": 0
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

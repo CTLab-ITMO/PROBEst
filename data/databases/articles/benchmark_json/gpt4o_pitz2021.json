@@ -1,0 +1,115 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "sample_group": [
+                {
+                    "probe_group": {
+                        "id_group": 1,
+                        "experiment_ids": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 1,
+                                    "outcome": true,
+                                    "fluorescence": 300
+                                },
+                                {
+                                    "id_exp": 2,
+                                    "outcome": false,
+                                    "fluorescence": 0
+                                }
+                            ]
+                        },
+                        "sequences": {
+                            "related_sequences": {
+                                "related_sequence": [
+                                    "G. australes LSU rRNA",
+                                    "G. belizeanus LSU rRNA"
+                                ]
+                            },
+                            "probe_sequences": {
+                                "probes": {
+                                    "probe": [
+                                        {
+                                            "id_probe": 101,
+                                            "probe_sequence": "TGAGACCCACATGTGGAGATTC",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "methylation"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 102,
+                                            "probe_sequence": "AGATCAGTACGCCAGAGTGACTA",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 3,
+                                                    "modification_type": "phosphorylation"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "Fluorescence in situ hybridization for Gambierdiscus species",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "1.6 ng/µl",
+                                "id_probe": 101,
+                                "concentration_article": "Current study",
+                                "concentration_si": 1.6
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "53°C",
+                                "tris": "20 mM",
+                                "na": "50 mM",
+                                "k": "100 mM",
+                                "mg": "2 mM",
+                                "dmso": "0.5%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 53,
+                                "tris": 20,
+                                "na": 50,
+                                "k": 100,
+                                "mg": 2,
+                                "dmso": 0.5
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

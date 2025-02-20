@@ -1,0 +1,293 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "sample_group": [
+                {
+                    "probe_group": {
+                        "id_group": 1,
+                        "experiment_ids": [
+                            1,
+                            2
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 1,
+                                    "outcome": true,
+                                    "fluorescence": 1
+                                },
+                                {
+                                    "id_exp": 2,
+                                    "outcome": true,
+                                    "fluorescence": 1
+                                }
+                            ]
+                        },
+                        "sequences": {
+                            "related_sequences": {
+                                "related_sequence": [
+                                    "LSU rRNA D1-D3 and D8-D10 regions"
+                                ]
+                            },
+                            "probe_sequences": {
+                                "probes": {
+                                    "probe": [
+                                        {
+                                            "id_probe": 1,
+                                            "probe_sequence": "TGAAGCCACATGTGGAGATTC",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 2,
+                                            "probe_sequence": "AGATCAATAGGCCAGAGTGACTA",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 3,
+                                            "probe_sequence": "TGATCTAAGGCAGAAGGCCAGAG",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 4,
+                                            "probe_sequence": "CGATCAGAGACATACTTTGGGCC",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 5,
+                                            "probe_sequence": "AGCAAACCACAGATCCACTGAG",
+                                            "modification": []
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "probe_group": {
+                        "id_group": 2,
+                        "experiment_ids": [
+                            3,
+                            4
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 3,
+                                    "outcome": true,
+                                    "fluorescence": 1
+                                },
+                                {
+                                    "id_exp": 4,
+                                    "outcome": true,
+                                    "fluorescence": 1
+                                }
+                            ]
+                        },
+                        "sequences": {
+                            "related_sequences": {
+                                "related_sequence": [
+                                    "LSU rRNA D1-D3 and D8-D10 regions"
+                                ]
+                            },
+                            "probe_sequences": {
+                                "probes": {
+                                    "probe": [
+                                        {
+                                            "id_probe": 6,
+                                            "probe_sequence": "TGCCAATCCAGTTGTGTATCTC",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 7,
+                                            "probe_sequence": "CTCCGCCAGTTAGCTTAGATA",
+                                            "modification": []
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "Cross-reactivity testing using Gambierdiscus cultures with Cy3/FITC fluorophores",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus spp.",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "2 ng/μl",
+                                "id_probe": 1,
+                                "concentration_article": "2 ng/μl",
+                                "concentration_si": 2
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "52-55°C",
+                                "tris": "Not specified",
+                                "na": "Not specified",
+                                "k": "Not specified",
+                                "mg": "Not specified",
+                                "dmso": "Not specified"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 55,
+                                "tris": 0,
+                                "na": 0,
+                                "k": 0,
+                                "mg": 0,
+                                "dmso": 0
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 2,
+                    "raw_description": "Field sample spiking with Gambierdiscus cultures for FISH validation",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus spp.",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "2 ng/μl",
+                                "id_probe": 2,
+                                "concentration_article": "2 ng/μl",
+                                "concentration_si": 2
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "53-55°C",
+                                "tris": "Not specified",
+                                "na": "Not specified",
+                                "k": "Not specified",
+                                "mg": "Not specified",
+                                "dmso": "Not specified"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 55,
+                                "tris": 0,
+                                "na": 0,
+                                "k": 0,
+                                "mg": 0,
+                                "dmso": 0
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 3,
+                    "raw_description": "Multiplexed probe assays for Caribbean samples",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus spp.",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "2 ng/μl",
+                                "id_probe": 6,
+                                "concentration_article": "2 ng/μl",
+                                "concentration_si": 2
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "52-55°C",
+                                "tris": "Not specified",
+                                "na": "Not specified",
+                                "k": "Not specified",
+                                "mg": "Not specified",
+                                "dmso": "Not specified"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 55,
+                                "tris": 0,
+                                "na": 0,
+                                "k": 0,
+                                "mg": 0,
+                                "dmso": 0
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 4,
+                    "raw_description": "Multiplexed probe assays for Pacific samples",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus spp.",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "2 ng/μl",
+                                "id_probe": 7,
+                                "concentration_article": "2 ng/μl",
+                                "concentration_si": 2
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "52-55°C",
+                                "tris": "Not specified",
+                                "na": "Not specified",
+                                "k": "Not specified",
+                                "mg": "Not specified",
+                                "dmso": "Not specified"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 55,
+                                "tris": 0,
+                                "na": 0,
+                                "k": 0,
+                                "mg": 0,
+                                "dmso": 0
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

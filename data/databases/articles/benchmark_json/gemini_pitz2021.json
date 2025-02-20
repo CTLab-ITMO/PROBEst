@@ -1,0 +1,170 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1016/j.hal.2021.101914",
+            "sample_group": [
+                {
+                    "probe_group": {
+                        "id_group": 1,
+                        "experiment_ids": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 1,
+                                    "outcome": true,
+                                    "fluorescence": 1
+                                },
+                                {
+                                    "id_exp": 2,
+                                    "outcome": true,
+                                    "fluorescence": 1
+                                }
+                            ]
+                        },
+                        "sequences": {
+                            "related_sequences": {
+                                "related_sequence": [
+                                    "LSU rRNA",
+                                    "D1-D3",
+                                    "D8-D10"
+                                ]
+                            },
+                            "probe_sequences": {
+                                "probes": {
+                                    "probe": [
+                                        {
+                                            "id_probe": 1,
+                                            "probe_sequence": "TGAGACCCACATGTGGAGATTC",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 2,
+                                            "probe_sequence": "TGCCAATCCAGTTGTGTATCTC",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 3,
+                                            "probe_sequence": "AGATCAGTACGCCAGAGTGACTA",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 4,
+                                            "probe_sequence": "TGATGTAACGCAAGACGCACAG",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 5,
+                                            "probe_sequence": "AGCAAGCCACAGATCCACTGAG",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 6,
+                                            "probe_sequence": "CGATCAGAGACATACTTTGGCGC",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 7,
+                                            "probe_sequence": "CTCCGCCAGTGACGTTAAGTAG",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 5,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1016/j.hal.2021.101914",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "Samples were incubated in a hybridization manifold at 52, 53, or 55°C for an hour",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "preserved culture",
+                                "id_probe": 1,
+                                "concentration_article": "2 ng/μl",
+                                "concentration_si": 2
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "52-55°C",
+                                "tris": "NA",
+                                "na": "NA",
+                                "k": "NA",
+                                "mg": "NA",
+                                "dmso": "NA"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 53,
+                                "tris": 0,
+                                "na": 0,
+                                "k": 0,
+                                "mg": 0,
+                                "dmso": 0
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

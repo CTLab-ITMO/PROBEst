@@ -1,0 +1,171 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "sample_group": [
+                {
+                    "probe_group": {
+                        "id_group": 1,
+                        "experiment_ids": [
+                            1,
+                            2
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 1,
+                                    "outcome": true,
+                                    "fluorescence": 532
+                                },
+                                {
+                                    "id_exp": 2,
+                                    "outcome": false,
+                                    "fluorescence": 488
+                                }
+                            ]
+                        },
+                        "sequences": {
+                            "related_sequences": {
+                                "related_sequence": [
+                                    "G. caribaeus",
+                                    "G. belizeanus",
+                                    "G. carpenteri",
+                                    "G. polynesiensis",
+                                    "G. silvae"
+                                ]
+                            },
+                            "probe_sequences": {
+                                "probes": {
+                                    "probe": [
+                                        {
+                                            "id_probe": 1,
+                                            "probe_sequence": "TGAGACCCACATGTGGAGATTC",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 2,
+                                            "probe_sequence": "AGATCAGTACGCCAGAGTGACTA",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 3,
+                                            "probe_sequence": "TGATGTAACGCAAGACGCACAG",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 4,
+                                            "probe_sequence": "CGATCAGAGACATACTTTGGCGC",
+                                            "modification": []
+                                        },
+                                        {
+                                            "id_probe": 5,
+                                            "probe_sequence": "AGCAAGCCACAGATCCACTGAG",
+                                            "modification": []
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "Experiment validating FISH probes for G. caribaeus.",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "2 ng/µl",
+                                "id_probe": 1,
+                                "concentration_article": "Analyzed concentration in hybridization",
+                                "concentration_si": 0.002
+                            },
+                            {
+                                "dna_rna_concentration": "2 ng/µl",
+                                "id_probe": 2,
+                                "concentration_article": "Analyzed concentration in hybridization",
+                                "concentration_si": 0.002
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "53°C",
+                                "tris": "10 mM",
+                                "na": "50 mM",
+                                "k": "0 mM",
+                                "mg": "0 mM",
+                                "dmso": "0%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 53,
+                                "tris": 10,
+                                "na": 50,
+                                "k": 0,
+                                "mg": 0,
+                                "dmso": 0
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 2,
+                    "raw_description": "Field sample analysis to confirm species detection via FISH.",
+                    "type": "FISH",
+                    "organism": "Gambierdiscus",
+                    "rna_impurities": true,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "2 ng/µl",
+                                "id_probe": 3,
+                                "concentration_article": "Analyzed concentration in hybridization",
+                                "concentration_si": 0.002
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "55°C",
+                                "tris": "10 mM",
+                                "na": "50 mM",
+                                "k": "0 mM",
+                                "mg": "0 mM",
+                                "dmso": "0%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 55,
+                                "tris": 10,
+                                "na": 50,
+                                "k": 0,
+                                "mg": 0,
+                                "dmso": 0
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

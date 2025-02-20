@@ -1,0 +1,157 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "sample_group": [
+                {
+                    "probe_group": {
+                        "id_group": 1,
+                        "experiment_ids": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 1,
+                                    "outcome": true,
+                                    "fluorescence": 532
+                                },
+                                {
+                                    "id_exp": 2,
+                                    "outcome": true,
+                                    "fluorescence": 594
+                                },
+                                {
+                                    "id_exp": 3,
+                                    "outcome": true,
+                                    "fluorescence": 488
+                                }
+                            ]
+                        },
+                        "sequences": {
+                            "related_sequences": {
+                                "related_sequence": [
+                                    "G. australes",
+                                    "G. belizeanus",
+                                    "G. caribaeus",
+                                    "G. carolinianus",
+                                    "G. carpenteri",
+                                    "G. polynesiensis",
+                                    "G. silvae"
+                                ]
+                            },
+                            "probe_sequences": {
+                                "probes": {
+                                    "probe": [
+                                        {
+                                            "id_probe": 1,
+                                            "probe_sequence": "TGAGACCCACATGTGGAGATTC",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 1,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 2,
+                                            "probe_sequence": "AGATCAGTACGCCAGAGTGACTA",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 2,
+                                                    "modification_type": "FITC"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 3,
+                                            "probe_sequence": "TGATGTAACGCAAGACGCACAG",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 3,
+                                                    "modification_type": "Cy3"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id_probe": 4,
+                                            "probe_sequence": "AGCAAGCCACAGATCCACTGAG",
+                                            "modification": [
+                                                {
+                                                    "modification_pos": 4,
+                                                    "modification_type": "TxRd"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1016/j.hal.2020.101914",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "Fluorescent probes were designed to target the large subunit (LSU) region of rRNA of seven species of Gambierdiscus.",
+                    "type": "Specificity Testing",
+                    "organism": "Gambierdiscus",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "2 ng/μl",
+                                "id_probe": 1,
+                                "concentration_article": "Initial testing concentration",
+                                "concentration_si": 2
+                            },
+                            {
+                                "dna_rna_concentration": "3 ng/μl",
+                                "id_probe": 2,
+                                "concentration_article": "Initial testing concentration",
+                                "concentration_si": 3
+                            },
+                            {
+                                "dna_rna_concentration": "4 ng/μl",
+                                "id_probe": 3,
+                                "concentration_article": "Initial testing concentration",
+                                "concentration_si": 4
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "53°C",
+                                "tris": "50 mM",
+                                "na": "0.1 M",
+                                "k": "10 mM",
+                                "mg": "5 mM",
+                                "dmso": "5%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 53,
+                                "tris": 50,
+                                "na": 0,
+                                "k": 10,
+                                "mg": 5,
+                                "dmso": 5
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
