@@ -1,0 +1,20 @@
+{
+    "input": ["/mnt/c/Users/PC/Desktop/materials/ITMO/thesis/probest/PROBEst/data/test/general/test.fna"],
+    "true_base": ["/mnt/c/Users/PC/Desktop/materials/ITMO/thesis/probest/PROBEst/db_tmp/true_base/"],
+    "false_base": [
+        [
+            "/mnt/c/Users/PC/Desktop/materials/ITMO/thesis/probest/PROBEst/db_tmp/false_base_1/",
+            "/mnt/c/Users/PC/Desktop/materials/ITMO/thesis/probest/PROBEst/db_tmp/false_base_2/"
+    ]
+    ],
+    "contig_table": ["/mnt/c/Users/PC/Desktop/materials/ITMO/thesis/probest/PROBEst/data/test/general/contigs"],
+    "algorithm": ["FISH"],
+    "iterations": [3, 5],
+    "top": [3, 5],
+    "mutation_rate": [0.05],
+    "set_size": [10],
+    "append": [true, false],
+    "PRIMER_PICK_PRIMER": [1],
+    "PRIMER_NUM_RETURN": [1],
+    "primer3": ["primer3_core"]
+}
