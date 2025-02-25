@@ -1,6 +1,7 @@
 import random
 
-def mutate_seq(x, mutrate, indelrate=0.1): # issue: add indelrate to argparse
+
+def mutate_position(x, mutrate, indelrate=0.1):  # issue: add indelrate to argparse
     """
     Mutates a nucleotide based on a given mutation rate and indel rate.
 
@@ -36,3 +37,26 @@ def mutate_seq(x, mutrate, indelrate=0.1): # issue: add indelrate to argparse
     else:
         # No mutation: Return the original nucleotide
         return x
+
+
+def mutate_sequence(args, out_dir, seqs):
+    if args.append:
+        seqs_mutated = seqs.copy()
+    else:
+        seqs_mutated = dict()
+    for seqs_unique in seqs.keys():
+        for seqs_iter in range(args.set_size):
+            init_seq = seqs[seqs_unique]
+            mutated_seq = init_seq
+            while init_seq == mutated_seq:
+                mutated_seq = "".join(
+                    [mutate_position(_,  mutrate=args.mutation_rate) for _ in init_seq])
+            mseq = "I" + str(iter)+"N"+str(seqs_iter)+"_"
+            seqs_mutated[mseq+seqs_unique] = mutated_seq
+
+    fasta = open(out_dir+"output.fa", "w")
+    for fname in seqs_mutated.keys():
+        fasta.write(">" + fname + "\n" + seqs_mutated[fname]+"\n")
+    fasta.close()
+
+    print("Done")

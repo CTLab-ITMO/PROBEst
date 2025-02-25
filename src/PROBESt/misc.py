@@ -1,5 +1,43 @@
 import os
 import re
+import subprocess
+
+
+def write_stats(stats: dict, output_dir: str):
+    """
+    Writes statistics about probe performance to a CSV file.
+
+    Args:
+        stats (dict): A dictionary where the keys are iteration numbers (int) and the
+                      values are dictionaries containing the following keys:
+                      - 'max_hits' (int): The maximum number of hits for the iteration.
+                      - 'mean_hits' (float): The mean number of hits for the iteration.
+        output_dir (str): The path to the output directory where the CSV file will be saved.
+
+    Returns:
+        None: The function writes the statistics to a file and does not return a value.
+
+    Raises:
+        OSError: If the output directory cannot be created or the file cannot be written.
+    """
+    # Create the output directory if it does not exist
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Construct the full path to the stats file
+    stats_file = os.path.join(output_dir, 'stats.csv')
+
+    try:
+        # Write the statistics to the CSV file
+        with open(stats_file, 'w') as f:
+            # Write the header row
+            f.write('iteration,max_hits,mean_hits\n')
+
+            # Write each iteration's statistics
+            for iter, stat in stats.items():
+                f.write(f"{iter},{stat['max_hits']},{stat['mean_hits']}\n")
+    except OSError as e:
+        raise OSError(f"Failed to write statistics to {stats_file}: {e}")
+
 
 def write_fasta(probes, output_file):
     """
@@ -24,11 +62,12 @@ def write_fasta(probes, output_file):
                 fasta.write(f"{header}\n{sequence}\n")
     except IOError as e:
         print(f"Error writing to file {output_file}: {e}")
-        
+
+
 def out_dir(iter, output, output_tmp):
     """
     Warning: deprecated
-        
+
     Generates a directory path for temporary or output files based on the iteration number.
 
     Args:
@@ -49,8 +88,10 @@ def out_dir(iter, output, output_tmp):
         os.makedirs(path, exist_ok=True)
         return path + "/"
     except AttributeError:
-        raise AttributeError("The `args` object is missing required attributes (`output` or `output_tmp`).")
-    
+        raise AttributeError(
+            "The `args` object is missing required attributes (`output` or `output_tmp`).")
+
+
 def pairing(x):
     """
     Generates a pair of primer names by appending "RIGHT" and "LEFT" to a base name.

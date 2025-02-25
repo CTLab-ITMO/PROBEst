@@ -1,7 +1,7 @@
 import subprocess
 from shutil import copyfile
 
-def merge(algo, input, output, tmp, N, script_path):
+def merge(algo, input, output, tmp, NNN, script_path):
     '''
     Merges primer sequences from a FASTA file based on the specified algorithm.
 
@@ -11,7 +11,7 @@ def merge(algo, input, output, tmp, N, script_path):
                  Pairs should be specified as 'LEFT' and 'RIGHT'.
     output (str): Path to the output file where merged sequences will be written.
     tmp (str): Path to a temporary file for storing the converted FASTA table.
-    N (int): The number of 'N' characters to use as a separator between sequences.
+    NNN (int): The number of 'N' characters to use as a separator between sequences.
     script_path (str): The directory path where bash scripts are located.
 
     Raises:
