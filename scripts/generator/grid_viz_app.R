@@ -1,4 +1,18 @@
-df <- "~/PROBEst/PROBEst/data/param_search/param_stats.csv"
+if (!interactive()) {
+  print("Running from the command line")
+  
+  # Get the file path from command-line arguments
+  args <- commandArgs(trailingOnly = TRUE)
+  if (length(args) > 0) {
+    df <- args[1]
+  } else {
+    stop("Please provide a stats file path as a command-line argument.")
+  }
+} else {
+  print("Running interactively (e.g., in RStudio or R console)")
+  # Use a hardcoded path for interactive sessions
+  df <- "~/PROBEst/PROBEst/data/param_search/param_stats.csv"
+}
 
 # Load required libraries
 library(shiny)
@@ -35,6 +49,7 @@ server <- function(input, output, session) {
   data <- reactive({
     req(input$file)
     read.csv(input$file)
+
   })
   
   # Dynamically generate UI for selecting x-axis, y-axis, and grid variables
