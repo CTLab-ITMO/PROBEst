@@ -40,7 +40,7 @@ server <- function(input, output, session) {
   # Dynamically generate UI for selecting x-axis, y-axis, and grid variables
   output$group <- renderUI({
     req(data())
-    selectInput("group", "Select X-axis variable", choices = c("None", names(data())), selected = "run")
+    selectInput("group", "Select colour variable", choices = c(names(data())), selected = "run")
   })
   
   output$gridbox <- renderUI({
@@ -67,7 +67,7 @@ server <- function(input, output, session) {
   plot <- reactive({
     req(data(), input$xvar, input$yvar)
     
-    p <- ggplot(data(), aes_string(x = input$xvar, y = input$yvar, color = input$group, group = input$group)) +
+    p <- ggplot(data(), aes_string(x = input$xvar, y = input$yvar, color = as.factor(input$group), group = input$group)) +
       geom_point() +
       geom_smooth() +
       theme_minimal()
