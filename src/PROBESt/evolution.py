@@ -1,7 +1,7 @@
 import random
 
 
-def mutate_position(x, mutrate, indelrate=0.1):  # issue: add indelrate to argparse
+def mutate_position(x, mutrate, indelrate):  # issue: add indelrate to argparse
     """
     Mutates a nucleotide based on a given mutation rate and indel rate.
 

@@ -165,7 +165,7 @@ for iter in range(1, args.iterations+1):
                 mutated_seq = init_seq
                 while init_seq == mutated_seq:
                     mutated_seq = "".join(
-                        [mutate_position(_,  mutrate=args.mutation_rate) for _ in init_seq])
+                        [mutate_position(_,  mutrate=args.mutation_rate, indelrate=args.indel_rate) for _ in init_seq])
                 mseq = "I" + str(iter)+"N"+str(seqs_iter)+"_"
                 seqs_mutated[mseq+seqs_unique] = mutated_seq
 

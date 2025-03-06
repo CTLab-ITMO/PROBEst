@@ -80,7 +80,12 @@ def arguments_parse():
     parser.add_argument("-M", "--mutation_rate",
                         required=False,
                         default=0.05, type=float,
-                        help="Mutation probability per position in a primer. Default is 0.05.")
+                        help="'SNP' mutation probability per position in a primer. Default is 0.05.")
+    
+    parser.add_argument("-I", "--indel_rate",
+                        required=False,
+                        default=0.05, type=float,
+                        help="'InDel' mutation probability per position in a primer. Default is 0.05.")
 
     parser.add_argument("-S", "--set_size",
                         required=False,
