@@ -1,4 +1,7 @@
 data/test/general/
 data/test/grid/fasta_base
+data/test/grid/blastn_base
+data/test/grid/output
+data/test/grid2
 data/param_search
 src/PROBESt/__pycache__

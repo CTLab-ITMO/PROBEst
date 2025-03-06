@@ -31,3 +31,4 @@ cd ../
 
 # Select reference genome for probe generation
 cp true_base/GCF_000012065.2_ASM1206v2_genomic.fna.gz ./reference.fna.gz
+gzip -d ./reference.fna.gz
