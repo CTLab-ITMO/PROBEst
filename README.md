@@ -1,4 +1,4 @@
-# PROBEst v.0.1.2. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
+# PROBEst v.0.1.3. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
 ### St. Petersburg tool for genereting nucleotide probes with specified properties
 
 PROBEst is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
