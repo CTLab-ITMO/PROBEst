@@ -42,4 +42,4 @@ python pipeline.py \
 python test_parameters.py \
     -p data/test/grid/param_grid_light.json
     -o data/test/grid/out \
-    -t 32
+    -t 32 -kf

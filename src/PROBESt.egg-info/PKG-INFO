@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: PROBESt
-Version: 0.1.dev0
+Version: 0.1.3
 Summary: PROBESt: package for nucleotide probes generation
 License-File: LICENSE
 Requires-Dist: argparse
