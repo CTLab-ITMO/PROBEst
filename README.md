@@ -9,20 +9,55 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 
 # Download and installation
 
+## Installation
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/CTLab-ITMO/PROBEst
+git clone https://github.com/yourusername/PROBEst.git
 cd PROBEst
-python setup.py develop
 ```
 
-# Tool parts
-PROBEst consists of two main components: **databases and their parsers**, and the **probe generation tool**.
+2. Create and activate a virtual environment (recommended):
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-- Databases and Parsers focuses on managing and processing data related to nucleotide probes.
+3. Install the package in development mode:
+```bash
+pip install -e .
+```
 
-- Probe Generation Tool
+## Project Structure
 
-# Usage
+```
+PROBEst/
+├── src/
+│   └── PROBEst/
+│       ├── __init__.py
+│       ├── genome_operations.py
+│       ├── probe_alignment_profiler.py
+│       ├── primer3.py
+│       ├── evolution.py
+│       ├── merge.py
+│       ├── misc.py
+│       ├── args.py
+│       └── bash_wrappers.py
+├── tests/
+│   ├── PROBEst/
+│   │   └── test_genome_operations.py
+│   ├── database/
+│   │   └── test_probebase.py
+│   └── test_probe_alignment_profiler.py
+├── scripts/
+│   └── databases/
+│       └── probeBase.py
+├── setup.py
+├── requirements.txt
+└── README.md
+```
+
+## Usage
 
 ## Preparation
 

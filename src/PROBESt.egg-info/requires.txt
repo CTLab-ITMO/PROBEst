@@ -1,8 +1,0 @@
-argparse
-biopython
-numpy
-pandas
-python-dateutil
-pytz
-six
-tzdata

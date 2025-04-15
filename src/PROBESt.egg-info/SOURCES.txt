@@ -1,8 +1,0 @@
-LICENSE
-README.md
-setup.py
-src/PROBESt.egg-info/PKG-INFO
-src/PROBESt.egg-info/SOURCES.txt
-src/PROBESt.egg-info/dependency_links.txt
-src/PROBESt.egg-info/requires.txt
-src/PROBESt.egg-info/top_level.txt

@@ -1,31 +1,65 @@
-import unittest
+"""Tests for ProbeBase database parsing."""
+
+import pytest
 import pandas as pd
-from scripts import parse_probebase_page
+from unittest.mock import patch, MagicMock
+from bs4 import BeautifulSoup
+from scripts.databases.probeBase import parse_probebase_page
 
-class TestProbebase(unittest.TestCase):
-    def test_responce(self):
-        """
-        Test page with responce problem
-        """
-        data = "https://probebase.csb.univie.ac.at/pb_report/probe"
-        resp = parse_probebase_page(data)
-        self.assertIsInstance(resp, Warning)
+@pytest.fixture
+def mock_response():
+    """Create a mock response object."""
+    mock = MagicMock()
+    mock.status_code = 200
+    return mock
 
-    def test_responce_empty(self):
-        """
-        Test page with empty table
-        """
-        data = "https://probebase.csb.univie.ac.at/pb_report/probe/1"
-        resp = parse_probebase_page(data)
-        self.assertIsInstance(resp, Warning)
+@patch('requests.get')
+def test_response_problem(mock_get, mock_response):
+    """Test page with response problem."""
+    # Setup mock response
+    mock_response.content = b"<html><body>Error page</body></html>"
+    mock_get.return_value = mock_response
+    
+    data = "https://probebase.csb.univie.ac.at/pb_report/probe"
+    resp = parse_probebase_page(data)
+    assert isinstance(resp, Warning)
 
-    def test_responce_empty(self):
-        """
-        Test page with content
-        """
-        data = "https://probebase.csb.univie.ac.at/pb_report/probe/2"
-        resp = parse_probebase_page(data)
-        self.assertIsInstance(resp, pd.Series)
+@patch('requests.get')
+def test_response_empty(mock_get, mock_response):
+    """Test page with empty table."""
+    # Setup mock response with empty table
+    mock_response.content = b"""
+    <html>
+        <body>
+            <table>
+                <tr><th>Header</th></tr>
+                <tr><td>No data</td></tr>
+            </table>
+        </body>
+    </html>
+    """
+    mock_get.return_value = mock_response
+    
+    data = "https://probebase.csb.univie.ac.at/pb_report/probe/1"
+    resp = parse_probebase_page(data)
+    assert isinstance(resp, Warning)
 
-if __name__ == '__main__':
-    unittest.main()
+@patch('requests.get')
+def test_response_content(mock_get, mock_response):
+    """Test page with content."""
+    # Setup mock response with valid table data
+    mock_response.content = b"""
+    <html>
+        <body>
+            <table>
+                <tr><th>Probe ID</th><th>Sequence</th></tr>
+                <tr><td>1</td><td>ATGC</td></tr>
+            </table>
+        </body>
+    </html>
+    """
+    mock_get.return_value = mock_response
+    
+    data = "https://probebase.csb.univie.ac.at/pb_report/probe/2"
+    resp = parse_probebase_page(data)
+    assert isinstance(resp, pd.Series)
