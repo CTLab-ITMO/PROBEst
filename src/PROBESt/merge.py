@@ -28,7 +28,7 @@ def merge(algo, input, output, tmp, NNN, script_path):
     if algo == "primer":
         # Open the temporary FASTA table for reading
         with open(tmp, "r") as fasta_table, open(output, "w") as output_fasta:
-            sepN = "N" * N  # Create a separator string of 'N's
+            sepN = "N" * NNN  # Create a separator string of 'N's
 
             # Iterate through lines in the FASTA table
             for i, line in enumerate(fasta_table):

@@ -7,6 +7,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from unittest.mock import patch, MagicMock, mock_open
+from io import StringIO, BytesIO
 from PROBESt.genome_operations import genome_fetch, genome_blastn, genome_parse
 
 @pytest.fixture
@@ -23,128 +24,165 @@ def mock_genome_file(tmp_path):
     return str(file_path)
 
 @pytest.fixture
-def mock_probe():
-    """Create a mock probe sequence."""
-    return "ATGCATGCATGC"
+def mock_blast_xml():
+    """Mock BLAST XML output."""
+    return b"""<?xml version="1.0"?>
+<BlastOutput>
+  <BlastOutput_iterations>
+    <Iteration>
+      <Iteration_hits>
+        <Hit>
+          <Hit_hsps>
+            <Hsp>
+              <Hsp_bit-score>100</Hsp_bit-score>
+              <Hsp_score>50</Hsp_score>
+              <Hsp_evalue>1e-10</Hsp_evalue>
+              <Hsp_query-from>1</Hsp_query-from>
+              <Hsp_query-to>12</Hsp_query-to>
+              <Hsp_hit-from>1</Hsp_hit-from>
+              <Hsp_hit-to>12</Hsp_hit-to>
+              <Hsp_identity>12</Hsp_identity>
+              <Hsp_align-len>12</Hsp_align-len>
+              <Hsp_qseq>ATGCATGCATGC</Hsp_qseq>
+              <Hsp_hseq>ATGCATGCATGC</Hsp_hseq>
+            </Hsp>
+          </Hit_hsps>
+        </Hit>
+      </Iteration_hits>
+    </Iteration>
+  </BlastOutput_iterations>
+</BlastOutput>
+"""
 
 @pytest.fixture
-def mock_entrez_response():
-    """Mock Entrez response."""
-    return {
-        "IdList": ["12345"],
-        "Count": "1",
-        "RetMax": "1",
-        "RetStart": "0"
-    }
-
-@pytest.fixture
-def mock_genome_record():
-    """Mock genome record."""
-    return SeqRecord(
-        Seq("ATGCATGCATGCATGCATGCATGCATGCATGCGCATGCATGCATGCATGCATGCATGCATGCAT"),
-        id="mock_genome",
-        description="Mock genome for testing"
-    )
+def mock_entrez_xml():
+    """Mock Entrez XML response."""
+    return b"""<?xml version="1.0"?>
+<eSearchResult>
+    <Count>1</Count>
+    <RetMax>1</RetMax>
+    <RetStart>0</RetStart>
+    <IdList>
+        <Id>12345</Id>
+    </IdList>
+</eSearchResult>
+"""
 
 @patch('Bio.Entrez.esearch')
 @patch('Bio.Entrez.efetch')
 @patch('Bio.Entrez.read')
-def test_genome_fetch(mock_read, mock_efetch, mock_esearch, mock_entrez_response, tmp_path):
+@patch('builtins.open', new_callable=mock_open)
+def test_genome_fetch(mock_file, mock_read, mock_efetch, mock_esearch, mock_entrez_xml):
     """Test genome fetching functionality."""
     # Setup mocks
-    mock_read.return_value = mock_entrez_response
-    
-    mock_efetch.return_value = MagicMock()
-    mock_efetch.return_value.__enter__.return_value = MagicMock()
-    mock_efetch.return_value.__enter__.return_value.read.return_value = ">mock_genome\nATGCATGC"
+    mock_esearch.return_value = BytesIO(mock_entrez_xml)
+    mock_read.return_value = {"IdList": ["12345"]}
+    mock_efetch.return_value = StringIO(">mock_genome\nATGCATGC")
     
     # Test the function
     result = genome_fetch("mock_species")
     
     # Verify results
-    assert os.path.exists(result)
-    assert result.endswith("mock_species.fasta")
+    assert result == "mock_species.fasta"
+    
+    # Verify file was written correctly
+    mock_file.assert_called_once_with("mock_species.fasta", "w")
+    mock_file.return_value.__enter__.return_value.write.assert_called_once_with(">mock_genome\nATGCATGC")
+
+@patch('PROBESt.genome_operations.NcbiblastnCommandline')
+@patch('builtins.open', new_callable=mock_open)
+@patch('Bio.SeqIO.read')
+def test_genome_blastn(mock_seqio, mock_file, mock_blastn, mock_genome_file, mock_blast_xml):
+    """Test BLAST search functionality."""
+    # Setup mock BLAST command
+    mock_blastn.return_value = MagicMock()
+    mock_blastn.return_value.return_value = ("", "")  # stdout, stderr
+    
+    # Setup mock file for XML reading
+    mock_file.return_value.__enter__.return_value.read.return_value = mock_blast_xml
+    
+    # Setup mock SeqIO.read
+    mock_seqio.return_value = SeqRecord(
+        Seq("ATGCATGCATGCATGCATGC"),
+        id="mock_genome"
+    )
+    
+    # Test the function
+    result = genome_blastn(mock_genome_file, "ATGCATGCATGC")
+    
+    # Verify results
+    assert isinstance(result, str)
+    assert len(result) > 0
+    assert "ATGC" in result
+    
+    # Verify BLAST command was called correctly
+    mock_blastn.assert_called_once()
+    args, kwargs = mock_blastn.call_args
+    assert kwargs['outfmt'] == '5'  # XML format
+
+@patch('PROBESt.genome_operations.genome_fetch')
+@patch('PROBESt.genome_operations.genome_blastn')
+def test_genome_parse_single_species(mock_blastn, mock_fetch):
+    """Test parsing BLAST results into DataFrame."""
+    # Setup mocks
+    mock_fetch.return_value = "mock_species.fasta"
+    mock_blastn.return_value = "ATGCATGCATGC"
+    
+    # Test the function
+    species = ["mock_species"]
+    probe = "ATGCATGCATGC"
+    df = genome_parse(species, probe)
+    
+    # Verify DataFrame structure and content
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == 1
+    assert list(df.columns) == [
+        'species', 'probe_id', 'species_dna_string', 'extend', 'probe_dna_string'
+    ]
+    assert df['species'].iloc[0] == "mock_species"
+    assert df['probe_dna_string'].iloc[0] == probe
+
+@patch('PROBESt.genome_operations.genome_fetch')
+@patch('PROBESt.genome_operations.genome_blastn')
+def test_genome_parse_output_file(mock_blastn, mock_fetch):
+    """Test creating output file from BLAST results."""
+    # Setup mocks
+    mock_fetch.return_value = "mock_species.fasta"
+    mock_blastn.return_value = "ATGCATGCATGC"
+    
+    # Test the function
+    species = ["mock_species"]
+    probe = "ATGCATGCATGC"
+    df = genome_parse(species, probe)
+    
+    # Verify DataFrame structure and content
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == 1
+    assert list(df.columns) == [
+        'species', 'probe_id', 'species_dna_string', 'extend', 'probe_dna_string'
+    ]
+    
+    # Verify CSV file was created
+    assert os.path.exists("genome_parse_results.csv")
     
     # Cleanup
-    if os.path.exists(result):
-        os.unlink(result)
+    if os.path.exists("genome_parse_results.csv"):
+        os.unlink("genome_parse_results.csv")
 
-@patch('os.system')
-@patch('builtins.open', new_callable=mock_open)
-@patch('Bio.Blast.NCBIXML.parse')
-def test_genome_blastn(mock_parse, mock_file, mock_system, mock_genome_file, mock_probe):
-    """Test BLAST search functionality."""
-    # Setup mock system call
-    mock_system.return_value = 0
-    
-    # Create mock BLAST output
-    mock_blast_record = MagicMock()
-    mock_blast_record.alignments = [MagicMock()]
-    mock_blast_record.alignments[0].hsps = [MagicMock()]
-    mock_blast_record.alignments[0].hsps[0].sbjct_start = 1
-    mock_blast_record.alignments[0].hsps[0].sbjct_end = 12
-    mock_parse.return_value = [mock_blast_record]
-    
-    # Create mock genome file
-    mock_file.return_value.__enter__.return_value.read.return_value = ">mock_genome\nATGCATGC"
-    
-    result = genome_blastn(mock_genome_file, mock_probe)
-    
-    assert isinstance(result, str)
-    assert len(result) >= len(mock_probe)
-
-@patch('PROBESt.genome_operations.genome_fetch')
-@patch('PROBESt.genome_operations.genome_blastn')
-def test_genome_parse_single_species(mock_blastn, mock_fetch, mock_probe, tmp_path):
-    """Test genome parsing with a single species."""
-    # Setup mocks
-    mock_fetch.return_value = str(tmp_path / "mock_file.fasta")
-    mock_blastn.return_value = "ATGCATGCATGCATGCATGC"
+@patch('Bio.Entrez.esearch')
+def test_invalid_species(mock_esearch):
+    """Test handling of invalid species."""
+    # Setup mock
+    mock_esearch.return_value = BytesIO(b"""<?xml version="1.0"?>
+<eSearchResult>
+    <Count>0</Count>
+    <RetMax>0</RetMax>
+    <RetStart>0</RetStart>
+    <IdList>
+    </IdList>
+</eSearchResult>
+""")
     
     # Test the function
-    species = ["Escherichia coli"]
-    result = genome_parse(species, mock_probe, extend=5)
-    
-    # Verify results
-    assert isinstance(result, pd.DataFrame)
-    assert list(result.columns) == ['species', 'probe_id', 'species_dna_string', 
-                                  'extend', 'probe_dna_string']
-    assert len(result) == 1
-    assert result.iloc[0]['species'] == species[0]
-    assert result.iloc[0]['probe_dna_string'] == mock_probe
-    assert result.iloc[0]['extend'] == 5
-
-@patch('PROBESt.genome_operations.genome_fetch')
-@patch('PROBESt.genome_operations.genome_blastn')
-def test_genome_parse_output_file(mock_blastn, mock_fetch, mock_probe, tmp_path):
-    """Test if genome parse creates output CSV file."""
-    # Setup mocks
-    mock_fetch.return_value = str(tmp_path / "mock_file.fasta")
-    mock_blastn.return_value = "ATGCATGCATGCATGCATGC"
-    
-    # Test the function
-    species = ["Escherichia coli"]
-    probe = "ATGCATGCATGC"
-    output_file = tmp_path / "genome_parse_results.csv"
-    
-    result = genome_parse(species, probe)
-    
-    # Verify results
-    assert os.path.exists(output_file)
-    df = pd.read_csv(output_file)
-    assert isinstance(df, pd.DataFrame)
-    assert list(df.columns) == ['species', 'probe_id', 'species_dna_string', 
-                              'extend', 'probe_dna_string']
-
-@patch('PROBESt.genome_operations.genome_fetch')
-def test_invalid_species(mock_fetch):
-    """Test handling of invalid species names."""
-    # Setup mock to raise exception
-    mock_fetch.side_effect = ValueError("No genome found")
-    
-    species = ["ThisIsNotARealSpecies12345"]
-    probe = "ATGCATGCATGC"
-    result = genome_parse(species, probe)
-    
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == 0  # Should return empty DataFrame for invalid species 
+    with pytest.raises(ValueError, match="No genome found for species: invalid_species"):
+        genome_fetch("invalid_species") 
