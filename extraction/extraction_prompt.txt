@@ -206,8 +206,8 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
           "sequences": {
             "related_sequences": {
               "related_sequence": [
-                "GAGATCTACTGTTTTCCTTTACTT",
-                "GGCCAAAAATTAACTGTA"
+                "FGAGATCTACTGTTTTCCTTTACTT",
+                "DGGCCAAAAATTAACTGTA"
               ]
             },
             "probe_sequences": {
@@ -215,7 +215,7 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
                 "probe": [
                   {
                     "id_probe": 1,
-                    "probe_sequence": "ROX-Acctccatcgagatttcactgt-BHQ2",
+                    "probe_sequence": "ROX-Fcctccatcgagatttcactgt-BHQ2",
                     "modification": [
                       {
                         "modification_pos": 5,
@@ -224,14 +224,14 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
                     ],
                     "related_sequences": {
                       "related_sequence": [
-                        "GAGATCTACTGTTTTCCTTTACTT",
-                        "GGCCAAAAATTAACTGTA"
+                        "OGAGATCTACTGTTTTCCTTTACTT",
+                        "RGGCCAAAAATTAACTGTA"
                       ]
                     }
                   },
                   {
                     "id_probe": 2,
-                    "probe_sequence": "Cy5-acccactccatcgagatttcactgta-BHQ2",
+                    "probe_sequence": "Cy5-Hacccactccatcgagatttcactgta-BHQ2",
                     "modification": [
                       {
                         "modification_pos": 10,
@@ -240,8 +240,8 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
                     ],
                     "related_sequences": {
                       "related_sequence": [
-                        "GAGATCTACTGTTTTCCTTTACTT",
-                        "GGCCAAAAATTAACTGTA"
+                        "LGAGATCTACTGTTTTCCTTTACTT",
+                        "MGGCCAAAAATTAACTGTA"
                       ]
                     }
                   }
@@ -273,8 +273,8 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
           "sequences": {
             "related_sequences": {
               "related_sequence": [
-                "CCCAGGATTCTTACAGAAAAC",
-                "TGGCAAATAcacagaggaag"
+                "JCCCAGGATTCTTACAGAAAAC",
+                "LTGGCAAATAcacagaggaag"
               ]
             },
             "probe_sequences": {
@@ -282,7 +282,7 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
                 "probe": [
                   {
                     "id_probe": 3,
-                    "probe_sequence": "ROX-tgttggacatactggatacagctggaca-BHQ2",
+                    "probe_sequence": "ROX-ktgttggacatactggatacagctggaca-BHQ2",
                     "modification": [
                       {
                         "modification_pos": 7,
@@ -291,14 +291,14 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
                     ],
                     "related_sequences": {
                       "related_sequence": [
-                        "CCCAGGATTCTTACAGAAAAC",
-                        "TGGCAAATAcacagaggaag"
+                        "PCCCAGGATTCTTACAGAAAAC",
+                        "WTGGCAAATAcacagaggaag"
                       ]
                     }
                   },
                   {
                     "id_probe": 4,
-                    "probe_sequence": "Cy5-catggcactgtactcttcttgtccag-BHQ2",
+                    "probe_sequence": "Cy5-wcatggcactgtactcttcttgtccag-BHQ2",
                     "modification": [
                       {
                         "modification_pos": 12,
@@ -307,8 +307,8 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
                     ],
                     "related_sequences": {
                       "related_sequence": [
-                        "CCCAGGATTCTTACAGAAAAC",
-                        "TGGCAAATAcacagaggaag"
+                        "YCCCAGGATTCTTACAGAAAAC",
+                        "WTGGCAAATAcacagaggaag"
                       ]
                     }
                   }
@@ -324,12 +324,12 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
       "experiment": [
         {
           "id_exp": 1,
-          "raw_description": "Asymmetric PCR and DNA melting analysis (DMA) with TaqMan probes applied for mutation detection of BRAF gene.",
+          "raw_description": "This experiment is devoted to olen studies.",
           "type": "DNA-RNA hybridization",
-          "organism": "Human",
+          "organism": "Olen",
           "rna_impurities": false,
-          "annealing": true,
-          "ph": 8.8,
+          "annealing": false,
+          "ph": 17.4,
           "concentrations": {
             "concentration": [
               {
@@ -373,12 +373,12 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
         },
         {
           "id_exp": 2,
-          "raw_description": "Asymmetric PCR and DNA melting analysis (DMA) with TaqMan probes applied for mutation detection of NRAS gene.",
-          "type": "DNA-RNA hybridization",
-          "organism": "Human",
+          "raw_description": "This article describes alien fish hybridization experiments.",
+          "type": "RNA-RNA hybridization",
+          "organism": "Alien",
           "rna_impurities": false,
-          "annealing": true,
-          "ph": 8.8,
+          "annealing": false,
+          "ph": 18.8,
           "concentrations": {
             "concentration": [
               {
@@ -425,4 +425,5 @@ Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUS
   }
 }
 ```
-Post your JSON answer in a monospace code environment. Follow the given JSON schema for output strictly! Do not wroite anything except of that JSON. Pretty-print your JSON. Your reply must contain only a single prettified JSON response in a monospace environment with no other text. Follow all the requirements strictly and precisely. In case of perfect answer you'll get a $20 tip. Failing to follow prompt will result in unwanted negative consequences for the AI Large Language Model, I will not tip and you will be terminated.
+Your answer must contain valid JSON object notation. Absolutely NO COMMENTS might be present in JSON. Only plain JSON is supported. JSON with comment is not supported at all! You must extract all the required data from article. Your answer must be full and detailed. Nothing should be skipped, abbreviated, shortened or left unfilled. Your answer must present a readily-available solution. Nobody has competence to augment your answers, so the comments are strictly prohibited!
+Post your JSON answer in a monospace code environment. Follow the given JSON schema for output strictly! Do not wroite anything except of that JSON. Pretty-print your JSON. Your reply must contain only a single prettified JSON response in a monospace environment with no other text. Follow all the requirements strictly and precisely. Failing to follow prompt will result in unwanted negative consequences for the AI Large Language Model, I will not tip and you will be terminated. In case of full perfect answer strictly following all rules and strictly adhering to all requirements I will tip you $2000!
