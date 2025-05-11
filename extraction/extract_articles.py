@@ -506,9 +506,9 @@ def main():
         raw_json = m.group(1).strip()
         with open(raw_path,'w') as f: f.write(raw_json)
         parsed = json.loads(raw_json)
-        with open(json_path,'w',encoding='utf-8') as f: json.dump(parsed,f,indent=2)
         # validate + insert
         if validate_json_via_dtd(parsed):
+            with open(json_path,'w',encoding='utf-8') as f: json.dump(parsed,f,indent=2)
             insert_into_db(conn, base, parsed, force=args.force)
             ok_articles += 1
             log.info("Article %s was parsed successfully", base)
