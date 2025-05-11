@@ -374,6 +374,8 @@ def insert_into_db(conn, article_name, data, force=False):
 
         # related sequences at group level
         for seq in grp['sequences']['related_sequences']['related_sequence']:
+            if "realted_sequence" in seq:
+                log.error("Incorrect transaction encountered")
             c.execute(
                 "INSERT INTO related_sequences VALUES (?, ?)",
                 (group_row, seq)
@@ -392,7 +394,9 @@ def insert_into_db(conn, article_name, data, force=False):
                 (group_row, pr['id_probe'], pr['probe_sequence'])
             )
             # per-probe related sequences (if you also need to record these separately)
-            for r in pr.get('related_sequences', {}):
+            for r in pr.get('related_sequences', {}).get('related_sequence', []):
+                if "related_sequence" in r:
+                    log.error("Incorrect transaction encountered")
                 c.execute(
                     "INSERT INTO related_sequences VALUES (?, ?)",
                     (group_row, r)

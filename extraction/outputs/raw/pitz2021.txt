@@ -1,165 +1,380 @@
 {
-    "article_data": {
-        "probe_samples": {
-            "doi": "10.1016/j.hal.2020.101914",
-            "sample_group": [
-                {
-                    "id_group": 1,
-                    "experiment_ids": ["1", "2"],
-                    "results": {
-                        "result": [
-                            {
-                                "id_exp": 1,
-                                "outcome": true,
-                                "fluorescence": 75
-                            },
-                            {
-                                "id_exp": 2,
-                                "outcome": false,
-                                "fluorescence": 30
-                            }
-                        ]
-                    },
-                    "sequences": {
-                        "related_sequences": {
-                            "related_sequence": [
-                                "AGATCAGTACGCCAGAGTGACTA",
-                                "TGAGACCCACATGTGGAGATTC"
-                            ]
-                        },
-                        "probe_sequences": {
-                            "probes": {
-                                "probe": [
-                                    {
-                                        "id_probe": 1,
-                                        "probe_sequence": "TGAGACCCACATGTGGAGATTC",
-                                        "modification": [
-                                            {
-                                                "modification_pos": 5,
-                                                "modification_type": "phosphorothioate"
-                                            }
-                                        ],
-                                        "related_sequences": {
-                                            "related_sequence": [
-                                                "AGATCAGTACGCCAGAGTGACTA"
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "id_probe": 2,
-                                        "probe_sequence": "AGATCAGTACGCCAGAGTGACTA",
-                                        "modification": [],
-                                        "related_sequences": {}
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                }
+  "article_data": {
+    "probe_samples": {
+      "doi": "https://doi.org/10.1016/j.hal.2020.101914",
+      "sample_group": [
+        {
+          "id_group": "1",
+          "experiment_ids": ["1", "2", "3"],
+          "results": {
+            "result": [
+              {
+                "id_exp": "1",
+                "outcome": true,
+                "fluorescence": 50
+              },
+              {
+                "id_exp": "2",
+                "outcome": false,
+                "fluorescence": 45
+              },
+              {
+                "id_exp": "3",
+                "outcome": true,
+                "fluorescence": 60
+              }
             ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": [
+                "G. caribaeus",
+                "G. belizeanus"
+              ]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": "1",
+                    "probe_sequence": "TGAGACCCACATGTGGAGATTC",
+                    "modification": [
+                      {
+                        "modification_pos": 5,
+                        "modification_type": "fluorophore"
+                      }
+                    ],
+                    "related_sequences": [
+                      "G. caribaeus"
+                    ]
+                  },
+                  {
+                    "id_probe": "2",
+                    "probe_sequence": "AGATCAGTACGCCAGAGTGACTA",
+                    "modification": [
+                      {
+                        "modification_pos": 10,
+                        "modification_type": "fluorophore"
+                      }
+                    ],
+                    "related_sequences": [
+                      "G. belizeanus"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
         },
-        "hybridization_experiments": {
-            "doi": "10.1016/j.hal.2020.101914",
-            "experiment": [
-                {
-                    "id_exp": 1,
-                    "raw_description": "Test of FISH probes on Gambierdiscus cultures and field samples.",
-                    "type": "DNA-RNA hybridization",
-                    "organism": "Gambierdiscus spp.",
-                    "rna_impurities": true,
-                    "annealing": false,
-                    "ph": 7.4,
-                    "concentrations": {
-                        "concentration": [
-                            {
-                                "dna_rna_concentration": "10 µM",
-                                "id_probe": 1,
-                                "concentration_article": "10 µM",
-                                "concentration_si": 1e-5
-                            },
-                            {
-                                "dna_rna_concentration": "20 µM",
-                                "id_probe": 2,
-                                "concentration_article": "20 µM",
-                                "concentration_si": 2e-5
-                            }
-                        ]
-                    },
-                    "string_parameters": {
-                        "parameter": [
-                            {
-                                "temperature": "37°C",
-                                "tris": "10 mM",
-                                "na": "500 mM",
-                                "k": "10 mM",
-                                "mg": "2.5 mM",
-                                "dmso": "0.04%"
-                            }
-                        ]
-                    },
-                    "numeric_parameters": {
-                        "numeric_parameter": [
-                            {
-                                "temperature": 37,
-                                "tris": 10,
-                                "na": 500,
-                                "k": 10,
-                                "mg": 2.5,
-                                "dmso": 4
-                            }
-                        ]
-                    }
-                },
-                {
-                    "id_exp": 2,
-                    "raw_description": "Test of FISH probes on field samples from Florida Keys and Hawai'i.",
-                    "type": "DNA-RNA hybridization",
-                    "organism": "Gambierdiscus spp.",
-                    "rna_impurities": true,
-                    "annealing": false,
-                    "ph": 7.4,
-                    "concentrations": {
-                        "concentration": [
-                            {
-                                "dna_rna_concentration": "10 µM",
-                                "id_probe": 3,
-                                "concentration_article": "10 µM",
-                                "concentration_si": 1e-5
-                            },
-                            {
-                                "dna_rna_concentration": "20 µM",
-                                "id_probe": 4,
-                                "concentration_article": "20 µM",
-                                "concentration_si": 2e-5
-                            }
-                        ]
-                    },
-                    "string_parameters": {
-                        "parameter": [
-                            {
-                                "temperature": "37°C",
-                                "tris": "10 mM",
-                                "na": "500 mM",
-                                "k": "10 mM",
-                                "mg": "2.5 mM",
-                                "dmso": "0.04%"
-                            }
-                        ]
-                    },
-                    "numeric_parameters": {
-                        "numeric_parameter": [
-                            {
-                                "temperature": 37,
-                                "tris": 10,
-                                "na": 500,
-                                "k": 10,
-                                "mg": 2.5,
-                                "dmso": 4
-                            }
-                        ]
-                    }
-                }
+        {
+          "id_group": "2",
+          "experiment_ids": ["4", "5"],
+          "results": {
+            "result": [
+              {
+                "id_exp": "4",
+                "outcome": true,
+                "fluorescence": 70
+              },
+              {
+                "id_exp": "5",
+                "outcome": false,
+                "fluorescence": 65
+              }
             ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": [
+                "G. carpenteri",
+                "G. polynesiensis clade"
+              ]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": "3",
+                    "probe_sequence": "TGATGTAACGCAAGACGCACAG",
+                    "modification": [
+                      {
+                        "modification_pos": 15,
+                        "modification_type": "fluorophore"
+                      }
+                    ],
+                    "related_sequences": [
+                      "G. carpenteri"
+                    ]
+                  },
+                  {
+                    "id_probe": "4",
+                    "probe_sequence": "CGATCAGAGACATACTTTGGCGC",
+                    "modification": [
+                      {
+                        "modification_pos": 20,
+                        "modification_type": "fluorophore"
+                      }
+                    ],
+                    "related_sequences": [
+                      "G. polynesiensis clade"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
         }
+      ]
+    },
+    "hybridization_experiments": {
+      "doi": "https://doi.org/10.1016/j.hal.2020.101914",
+      "experiment": [
+        {
+          "id_exp": "1",
+          "raw_description": "This experiment was conducted to test the specificity and cross-reactivity of probes for G. caribaeus, G. belizeanus, G. carpenteri, and the G. polynesiensis clade.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus spp.",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "10 ng/μL",
+                "id_probe": "1",
+                "concentration_article": "10 ng/μL",
+                "concentration_si": 1e-8
+              },
+              {
+                "dna_rna_concentration": "20 ng/μL",
+                "id_probe": "2",
+                "concentration_article": "20 ng/μL",
+                "concentration_si": 2e-8
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37°C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "10 mM",
+                "mg": "2.5 mM",
+                "dmso": "5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 10,
+                "na": 50,
+                "k": 10,
+                "mg": 2.5,
+                "dmso": 5
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "2",
+          "raw_description": "This experiment was conducted to test the specificity and cross-reactivity of probes for G. caribaeus, G. belizeanus, G. carpenteri, and the G. polynesiensis clade.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus spp.",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "10 ng/μL",
+                "id_probe": "3",
+                "concentration_article": "10 ng/μL",
+                "concentration_si": 1e-8
+              },
+              {
+                "dna_rna_concentration": "20 ng/μL",
+                "id_probe": "4",
+                "concentration_article": "20 ng/μL",
+                "concentration_si": 2e-8
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37°C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "10 mM",
+                "mg": "2.5 mM",
+                "dmso": "5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 10,
+                "na": 50,
+                "k": 10,
+                "mg": 2.5,
+                "dmso": 5
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "3",
+          "raw_description": "This experiment was conducted to test the specificity and cross-reactivity of probes for G. caribaeus, G. belizeanus, G. carpenteri, and the G. polynesiensis clade.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus spp.",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "10 ng/μL",
+                "id_probe": "5",
+                "concentration_article": "10 ng/μL",
+                "concentration_si": 1e-8
+              },
+              {
+                "dna_rna_concentration": "20 ng/μL",
+                "id_probe": "6",
+                "concentration_article": "20 ng/μL",
+                "concentration_si": 2e-8
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37°C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "10 mM",
+                "mg": "2.5 mM",
+                "dmso": "5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 10,
+                "na": 50,
+                "k": 10,
+                "mg": 2.5,
+                "dmso": 5
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "4",
+          "raw_description": "This experiment was conducted to test the specificity and cross-reactivity of probes for G. caribaeus, G. belizeanus, G. carpenteri, and the G. polynesiensis clade.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus spp.",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "10 ng/μL",
+                "id_probe": "7",
+                "concentration_article": "10 ng/μL",
+                "concentration_si": 1e-8
+              },
+              {
+                "dna_rna_concentration": "20 ng/μL",
+                "id_probe": "8",
+                "concentration_article": "20 ng/μL",
+                "concentration_si": 2e-8
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37°C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "10 mM",
+                "mg": "2.5 mM",
+                "dmso": "5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 10,
+                "na": 50,
+                "k": 10,
+                "mg": 2.5,
+                "dmso": 5
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "5",
+          "raw_description": "This experiment was conducted to test the specificity and cross-reactivity of probes for G. caribaeus, G. belizeanus, G. carpenteri, and the G. polynesiensis clade.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Gambierdiscus spp.",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "10 ng/μL",
+                "id_probe": "9",
+                "concentration_article": "10 ng/μL",
+                "concentration_si": 1e-8
+              },
+              {
+                "dna_rna_concentration": "20 ng/μL",
+                "id_probe": "10",
+                "concentration_article": "20 ng/μL",
+                "concentration_si": 2e-8
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37°C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "10 mM",
+                "mg": "2.5 mM",
+                "dmso": "5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 10,
+                "na": 50,
+                "k": 10,
+                "mg": 2.5,
+                "dmso": 5
+              }
+            ]
+          }
+        }
+      ]
     }
+  }
 }

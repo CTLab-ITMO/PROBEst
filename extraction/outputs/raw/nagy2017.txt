@@ -5,52 +5,108 @@
             "sample_group": [
                 {
                     "id_group": "1",
-                    "experiment_ids": ["1", "2", "3"],
+                    "experiment_ids": ["1", "2"],
                     "results": {
                         "result": [
                             {
                                 "id_exp": "1",
-                                "outcome": true,
-                                "fluorescence": 50
+                                "outcome": "true",
+                                "fluorescence": "45"
                             },
                             {
                                 "id_exp": "2",
-                                "outcome": true,
-                                "fluorescence": 60
-                            },
-                            {
-                                "id_exp": "3",
-                                "outcome": true,
-                                "fluorescence": 70
+                                "outcome": "true",
+                                "fluorescence": "50"
                             }
                         ]
                     },
                     "sequences": {
                         "related_sequences": {
-                            "related_sequence": ["AAGTACGATCGTA", "CTTGAGCTGACTG"]
+                            "related_sequence": ["AAGTGTCCCGGTTG", "ATGGCTACAGTG"]
                         },
                         "probe_sequences": {
                             "probes": {
                                 "probe": [
                                     {
                                         "id_probe": "1",
-                                        "probe_sequence": "AAGTACGATCGTA",
+                                        "probe_sequence": "AAGTGTCCCGGTTG",
                                         "modification": [
                                             {
-                                                "modification_pos": 5,
+                                                "modification_pos": "5",
                                                 "modification_type": "LNA"
                                             }
-                                        ]
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["ATGGCTACAGTG"]
+                                        }
                                     },
                                     {
                                         "id_probe": "2",
-                                        "probe_sequence": "CTTGAGCTGACTG",
+                                        "probe_sequence": "ATGGCTACAGTG",
                                         "modification": [
                                             {
-                                                "modification_pos": 4,
+                                                "modification_pos": "3",
                                                 "modification_type": "MGB"
                                             }
-                                        ]
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["AAGTGTCCCGGTTG"]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "id_group": "2",
+                    "experiment_ids": ["3", "4"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": "3",
+                                "outcome": "true",
+                                "fluorescence": "55"
+                            },
+                            {
+                                "id_exp": "4",
+                                "outcome": "true",
+                                "fluorescence": "60"
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": ["GCTACAGTG", "TGTCCCGGTT"]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": "3",
+                                        "probe_sequence": "GCTACAGTG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": "2",
+                                                "modification_type": "LNA"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["TGTCCCGGTT"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": "4",
+                                        "probe_sequence": "TGTCCCGGTT",
+                                        "modification": [
+                                            {
+                                                "modification_pos": "1",
+                                                "modification_type": "MGB"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["GCTACAGTG"]
+                                        }
                                     }
                                 ]
                             }
@@ -64,25 +120,25 @@
             "experiment": [
                 {
                     "id_exp": "1",
-                    "raw_description": "Dilution and calibration curves were constructed on the basis of a 10-fold dilution gradient of the synthetic DNA standard, covering a quantitative range of six magnitudes (from 1e2 to 1e7 NA standard copies per μl of template) in triplicates including three non-template controls.",
+                    "raw_description": "TaqMan qPCR using two identically labelled hydrolysis probes in opposite orientation.",
                     "type": "DNA-RNA hybridization",
-                    "organism": "Canine parvovirus 2",
-                    "rna_impurities": false,
-                    "annealing": true,
-                    "ph": 7.5,
+                    "organism": "Canine parvovirus 2 (CPV-2)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
                     "concentrations": {
                         "concentration": [
                             {
-                                "dna_rna_concentration": "1e6 copies/μl",
+                                "dna_rna_concentration": "0.2 μM",
                                 "id_probe": "1",
                                 "concentration_article": "0.2 μM",
-                                "concentration_si": 200
+                                "concentration_si": "2e-6"
                             },
                             {
-                                "dna_rna_concentration": "1e4 copies/μl",
+                                "dna_rna_concentration": "0.2 μM",
                                 "id_probe": "2",
                                 "concentration_article": "0.2 μM",
-                                "concentration_si": 200
+                                "concentration_si": "2e-6"
                             }
                         ]
                     },
@@ -92,9 +148,9 @@
                                 "temperature": "95 °C",
                                 "tris": "10 mM",
                                 "na": "500 mM",
-                                "k": "3 mM",
-                                "mg": "2.5 mM",
-                                "dmso": "7.5%"
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
                             }
                         ]
                     },
@@ -104,34 +160,34 @@
                                 "temperature": 95,
                                 "tris": 10,
                                 "na": 500,
-                                "k": 3,
-                                "mg": 2.5,
-                                "dmso": 7.5
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
                             }
                         ]
                     }
                 },
                 {
                     "id_exp": "2",
-                    "raw_description": "The dual-probe EAV RT-qPCR assay delimited a 399 bp-long region and included a pair of simple probes in opposite orientation.",
+                    "raw_description": "TaqMan qPCR using two identically labelled hydrolysis probes in tandem orientation.",
                     "type": "DNA-RNA hybridization",
-                    "organism": "Equine arteritis virus",
-                    "rna_impurities": false,
-                    "annealing": true,
-                    "ph": 7.5,
+                    "organism": "Equine arteritis virus (EAV)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
                     "concentrations": {
                         "concentration": [
                             {
-                                "dna_rna_concentration": "1e6 copies/μl",
+                                "dna_rna_concentration": "0.2 μM",
                                 "id_probe": "3",
                                 "concentration_article": "0.2 μM",
-                                "concentration_si": 200
+                                "concentration_si": "2e-6"
                             },
                             {
-                                "dna_rna_concentration": "1e4 copies/μl",
+                                "dna_rna_concentration": "0.2 μM",
                                 "id_probe": "4",
                                 "concentration_article": "0.2 μM",
-                                "concentration_si": 200
+                                "concentration_si": "2e-6"
                             }
                         ]
                     },
@@ -141,9 +197,9 @@
                                 "temperature": "95 °C",
                                 "tris": "10 mM",
                                 "na": "500 mM",
-                                "k": "3 mM",
-                                "mg": "2.5 mM",
-                                "dmso": "7.5%"
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
                             }
                         ]
                     },
@@ -153,34 +209,28 @@
                                 "temperature": 95,
                                 "tris": 10,
                                 "na": 500,
-                                "k": 3,
-                                "mg": 2.5,
-                                "dmso": 7.5
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
                             }
                         ]
                     }
                 },
                 {
                     "id_exp": "3",
-                    "raw_description": "The dual-probe CPV-2 qPCR assay consisted of a tandem simple-MGB probes, amplifying a 340 bp-long amplicon with the forward primer and first probe according to Streck end colleagues, and the reverse primer and the second probe according to Decaro end colleagues.",
+                    "raw_description": "TaqMan qPCR using single hydrolysis probe.",
                     "type": "DNA-RNA hybridization",
-                    "organism": "Canine parvovirus 2",
-                    "rna_impurities": false,
-                    "annealing": true,
-                    "ph": 7.5,
+                    "organism": "Canine parvovirus 2 (CPV-2)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
                     "concentrations": {
                         "concentration": [
                             {
-                                "dna_rna_concentration": "1e6 copies/μl",
-                                "id_probe": "5",
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "1",
                                 "concentration_article": "0.2 μM",
-                                "concentration_si": 200
-                            },
-                            {
-                                "dna_rna_concentration": "1e4 copies/μl",
-                                "id_probe": "6",
-                                "concentration_article": "0.2 μM",
-                                "concentration_si": 200
+                                "concentration_si": "2e-6"
                             }
                         ]
                     },
@@ -190,9 +240,9 @@
                                 "temperature": "95 °C",
                                 "tris": "10 mM",
                                 "na": "500 mM",
-                                "k": "3 mM",
-                                "mg": "2.5 mM",
-                                "dmso": "7.5%"
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
                             }
                         ]
                     },
@@ -202,9 +252,52 @@
                                 "temperature": 95,
                                 "tris": 10,
                                 "na": 500,
-                                "k": 3,
-                                "mg": 2.5,
-                                "dmso": 7.5
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": "4",
+                    "raw_description": "TaqMan qPCR using single hydrolysis probe.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Equine arteritis virus (EAV)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "3",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": "2e-6"
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
                             }
                         ]
                     }
