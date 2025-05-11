@@ -11,7 +11,7 @@
             "cwd": "${workspaceFolder}",
             "program": "extract_articles.py",
             "console": "integratedTerminal",
-            "args": ["--mode", "local"]
+            "args": ["--mode", "local", "--force"]
         },
         {
             "name": "Ollama extraction",
@@ -20,7 +20,7 @@
             "cwd": "${workspaceFolder}",
             "program": "extract_articles.py",
             "console": "integratedTerminal",
-            "args": ["--mode", "ollama"]
+            "args": ["--mode", "ollama", "--force"]
         }
     ]
 }

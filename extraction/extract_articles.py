@@ -43,6 +43,8 @@ DB_PATH       = "outputs/extraction.db"
 OLLAMA_URL    = "http://localhost:11434/api/generate"
 OLLAMA_MODEL  = "myaniu/qwen2.5-1m:14b"
 
+MAX_NEW_TOKENS: int = 40960
+
 # ── Logging setup ───────────────────────────────────────────────────────────────
 logging.basicConfig(
     level="INFO",
@@ -149,7 +151,7 @@ def validate_json_via_dtd(json_obj: dict) -> bool:
 # Ollama API streaming
 def call_ollama(prompt: str):
     headers = {"Content-Type": "application/json"}
-    payload = {"model": OLLAMA_MODEL, "prompt": prompt, "max_tokens":16384, "stream":True}
+    payload = {"model": OLLAMA_MODEL, "prompt": prompt, "max_tokens": MAX_NEW_TOKENS, "stream":True}
     with requests.post(OLLAMA_URL, json=payload, headers=headers, stream=True) as resp:
         resp.raise_for_status()
         buffer = b""
@@ -441,7 +443,7 @@ def main():
                 kwargs={
                     'input_ids': tokens.input_ids,
                     'attention_mask': tokens.attention_mask,
-                    'generation_config': GenerationConfig(max_new_tokens=16384),
+                    'generation_config': GenerationConfig(max_new_tokens=MAX_NEW_TOKENS),
                     'streamer': streamer,
                     'do_sample': False
                 }, daemon=True)

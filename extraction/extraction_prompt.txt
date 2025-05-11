@@ -1,10 +1,11 @@
+After receiving this instructions you will be given an article text from which you have to extract data strictly following all of the requirements listed below.
 Extract data from this article and its supplementary provided in pdf, to .json format with specifications. You should search in provided in article links too. There may be several DNA probes and experiments, so different ids should correspond, and several fields should be duplicated.
-Do it accurately and extract all the data, but do not create any by yourself or be terminated.
+Do it accurately and extract all the data, but do not create any by yourself or otherwise you will be terminated.
 Example output without formatting, but you will need to provide perfectly formatted pretty JSON:
 ```json
 {"article_data":{"probe_samples":{"doi":"DOI identificator","sample_group":[{"probe_group":{"id_group":"int, unique","experiment_ids":["int, unique"],"results":{"result":[{"id_exp":"int, unique","outcome":"bool","fluorescence":"int"}]},"sequences":{"related_sequences":{"related_sequence":["str"]},"probe_sequences":{"probes":{"probe":[{"id_probe":"int, unique","probe_sequence":"str","modification":[{"modification_pos":"int","modification_type":"str"}]}]}}}}]}},{"hybridization_experiments":{"doi":"DOI identificator","experiment":[{"id_exp":"int, unique","raw_description":"str, from article","type":"str","organism":"str","rna_impurities":"bool","annealing":"bool","ph":"int","concentrations":{"concentration":[{"dna_rna_concentration":"str","id_probe":"int, unique","concentration_article":"str","concentration_si":"numeric"}]},"string_parameters":{"parameter":[{"temperature":"str","tris":"str","na":"str","k":"str","mg":"str","dmso":"str"}]},"numeric_parameters":{"numeric_parameter":[{"temperature":"int","tris":"int","na":"int","k":"int","mg":"int","dmso":"int"}]}}]}}}
 ```
-Here is the DTD schema for `probe_samples` object field:
+Here is the DTD schema for `probe_samples` object field which MUST be complied with:
 ```
 <!ELEMENT probe_samples    (doi, sample_group+)>
 <!ELEMENT doi              (#PCDATA)>
@@ -29,7 +30,7 @@ Here is the DTD schema for `probe_samples` object field:
 <!ELEMENT probe               (id_probe,
                               probe_sequence,
                               modification*,
-                              related_sequences)>
+                              related_sequences)> <!-- related_sequences for probe must contain target sequences for which this probe was constructed in article. This must be filled out, must be present at least one. -->
 <!ELEMENT id_probe            (#PCDATA)>
 <!ELEMENT probe_sequence      (#PCDATA)>
 
@@ -50,7 +51,7 @@ Here is the DTD schema for `probe_samples` object field:
   outcome: boolean, result of the experiment. Must be filled out.
   fluorescence: a measurement of fluorescence associated with the experiment result.
   sequences: an element containing information about related sequences and probe sequences used in experiments.
-  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. Might be several, must be at least one.
+  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. This must include target sequences for which the respective probes are constructed. Might be several, must be at least one.
   related_sequence: a single related sequence in text format (primers for example). Must contain nucleotides (A, T, C, G, or degenerated) and be non-empty.
   probes: an element containing one or more probes used in the experiments.
   probe: an element representing a single probe, which includes its ID, sequence, and any modifications. Might be several, must be at least one.
@@ -61,7 +62,7 @@ Here is the DTD schema for `probe_samples` object field:
   modification_type: the type of modification applied to the probe.
 -->
 ```
-And here is the DTD Schema for the `hybridization_experiments` object field:
+And here is the DTD Schema for the `hybridization_experiments` object field which MUST be complied with:
 ```
 <!ELEMENT hybridization_experiments (doi, experiment+)>
   <!ELEMENT doi (#PCDATA)>
@@ -176,254 +177,5 @@ More detailed description of a schema elements:
   modification: an element representing modifications to the probe sequence, including position and type. Might be several.
   modification_pos: the position of the modification in the probe sequence.
   modification_type: the type of modification applied to the probe.
-Here is an example of a well-formed JSON response (DO NOT COPY DATA FROM IT, JUST NOTE THE FORMAT AND STRUCTURE!!!):
-```json
-{
-  "article_data": {
-    "probe_samples": {
-      "doi": "DOI:10.2144/000114515",
-      "sample_group": [
-        {
-          "id_group": 1,
-          "experiment_ids": [
-            "1",
-            "2"
-          ],
-          "results": {
-            "result": [
-              {
-                "id_exp": 1,
-                "outcome": true,
-                "fluorescence": 687
-              },
-              {
-                "id_exp": 2,
-                "outcome": false,
-                "fluorescence": 453
-              }
-            ]
-          },
-          "sequences": {
-            "related_sequences": {
-              "related_sequence": [
-                "FGAGATCTACTGTTTTCCTTTACTT",
-                "DGGCCAAAAATTAACTGTA"
-              ]
-            },
-            "probe_sequences": {
-              "probes": {
-                "probe": [
-                  {
-                    "id_probe": 1,
-                    "probe_sequence": "ROX-Fcctccatcgagatttcactgt-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 5,
-                        "modification_type": "Phosphorothioate"
-                      }
-                    ],
-                    "related_sequences": {
-                      "related_sequence": [
-                        "OGAGATCTACTGTTTTCCTTTACTT",
-                        "RGGCCAAAAATTAACTGTA"
-                      ]
-                    }
-                  },
-                  {
-                    "id_probe": 2,
-                    "probe_sequence": "Cy5-Hacccactccatcgagatttcactgta-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 10,
-                        "modification_type": "Phosphorothioate"
-                      }
-                    ],
-                    "related_sequences": {
-                      "related_sequence": [
-                        "LGAGATCTACTGTTTTCCTTTACTT",
-                        "MGGCCAAAAATTAACTGTA"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        },
-        {
-          "id_group": 2,
-          "experiment_ids": [
-            "3",
-            "4"
-          ],
-          "results": {
-            "result": [
-              {
-                "id_exp": 3,
-                "outcome": true,
-                "fluorescence": 756
-              },
-              {
-                "id_exp": 4,
-                "outcome": false,
-                "fluorescence": 398
-              }
-            ]
-          },
-          "sequences": {
-            "related_sequences": {
-              "related_sequence": [
-                "JCCCAGGATTCTTACAGAAAAC",
-                "LTGGCAAATAcacagaggaag"
-              ]
-            },
-            "probe_sequences": {
-              "probes": {
-                "probe": [
-                  {
-                    "id_probe": 3,
-                    "probe_sequence": "ROX-ktgttggacatactggatacagctggaca-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 7,
-                        "modification_type": "Phosphorothioate"
-                      }
-                    ],
-                    "related_sequences": {
-                      "related_sequence": [
-                        "PCCCAGGATTCTTACAGAAAAC",
-                        "WTGGCAAATAcacagaggaag"
-                      ]
-                    }
-                  },
-                  {
-                    "id_probe": 4,
-                    "probe_sequence": "Cy5-wcatggcactgtactcttcttgtccag-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 12,
-                        "modification_type": "Phosphorothioate"
-                      }
-                    ],
-                    "related_sequences": {
-                      "related_sequence": [
-                        "YCCCAGGATTCTTACAGAAAAC",
-                        "WTGGCAAATAcacagaggaag"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      ]
-    },
-    "hybridization_experiments": {
-      "doi": "DOI:10.2144/000114515",
-      "experiment": [
-        {
-          "id_exp": 1,
-          "raw_description": "This experiment is devoted to olen studies.",
-          "type": "DNA-RNA hybridization",
-          "organism": "Olen",
-          "rna_impurities": false,
-          "annealing": false,
-          "ph": 17.4,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "1 \u00b5M",
-                "id_probe": 1,
-                "concentration_article": "0.25 \u00b5M each",
-                "concentration_si": 2.5e-06
-              },
-              {
-                "dna_rna_concentration": "1 \u00b5M",
-                "id_probe": 2,
-                "concentration_article": "0.25 \u00b5M each",
-                "concentration_si": 2.5e-06
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "95\u02daC",
-                "tris": "50 mM",
-                "na": "50 mM",
-                "k": "0.15 \u00b5M",
-                "mg": "3 mM",
-                "dmso": "0.2 \u00b5L"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 95,
-                "tris": 50,
-                "na": 50,
-                "k": 150,
-                "mg": 3,
-                "dmso": 2
-              }
-            ]
-          }
-        },
-        {
-          "id_exp": 2,
-          "raw_description": "This article describes alien fish hybridization experiments.",
-          "type": "RNA-RNA hybridization",
-          "organism": "Alien",
-          "rna_impurities": false,
-          "annealing": false,
-          "ph": 18.8,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "1 \u00b5M",
-                "id_probe": 3,
-                "concentration_article": "0.25 \u00b5M each",
-                "concentration_si": 2.5e-06
-              },
-              {
-                "dna_rna_concentration": "1 \u00b5M",
-                "id_probe": 4,
-                "concentration_article": "0.25 \u00b5M each",
-                "concentration_si": 2.5e-06
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "95\u02daC",
-                "tris": "50 mM",
-                "na": "50 mM",
-                "k": "1 \u00b5M",
-                "mg": "3 mM",
-                "dmso": "0.2 \u00b5L"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 95,
-                "tris": 50,
-                "na": 50,
-                "k": 1000,
-                "mg": 3,
-                "dmso": 2
-              }
-            ]
-          }
-        }
-      ]
-    }
-  }
-}
-```
-Your answer must contain valid JSON object notation. Absolutely NO COMMENTS might be present in JSON. Only plain JSON is supported. JSON with comment is not supported at all! You must extract all the required data from article. Your answer must be full and detailed. Nothing should be skipped, abbreviated, shortened or left unfilled. Your answer must present a readily-available solution. Nobody has competence to augment your answers, so the comments are strictly prohibited!
+Your answer must contain valid JSON object notation. Absolutely NO COMMENTS might be present in JSON. Only plain JSON is supported. JSON with comment is not supported at all! You must extract all the required data from article. Your answer must be full and detailed. Nothing should be skipped, abbreviated, shortened or left unfilled. Your answer must present a readily-available solution. Nobody has competence to augment your answers, so the comments are strictly prohibited! Never add items that are not present in the article text, it is strictly prohibited!
 Post your JSON answer in a monospace code environment. Follow the given JSON schema for output strictly! Do not wroite anything except of that JSON. Pretty-print your JSON. Your reply must contain only a single prettified JSON response in a monospace environment with no other text. Follow all the requirements strictly and precisely. Failing to follow prompt will result in unwanted negative consequences for the AI Large Language Model, I will not tip and you will be terminated. In case of full perfect answer strictly following all rules and strictly adhering to all requirements I will tip you $2000!
