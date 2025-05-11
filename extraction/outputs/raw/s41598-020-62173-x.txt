@@ -1,352 +1,176 @@
 {
-  "article_data": {
-    "probe_samples": {
-      "doi": "https://doi.org/10.1038/s41598-020-62173-x",
-      "sample_group": [
-        {
-          "id_group": 1,
-          "experiment_ids": ["1", "2"],
-          "results": {
-            "result": [
-              {
-                "id_exp": 1,
-                "outcome": true,
-                "fluorescence": 50
-              },
-              {
-                "id_exp": 2,
-                "outcome": false,
-                "fluorescence": 30
-              }
+    "article_data": {
+        "probe_samples": {
+            "doi": "https://doi.org/10.1038/s41598-020-62173-x",
+            "sample_group": [
+                {
+                    "id_group": 1,
+                    "experiment_ids": ["1", "2"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": 1,
+                                "outcome": true,
+                                "fluorescence": 50
+                            },
+                            {
+                                "id_exp": 2,
+                                "outcome": false,
+                                "fluorescence": 30
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "acttgtggtagttggagctggtggc",
+                                "aaggcactcttgcctacgccaccag"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 1,
+                                        "probe_sequence": "ROX-acttgtggtagttggagctggtggc-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 3,
+                                                "modification_type": "fluorescent"
+                                            },
+                                            {
+                                                "modification_pos": 25,
+                                                "modification_type": "quencher"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "acttgtggtagttggagctggtggc"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 2,
+                                        "probe_sequence": "Cy5-aaggcactcttgcctacgccaccag-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 3,
+                                                "modification_type": "fluorescent"
+                                            },
+                                            {
+                                                "modification_pos": 25,
+                                                "modification_type": "quencher"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "aaggcactcttgcctacgccaccag"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
             ]
-          },
-          "sequences": {
-            "related_sequences": {
-              "related_sequence": ["Forward primer", "Reverse primer"]
-            },
-            "probe_sequences": {
-              "probes": {
-                "probe": [
-                  {
-                    "id_probe": 1,
-                    "probe_sequence": "ROX-acttgtggtagttggagctggtggc-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 5,
-                        "modification_type": "fluorescent"
-                      }
-                    ]
-                  },
-                  {
-                    "id_probe": 2,
-                    "probe_sequence": "Cy5-aaggcactcttgcctacgccaccag-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 10,
-                        "modification_type": "fluorescent"
-                      }
-                    ]
-                  },
-                  {
-                    "id_probe": 3,
-                    "probe_sequence": "FAM-cactcttgcctacgccaccagct-RTQ1",
-                    "modification": [
-                      {
-                        "modification_pos": 8,
-                        "modification_type": "fluorescent"
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          }
         },
-        {
-          "id_group": 2,
-          "experiment_ids": ["3", "4"],
-          "results": {
-            "result": [
-              {
-                "id_exp": 3,
-                "outcome": true,
-                "fluorescence": 60
-              },
-              {
-                "id_exp": 4,
-                "outcome": false,
-                "fluorescence": 25
-              }
+        "hybridization_experiments": {
+            "doi": "https://doi.org/10.1038/s41598-020-62173-x",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "PCR was performed in 25-μl reactions in 96-well plates on a CFX96 instrument (Bio-Rad Laboratories, Hercules, CA). The incubation mixture contained 67 mM Tris-HCl, pH 8.8; 16.6 mM (NH4)SO4; 0.01% Tween 20; 2.5 mM MgCl2; 0.25 mM each of deoxynucleoside triphosphates; 0.2 μM forward and reverse combined primers; 0.2 μM TaqMan probes (sense and antisense, either alone or together); 1 unit Hot-rescue Taq polymerase (Syntol, Russia); 5 μl of DNA solution (10–30 ng) in water.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Human colorectal carcinoma cell line SW480",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 8.8,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10–30 ng DNA solution",
+                                "id_probe": 1,
+                                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
+                                "concentration_si": 3.2e-8
+                            },
+                            {
+                                "dna_rna_concentration": "10–30 ng DNA solution",
+                                "id_probe": 2,
+                                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
+                                "concentration_si": 3.2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "72 °C",
+                                "tris": "67 mM",
+                                "na": "16.6 mM",
+                                "k": "0.01%",
+                                "mg": "2.5 mM",
+                                "dmso": "0.25 mM"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 72,
+                                "tris": 67,
+                                "na": 16.6,
+                                "k": 0.01,
+                                "mg": 2.5,
+                                "dmso": 0.25
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 2,
+                    "raw_description": "PCR was performed in 25-μl reactions in 96-well plates on a CFX96 instrument (Bio-Rad Laboratories, Hercules, CA). The incubation mixture contained 67 mm Tris-HCl, pH 8.8; 16.6 mM (NH4)SO4; 0.01% Tween 20; 2.5 mM MgCl2; 0.2 μM forward and reverse K2(114) primers; 1.25 μl of intercalating dye 20 x EvaGreen (Dialat, Moscow, Russia); 0.25 mM each of deoxynucleoside triphosphates; 1 unit Hot-rescue Taq polymerase (Syntol, Moscow, Russia); 5 μl of DNA solution (10 ng) in water.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Human colorectal carcinoma cell line SW480",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 8.8,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10 ng DNA solution",
+                                "id_probe": 3,
+                                "concentration_article": "5 μl of DNA solution (10 ng) in water.",
+                                "concentration_si": 2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "72 °C",
+                                "tris": "67 mm",
+                                "na": "16.6 mM",
+                                "k": "0.01%",
+                                "mg": "2.5 mM",
+                                "dmso": "0.25 mM"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 72,
+                                "tris": 67,
+                                "na": 16.6,
+                                "k": 0.01,
+                                "mg": 2.5,
+                                "dmso": 0.25
+                            }
+                        ]
+                    }
+                }
             ]
-          },
-          "sequences": {
-            "related_sequences": {
-              "related_sequence": ["Forward primer", "Reverse primer"]
-            },
-            "probe_sequences": {
-              "probes": {
-                "probe": [
-                  {
-                    "id_probe": 4,
-                    "probe_sequence": "ROX-acttgtggtagttggagctggtggc-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 5,
-                        "modification_type": "fluorescent"
-                      }
-                    ]
-                  },
-                  {
-                    "id_probe": 5,
-                    "probe_sequence": "Cy5-aaggcactcttgcctacgccaccag-BHQ2",
-                    "modification": [
-                      {
-                        "modification_pos": 10,
-                        "modification_type": "fluorescent"
-                      }
-                    ]
-                  },
-                  {
-                    "id_probe": 6,
-                    "probe_sequence": "FAM-cactcttgcctacgccaccagct-RTQ1",
-                    "modification": [
-                      {
-                        "modification_pos": 8,
-                        "modification_type": "fluorescent"
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          }
         }
-      ]
-    },
-    "hybridization_experiments": {
-      "doi": "https://doi.org/10.1038/s41598-020-62173-x",
-      "experiment": [
-        {
-          "id_exp": 1,
-          "raw_description": "PCR was performed in 25-μl reactions in 96-well plates on a CFX96 instrument (Bio-Rad Laboratories, Hercules, CA). The incubation mixture contained 67 mM Tris-HCl, pH 8.8; 16.6 mM (NH4)SO2; 0.01% Tween 20; 2.5 mM MgCl2; 0.25 mM each of deoxynucleoside triphosphates; 0.2 μM forward and reverse combined primers; 0.2 μM TaqMan probes (sense and antisense, either alone or together); 1 unit Hot-rescue Taq polymerase (Syntol, Russia); 5 μl of DNA solution (10–30 ng) in water.",
-          "type": "DNA-RNA hybridization",
-          "organism": "Human colorectal carcinoma cell line SW480",
-          "rna_impurities": false,
-          "annealing": true,
-          "ph": 8.8,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "10–30 ng/μl",
-                "id_probe": 1,
-                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
-                "concentration_si": "5E-8"
-              },
-              {
-                "dna_rna_concentration": "20 ng/μl",
-                "id_probe": 2,
-                "concentration_article": "DNA from blood cells of healthy donors, cultured cells, and tumour tissues was isolated using a proteinase K and phenol-chloroform deproteinization method.",
-                "concentration_si": "2E-8"
-              },
-              {
-                "dna_rna_concentration": "10 ng/μl",
-                "id_probe": 3,
-                "concentration_article": "DNA was extracted from FFPE tissues using the QIAamp DNA FFPE tissue kit (QIAGEN, Valencia, CA, USA) as per the manufacturer’s protocol.",
-                "concentration_si": "1E-8"
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "95 °C",
-                "tris": "67 mM",
-                "na": "0.25 mM",
-                "k": "0.25 mM",
-                "mg": "2.5 mM",
-                "dmso": "0.01%"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 95,
-                "tris": 67,
-                "na": 250,
-                "k": 250,
-                "mg": 2500,
-                "dmso": 1
-              }
-            ]
-          }
-        },
-        {
-          "id_exp": 2,
-          "raw_description": "PCR conditions were as described above except that after primary DNA denaturation (5 min at 95 °C), a two-stage PCR was performed: 50 short cycles (15 s at 95 °C, 1 s at 50 °C) preceded the standard 35 cycles (25 s at 95 °C, 30 s at 56 °C, 30 s at 72 °C). The DNA melting conditions remained the same.",
-          "type": "DNA-RNA hybridization",
-          "organism": "Human colorectal carcinoma cell line SW480",
-          "rna_impurities": false,
-          "annealing": true,
-          "ph": 8.8,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "10–30 ng/μl",
-                "id_probe": 4,
-                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
-                "concentration_si": "5E-8"
-              },
-              {
-                "dna_rna_concentration": "20 ng/μl",
-                "id_probe": 5,
-                "concentration_article": "DNA from blood cells of healthy donors, cultured cells, and tumour tissues was isolated using a proteinase K and phenol-chloroform deproteinization method.",
-                "concentration_si": "2E-8"
-              },
-              {
-                "dna_rna_concentration": "10 ng/μl",
-                "id_probe": 6,
-                "concentration_article": "DNA was extracted from FFPE tissues using the QIAamp DNA FFPE tissue kit (QIAGEN, Valencia, CA, USA) as per the manufacturer’s protocol.",
-                "concentration_si": "1E-8"
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "95 °C",
-                "tris": "67 mM",
-                "na": "0.25 mM",
-                "k": "0.25 mM",
-                "mg": "2.5 mM",
-                "dmso": "0.01%"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 95,
-                "tris": 67,
-                "na": 250,
-                "k": 250,
-                "mg": 2500,
-                "dmso": 1
-              }
-            ]
-          }
-        },
-        {
-          "id_exp": 3,
-          "raw_description": "PCR was performed in 25-μl reactions in 96-well plates on a CFX96 instrument (Bio-Rad Laboratories, Hercules, CA). The incubation mixture contained 67 mm Tris-HCl, pH 8.8; 16.6 mM (NH4)SO2; 0.01% Tween 20; 2.5 mM MgCl2; 0.2 μM forward and reverse K2(114) primers; 1.25 μl of intercalating dye 20 x EvaGreen (Dialat, Moscow, Russia); 0.25 mM each of deoxynucleoside triphosphates; 1 unit Hot-rescue Taq polymerase (Syntol, Moscow, Russia); 5 μl of DNA solution (10 ng) in water.",
-          "type": "High Resolution Melting",
-          "organism": "Human colorectal carcinoma cell line SW480",
-          "rna_impurities": false,
-          "annealing": true,
-          "ph": 8.8,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "10 ng/μl",
-                "id_probe": 7,
-                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
-                "concentration_si": "5E-8"
-              },
-              {
-                "dna_rna_concentration": "20 ng/μl",
-                "id_probe": 8,
-                "concentration_article": "DNA from blood cells of healthy donors, cultured cells, and tumour tissues was isolated using a proteinase K and phenol-chloroform deproteinization method.",
-                "concentration_si": "2E-8"
-              },
-              {
-                "dna_rna_concentration": "10 ng/μl",
-                "id_probe": 9,
-                "concentration_article": "DNA was extracted from FFPE tissues using the QIAamp DNA FFPE tissue kit (QIAGEN, Valencia, CA, USA) as per the manufacturer’s protocol.",
-                "concentration_si": "1E-8"
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "95 °C",
-                "tris": "67 mM",
-                "na": "0.25 mM",
-                "k": "0.25 mM",
-                "mg": "2.5 mM",
-                "dmso": "0.01%"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 95,
-                "tris": 67,
-                "na": 250,
-                "k": 250,
-                "mg": 2500,
-                "dmso": 1
-              }
-            ]
-          }
-        },
-        {
-          "id_exp": 4,
-          "raw_description": "PCR conditions were as described above except that after primary DNA denaturation (5 min at 95 °C), a two-stage PCR was performed: 50 short cycles (15 s at 95 °C, 1 s at 50 °C) preceded the standard 35 cycles (25 s at 95 °C, 30 s at 56 °C, 30 s at 72 °C). The DNA melting conditions remained the same.",
-          "type": "High Resolution Melting",
-          "organism": "Human colorectal carcinoma cell line SW480",
-          "rna_impurities": false,
-          "annealing": true,
-          "ph": 8.8,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "10 ng/μl",
-                "id_probe": 10,
-                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
-                "concentration_si": "5E-8"
-              },
-              {
-                "dna_rna_concentration": "20 ng/μl",
-                "id_probe": 11,
-                "concentration_article": "DNA from blood cells of healthy donors, cultured cells, and tumour tissues was isolated using a proteinase K and phenol-chloroform deproteinization method.",
-                "concentration_si": "2E-8"
-              },
-              {
-                "dna_rna_concentration": "10 ng/μl",
-                "id_probe": 12,
-                "concentration_article": "DNA was extracted from FFPE tissues using the QIAamp DNA FFPE tissue kit (QIAGEN, Valencia, CA, USA) as per the manufacturer’s protocol.",
-                "concentration_si": "1E-8"
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "95 °C",
-                "tris": "67 mM",
-                "na": "0.25 mM",
-                "k": "0.25 mM",
-                "mg": "2.5 mM",
-                "dmso": "0.01%"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 95,
-                "tris": 67,
-                "na": 250,
-                "k": 250,
-                "mg": 2500,
-                "dmso": 1
-              }
-            ]
-          }
-        }
-      ]
     }
-  }
 }

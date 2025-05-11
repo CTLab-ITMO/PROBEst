@@ -1,7 +1,7 @@
 {
   "article_data": {
     "probe_samples": {
-      "doi": "https://doi.org/10.1038/s41598-018-31200-3",
+      "doi": "10.1038/s41598-018-31200-3",
       "sample_group": [
         {
           "id_group": "1",
@@ -22,32 +22,39 @@
           },
           "sequences": {
             "related_sequences": {
-              "related_sequence": ["S. aureus", "E. coli"]
+              "related_sequence": [
+                "F: ACGGTTAGGTGAATTGATTGTTTTAT R: CGCATTTGAGCTGAAGTTG P: TAKGACCAYCACGRGTC",
+                "F: CATCTGATAAACCTTCGACAGCTTT R: TGCTATCTTCAATCACGGTATGAC P: TTCACGTTCTTCATCAGATT"
+              ]
             },
             "probe_sequences": {
               "probes": {
                 "probe": [
                   {
                     "id_probe": "1",
-                    "probe_sequence": "ACGGTTAGGTGAATTGATTGTTTTAT",
+                    "probe_sequence": "FAM-ACGGTTAGGTGAATTGATTGTTTTAT-TAMRA",
                     "modification": [
                       {
-                        "modification_pos": 20,
-                        "modification_type": "FAM"
+                        "modification_pos": "30",
+                        "modification_type": "TAMRA"
                       }
                     ],
-                    "related_sequences": ["S. aureus"]
+                    "related_sequences": {
+                      "related_sequence": ["Staphylococcus aureus"]
+                    }
                   },
                   {
                     "id_probe": "2",
-                    "probe_sequence": "GTATCGCGCACTCGAAGCC",
+                    "probe_sequence": "NFQ-MGB-CATCTGATAAACCTTCGACAGCTTT-TAMRA",
                     "modification": [
                       {
-                        "modification_pos": 15,
-                        "modification_type": "NFQ-MGB"
+                        "modification_pos": "30",
+                        "modification_type": "TAMRA"
                       }
                     ],
-                    "related_sequences": ["E. coli"]
+                    "related_sequences": {
+                      "related_sequence": ["Staphylococcus epidermidis"]
+                    }
                   }
                 ]
               }
@@ -73,131 +80,224 @@
           },
           "sequences": {
             "related_sequences": {
-              "related_sequence": ["S. hominis", "S. haemolyticus"]
+              "related_sequence": [
+                "F: GGTTCGATAGTGAAAGATGGCT R: GTTGCCTTGGTAAGCCGTT P: AGATGGACCTGCGCCGTA",
+                "F: ATGCGCTGGGCGAACA R: CATGTCCATTCTTTGGGCAA P: AGTCAGAAAGCGACAAAA"
+              ]
             },
             "probe_sequences": {
               "probes": {
                 "probe": [
                   {
                     "id_probe": "3",
-                    "probe_sequence": "AGATGGACCTGCGCCGTA",
+                    "probe_sequence": "FAM-GGTTCGATAGTGAAAGATGGCT-TAMRA",
                     "modification": [
                       {
-                        "modification_pos": 10,
-                        "modification_type": "FAM"
+                        "modification_pos": "25",
+                        "modification_type": "TAMRA"
                       }
                     ],
-                    "related_sequences": ["S. hominis"]
+                    "related_sequences": {
+                      "related_sequence": ["Staphylococcus hominis"]
+                    }
                   },
                   {
                     "id_probe": "4",
-                    "probe_sequence": "CAAGCCCAGCAAATGGCTC",
+                    "probe_sequence": "NFQ-MGB-ATGCGCTGGGCGAACA-TAMRA",
                     "modification": [
                       {
-                        "modification_pos": 15,
-                        "modification_type": "NFQ-MGB"
+                        "modification_pos": "20",
+                        "modification_type": "TAMRA"
                       }
                     ],
-                    "related_sequences": ["S. haemolyticus"]
+                    "related_sequences": {
+                      "related_sequence": ["Staphylococcus haemolyticus"]
+                    }
                   }
                 ]
               }
             }
           }
         },
-        // Add more probe groups as per the provided data
+        // Additional probe samples for other pathogens can be added similarly
       ]
     },
     "hybridization_experiments": {
-      "doi": "https://doi.org/10.1038/s41598-018-31200-3",
+      "doi": "10.1038/s41598-018-31200-3",
       "experiment": [
         {
           "id_exp": "1",
-          "raw_description": "To maximize pathogen cell yield from blood specimens, we used 50% Tween 20/Triton X-100 or 0.1% saponin to release pathogen cells engulfed by phagocytes.",
+          "raw_description": "Detection of Staphylococcus aureus in whole blood specimens using TaqMan array card technology.",
           "type": "DNA-RNA hybridization",
-          "organism": "S. aureus",
-          "rna_impurities": true,
+          "organism": "Staphylococcus aureus",
+          "rna_impurities": false,
           "annealing": true,
-          "ph": 7,
+          "ph": 8.0,
           "concentrations": {
             "concentration": [
               {
-                "dna_rna_concentration": "103 CFU/mL",
+                "dna_rna_concentration": "100 CFU/mL",
                 "id_probe": "1",
-                "concentration_article": "1 mg/mL",
-                "concentration_si": 1e-6
+                "concentration_article": "100 CFU/mL",
+                "concentration_si": 1e-3
               }
             ]
           },
           "string_parameters": {
             "parameter": [
               {
-                "temperature": "37°C",
-                "tris": "50 mM",
-                "na": "200 mM",
-                "k": "40 mM",
+                "temperature": "50 C",
+                "tris": "2.5 mM",
+                "na": "400 mM",
+                "k": "6.8 mM",
                 "mg": "1.5 mM",
-                "dmso": "0.01%"
+                "dmso": "7.5%"
               }
             ]
           },
           "numeric_parameters": {
             "numeric_parameter": [
               {
-                "temperature": 37,
-                "tris": 50,
-                "na": 200,
-                "k": 40,
+                "temperature": 50,
+                "tris": 2.5,
+                "na": 400,
+                "k": 6.8,
                 "mg": 1.5,
-                "dmso": 0.01
+                "dmso": 7.5
               }
             ]
           }
         },
         {
           "id_exp": "2",
-          "raw_description": "To maximize bacterial or fungal TNA yield, we tested 4 TNA extraction kits and one method.",
+          "raw_description": "Detection of Staphylococcus epidermidis in whole blood specimens using TaqMan array card technology.",
           "type": "DNA-RNA hybridization",
-          "organism": "E. coli",
+          "organism": "Staphylococcus epidermidis",
           "rna_impurities": false,
           "annealing": true,
-          "ph": 8,
+          "ph": 7.8,
           "concentrations": {
             "concentration": [
               {
-                "dna_rna_concentration": "103 CFU/mL",
+                "dna_rna_concentration": "102 CFU/mL",
                 "id_probe": "2",
-                "concentration_article": "5 mg/mL",
-                "concentration_si": 5e-6
+                "concentration_article": "102 CFU/mL",
+                "concentration_si": 1.02e-3
               }
             ]
           },
           "string_parameters": {
             "parameter": [
               {
-                "temperature": "42°C",
-                "tris": "10 mM",
-                "na": "300 mM",
-                "k": "80 mM",
-                "mg": "2.5 mM",
-                "dmso": "0.05%"
+                "temperature": "50 C",
+                "tris": "2.5 mM",
+                "na": "400 mM",
+                "k": "6.8 mM",
+                "mg": "1.5 mM",
+                "dmso": "7.5%"
               }
             ]
           },
           "numeric_parameters": {
             "numeric_parameter": [
               {
-                "temperature": 42,
-                "tris": 10,
-                "na": 300,
-                "k": 80,
-                "mg": 2.5,
-                "dmso": 0.05
+                "temperature": 50,
+                "tris": 2.5,
+                "na": 400,
+                "k": 6.8,
+                "mg": 1.5,
+                "dmso": 7.5
               }
             ]
           }
         },
-        // Add more experiments as per the provided data
+        {
+          "id_exp": "3",
+          "raw_description": "Detection of Staphylococcus hominis in whole blood specimens using TaqMan array card technology.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Staphylococcus hominis",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7.9,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "100 CFU/mL",
+                "id_probe": "3",
+                "concentration_article": "100 CFU/mL",
+                "concentration_si": 1e-3
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "50 C",
+                "tris": "2.5 mM",
+                "na": "400 mM",
+                "k": "6.8 mM",
+                "mg": "1.5 mM",
+                "dmso": "7.5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 50,
+                "tris": 2.5,
+                "na": 400,
+                "k": 6.8,
+                "mg": 1.5,
+                "dmso": 7.5
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "4",
+          "raw_description": "Detection of Staphylococcus haemolyticus in whole blood specimens using TaqMan array card technology.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Staphylococcus haemolyticus",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 8.1,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "100 CFU/mL",
+                "id_probe": "4",
+                "concentration_article": "100 CFU/mL",
+                "concentration_si": 1e-3
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "50 C",
+                "tris": "2.5 mM",
+                "na": "400 mM",
+                "k": "6.8 mM",
+                "mg": "1.5 mM",
+                "dmso": "7.5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 50,
+                "tris": 2.5,
+                "na": 400,
+                "k": 6.8,
+                "mg": 1.5,
+                "dmso": 7.5
+              }
+            ]
+          }
+        },
+        // Additional hybridization experiments for other pathogens can be added similarly
       ]
     }
   }

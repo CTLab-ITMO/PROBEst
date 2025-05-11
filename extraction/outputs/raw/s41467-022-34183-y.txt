@@ -5,13 +5,13 @@
       "sample_group": [
         {
           "id_group": 1,
-          "experiment_ids": [1, 2],
+          "experiment_ids": ["1", "2"],
           "results": {
             "result": [
               {
                 "id_exp": 1,
                 "outcome": true,
-                "fluorescence": 75
+                "fluorescence": 50
               },
               {
                 "id_exp": 2,
@@ -22,26 +22,65 @@
           },
           "sequences": {
             "related_sequences": {
-              "related_sequence": ["TACGATCG", "CTAGCAT"]
+              "related_sequence": ["AATTA", "TAATT"]
             },
             "probe_sequences": {
-              "probes": [
-                {
-                  "id_probe": 1,
-                  "probe_sequence": "ATCGTAGC",
-                  "modification": [
-                    {
-                      "modification_pos": 3,
-                      "modification_type": "phosphorothioate"
-                    }
-                  ]
-                },
-                {
-                  "id_probe": 2,
-                  "probe_sequence": "GCTAGCAT",
-                  "modification": []
-                }
-              ]
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": 1,
+                    "probe_sequence": "ACGT",
+                    "modification": [
+                      {
+                        "modification_pos": 2,
+                        "modification_type": "phosphorothioate"
+                      }
+                    ],
+                    "related_sequences": ["AATTA", "TAATT"]
+                  },
+                  {
+                    "id_probe": 2,
+                    "probe_sequence": "TACG",
+                    "modification": [
+                      {
+                        "modification_pos": 1,
+                        "modification_type": "phosphorothioate"
+                      }
+                    ],
+                    "related_sequences": ["AATTA", "TAATT"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id_group": 2,
+          "experiment_ids": ["3"],
+          "results": {
+            "result": [
+              {
+                "id_exp": 3,
+                "outcome": true,
+                "fluorescence": 40
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": ["AATTA", "TAATT"]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": 3,
+                    "probe_sequence": "GCTA",
+                    "modification": [],
+                    "related_sequences": ["AATTA", "TAATT"]
+                  }
+                ]
+              }
             }
           }
         }
@@ -52,25 +91,25 @@
       "experiment": [
         {
           "id_exp": 1,
-          "raw_description": "Hybridization of FRET-FISH probes targeting the MYC gene in human HAP1 cells.",
+          "raw_description": "FRET-FISH implementation and optimization.",
           "type": "DNA-RNA hybridization",
-          "organism": "Homo sapiens",
-          "rna_impurities": false,
-          "annealing": true,
-          "ph": 7.4,
+          "organism": "Human",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 7.5,
           "concentrations": {
             "concentration": [
               {
-                "dna_rna_concentration": "10 nM",
+                "dna_rna_concentration": "20nM",
                 "id_probe": 1,
-                "concentration_article": "10 nM",
-                "concentration_si": 1e-8
+                "concentration_article": "20nM",
+                "concentration_si": 2e-8
               },
               {
-                "dna_rna_concentration": "50 nM",
+                "dna_rna_concentration": "40nM",
                 "id_probe": 2,
-                "concentration_article": "50 nM",
-                "concentration_si": 5e-8
+                "concentration_article": "40nM",
+                "concentration_si": 4e-8
               }
             ]
           },
@@ -78,11 +117,11 @@
             "parameter": [
               {
                 "temperature": "37°C",
-                "tris": "1×",
-                "na": "2.5 M",
-                "k": "0.1 mM",
-                "mg": "1 mM",
-                "dmso": "5%"
+                "tris": "5.5×Denhardt’s solution",
+                "na": "111ng/μL ssDNA",
+                "k": "50mM sodium phosphate buffer",
+                "mg": "1.1mM EDTA",
+                "dmso": "2.2×SSC"
               }
             ]
           },
@@ -90,60 +129,103 @@
             "numeric_parameter": [
               {
                 "temperature": 37,
-                "tris": 1,
-                "na": 2500,
-                "k": 0.1,
-                "mg": 1,
-                "dmso": 5
+                "tris": 5500,
+                "na": 111,
+                "k": 50000,
+                "mg": 1100,
+                "dmso": 2200
               }
             ]
           }
         },
         {
           "id_exp": 2,
-          "raw_description": "Hybridization of FRET-FISH probes targeting the Ogt gene in female mouse embryonic fibroblasts (MEFs).",
+          "raw_description": "FRET-FISH validation.",
           "type": "DNA-RNA hybridization",
-          "organism": "Mus musculus",
+          "organism": "Mouse",
           "rna_impurities": true,
           "annealing": false,
-          "ph": 7.0,
+          "ph": 7.5,
           "concentrations": {
             "concentration": [
               {
-                "dna_rna_concentration": "25 nM",
-                "id_probe": 1,
-                "concentration_article": "25 nM",
-                "concentration_si": 2.5e-8
-              },
-              {
-                "dna_rna_concentration": "75 nM",
-                "id_probe": 2,
-                "concentration_article": "75 nM",
-                "concentration_si": 7.5e-8
+                "dna_rna_concentration": "20nM",
+                "id_probe": 3,
+                "concentration_article": "20nM",
+                "concentration_si": 2e-8
               }
             ]
           },
           "string_parameters": {
             "parameter": [
               {
-                "temperature": "30°C",
-                "tris": "1×",
-                "na": "2 M",
-                "k": "0.05 mM",
-                "mg": "0.5 mM",
-                "dmso": "2%"
+                "temperature": "37°C",
+                "tris": "5.5×Denhardt’s solution",
+                "na": "111ng/μL ssDNA",
+                "k": "50mM sodium phosphate buffer",
+                "mg": "1.1mM EDTA",
+                "dmso": "2.2×SSC"
               }
             ]
           },
           "numeric_parameters": {
             "numeric_parameter": [
               {
-                "temperature": 30,
-                "tris": 1,
-                "na": 2000,
-                "k": 0.05,
-                "mg": 0.5,
-                "dmso": 2
+                "temperature": 37,
+                "tris": 5500,
+                "na": 111,
+                "k": 50000,
+                "mg": 1100,
+                "dmso": 2200
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 3,
+          "raw_description": "Induction of chromatin condensation by ATP depletion.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Mouse",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 7.5,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "20nM",
+                "id_probe": 1,
+                "concentration_article": "20nM",
+                "concentration_si": 2e-8
+              },
+              {
+                "dna_rna_concentration": "40nM",
+                "id_probe": 2,
+                "concentration_article": "40nM",
+                "concentration_si": 4e-8
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37°C",
+                "tris": "5.5×Denhardt’s solution",
+                "na": "111ng/μL ssDNA",
+                "k": "50mM sodium phosphate buffer",
+                "mg": "1.1mM EDTA",
+                "dmso": "2.2×SSC"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 5500,
+                "na": 111,
+                "k": 50000,
+                "mg": 1100,
+                "dmso": 2200
               }
             ]
           }
