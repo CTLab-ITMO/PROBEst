@@ -1,0 +1,19 @@
+# environment.yml
+name: extraction
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - torch                                 # for local LLM
+    - transformers                          # huggingface
+    - tqdm                                  # progress bars
+    - pdfplumber                            # PDF text layer
+    - pytesseract                           # OCR fallback
+    - pillow                                # image support
+    - dicttoxml                             # JSON→XML conversion
+    - lxml                                  # XML + DTD validation
+    - rich                                  # pretty logging
+    - accelerate
+
