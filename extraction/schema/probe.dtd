@@ -11,18 +11,17 @@
 <!ELEMENT outcome          (#PCDATA)>
 <!ELEMENT fluorescence     (#PCDATA)>
 
-<!ELEMENT sequences           (related_sequences?, probe_sequences)>
+<!ELEMENT sequences           (related_sequences, probe_sequences)>
 <!ELEMENT related_sequences   (related_sequence+)>
 <!ELEMENT related_sequence    (#PCDATA)>
 
-<!ELEMENT probe_sequences     (probes | probe+)>
+<!ELEMENT probe_sequences     (probes)>
 <!ELEMENT probes              (probe+)>
 
 <!ELEMENT probe               (id_probe,
                               probe_sequence,
                               modification*,
-                              related_sequences?,
-                              related_sequence*)>
+                              related_sequences)>
 <!ELEMENT id_probe            (#PCDATA)>
 <!ELEMENT probe_sequence      (#PCDATA)>
 

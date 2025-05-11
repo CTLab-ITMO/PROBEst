@@ -19,25 +19,24 @@ Here is the DTD schema for `probe_samples` object field:
 <!ELEMENT outcome          (#PCDATA)>
 <!ELEMENT fluorescence     (#PCDATA)>
 
-<!ELEMENT sequences           (related_sequences?, probe_sequences)>
+<!ELEMENT sequences           (related_sequences, probe_sequences)>
 <!ELEMENT related_sequences   (related_sequence+)>
 <!ELEMENT related_sequence    (#PCDATA)>
 
-<!ELEMENT probe_sequences     (probes | probe+)>
+<!ELEMENT probe_sequences     (probes)>
 <!ELEMENT probes              (probe+)>
 
 <!ELEMENT probe               (id_probe,
                               probe_sequence,
                               modification*,
-                              related_sequences?,
-                              related_sequence*)>
+                              related_sequences)>
 <!ELEMENT id_probe            (#PCDATA)>
 <!ELEMENT probe_sequence      (#PCDATA)>
 
 <!ELEMENT modification        (modification_pos, modification_type)>
 <!ELEMENT modification_pos    (#PCDATA)>
 <!ELEMENT modification_type   (#PCDATA)>
-        
+
 <!--
   Explanation of elements:
   probe_samples: the root element containing the DOI of the article and one or more probe groups.
@@ -51,12 +50,12 @@ Here is the DTD schema for `probe_samples` object field:
   outcome: boolean, result of the experiment. Must be filled out.
   fluorescence: a measurement of fluorescence associated with the experiment result.
   sequences: an element containing information about related sequences and probe sequences used in experiments.
-  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. Might be several.
-  related_sequence: a single related sequence in text format (primers for example). Must contain nucleotides (A, T, C, G, or degenerated).
+  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. Might be several, must be at least one.
+  related_sequence: a single related sequence in text format (primers for example). Must contain nucleotides (A, T, C, G, or degenerated) and be non-empty.
   probes: an element containing one or more probes used in the experiments.
-  probe: an element representing a single probe, which includes its ID, sequence, and any modifications. Might be several.
+  probe: an element representing a single probe, which includes its ID, sequence, and any modifications. Might be several, must be at least one.
   id_probe: integer, a unique identifier for the probe. Must be filled out.
-  probe_sequence: a probe sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated).
+  probe_sequence: a probe sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated) and be non-empty.
   modification: an element representing modifications to the probe sequence, including position and type. Might be several.
   modification_pos: the position of the modification in the probe sequence.
   modification_type: the type of modification applied to the probe.

@@ -378,7 +378,13 @@ def insert_into_db(conn, article_name, data, force=False):
             )
 
         # probes (and their modifications + per-probe related_sequences)
-        for pr in grp['sequences']['probe_sequences']['probes']['probe']:
+        if 'probe' in grp['sequences']['probe_sequences']['probes']:
+            prbs = grp['sequences']['probe_sequences']['probes']['probe']
+        else:
+            prbs = grp['sequences']['probe_sequences']['probes']
+            log.critical("Unsupported JSON format in %s: probe+ under probe_sequences directly!", article_name)
+
+        for pr in prbs:
             c.execute(
                 "INSERT INTO probes VALUES (?, ?, ?)",
                 (group_row, pr['id_probe'], pr['probe_sequence'])
