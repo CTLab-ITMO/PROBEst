@@ -1,10 +1,7 @@
 <!ELEMENT probe_samples    (doi, sample_group+)>
 <!ELEMENT doi              (#PCDATA)>
 
-<!ELEMENT sample_group     (id_group,
-                            experiment_id+,
-                            results,
-                            sequences)>
+<!ELEMENT sample_group     (id_group, experiment_id+, results, sequences)>
 <!ELEMENT id_group         (#PCDATA)>
 <!ELEMENT experiment_id    (#PCDATA)>
 
@@ -14,23 +11,24 @@
 <!ELEMENT outcome          (#PCDATA)>
 <!ELEMENT fluorescence     (#PCDATA)>
 
-<!ELEMENT sequences        (related_sequences, probe_sequences)>
+<!ELEMENT sequences           (related_sequences?, probe_sequences)>
+<!ELEMENT related_sequences   (related_sequence+)>
+<!ELEMENT related_sequence    (#PCDATA)>
 
-  <!ELEMENT related_sequences     (related_sequence+)>
-  <!ELEMENT related_sequence      (#PCDATA)>
+<!ELEMENT probe_sequences     (probes | probe+)>
+<!ELEMENT probes              (probe+)>
 
-  <!ELEMENT probe_sequences       (probes)>
-    <!ELEMENT probes              (probe+)>
-      <!ELEMENT probe             (id_probe,
-                                   probe_sequence,
-                                   modification*,
-                                   related_sequences)>
-      <!ELEMENT id_probe          (#PCDATA)>
-      <!ELEMENT probe_sequence    (#PCDATA)>
+<!ELEMENT probe               (id_probe,
+                              probe_sequence,
+                              modification*,
+                              related_sequences?,
+                              related_sequence*)>
+<!ELEMENT id_probe            (#PCDATA)>
+<!ELEMENT probe_sequence      (#PCDATA)>
 
-      <!ELEMENT modification       (modification_pos, modification_type)>
-      <!ELEMENT modification_pos   (#PCDATA)>
-      <!ELEMENT modification_type  (#PCDATA)>
+<!ELEMENT modification        (modification_pos, modification_type)>
+<!ELEMENT modification_pos    (#PCDATA)>
+<!ELEMENT modification_type   (#PCDATA)>
 
 <!--
   Explanation of elements:

@@ -384,7 +384,7 @@ def insert_into_db(conn, article_name, data, force=False):
                 (group_row, pr['id_probe'], pr['probe_sequence'])
             )
             # per-probe related sequences (if you also need to record these separately)
-            for r in pr.get('related_sequences', {}).get('related_sequence', []):
+            for r in pr.get('related_sequences', {}):
                 c.execute(
                     "INSERT INTO related_sequences VALUES (?, ?)",
                     (group_row, r)
@@ -482,8 +482,8 @@ def main():
             raw_str = open(raw_path).read().strip()
             parsed = json.loads(raw_str)
             # save JSON
-            with open(json_path,'w', encoding='utf-8') as f: json.dump(parsed,f,indent=2)
             if validate_json_via_dtd(parsed):
+                with open(json_path,'w', encoding='utf-8') as f: json.dump(parsed,f,indent=2)
                 insert_into_db(conn, base, parsed, force=args.force)
                 cached_articles += 1
                 log.info("Valid RAW cache was found for article %s", base)
