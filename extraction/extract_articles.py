@@ -47,7 +47,7 @@ OLLAMA_MODEL  = "myaniu/qwen2.5-1m:14b"
 logging.basicConfig(
     level="INFO",
     format="%(asctime)s • %(levelname)s • %(message)s",
-    handlers=[RichHandler(rich_tracebacks=True)]
+    handlers=[RichHandler(rich_tracebacks=True)],
 )
 log = logging.getLogger("extractor")
 
@@ -474,28 +474,34 @@ def main():
 
         # If JSON exists: validate and DB insert (or skip)
         if os.path.isfile(json_path):
-            with open(json_path,'r') as f: parsed = json.load(f)
-            # validate
-            if validate_json_via_dtd(parsed):
-                insert_into_db(conn, base, parsed, force=args.force)
-                cached_articles += 1
-                log.info("Valid JSON cache was found for article %s", base)
-                continue
-            else:
-                log.info("JSON cache was found for article %s, but failed validation", base)
+            try:
+                with open(json_path,'r') as f: parsed = json.load(f)
+                # validate
+                if validate_json_via_dtd(parsed):
+                    insert_into_db(conn, base, parsed, force=args.force)
+                    cached_articles += 1
+                    log.info("Valid JSON cache was found for article %s", base)
+                    continue
+                else:
+                    log.info("JSON cache was found for article %s, but failed validation", base)
+            except Exception as e:
+                log.error("Failed to load JSON representation of article %s extraction result.", base, exc_info=True)
         # If raw exists but no JSON: parse & validate
         if os.path.isfile(raw_path):
-            raw_str = open(raw_path).read().strip()
-            parsed = json.loads(raw_str)
-            # save JSON
-            if validate_json_via_dtd(parsed):
-                with open(json_path,'w', encoding='utf-8') as f: json.dump(parsed,f,indent=2)
-                insert_into_db(conn, base, parsed, force=args.force)
-                cached_articles += 1
-                log.info("Valid RAW cache was found for article %s", base)
-                continue
-            else:
-                log.info("RAW cache was found for article %s, but failed validation", base)
+            try:
+                raw_str = open(raw_path).read().strip()
+                parsed = json.loads(raw_str)
+                # save JSON
+                if validate_json_via_dtd(parsed):
+                    with open(json_path,'w', encoding='utf-8') as f: json.dump(parsed,f,indent=2)
+                    insert_into_db(conn, base, parsed, force=args.force)
+                    cached_articles += 1
+                    log.info("Valid RAW cache was found for article %s", base)
+                    continue
+                else:
+                    log.info("RAW cache was found for article %s, but failed validation", base)
+            except Exception as e:
+                log.error("Failed to parse article %s RAW output.", base, exc_info=True)
 
         # ELSE: run full extraction
         log.info("▶ Processing %s…", fname)
@@ -511,7 +517,14 @@ def main():
         if not m: log.error("No JSON delimiters for %s", fname); continue
         raw_json = m.group(1).strip()
         with open(raw_path,'w') as f: f.write(raw_json)
-        parsed = json.loads(raw_json)
+        try:
+            parsed = json.loads(raw_json)
+        except Exception as e:
+            log.error("Failed to parse JSON for article %s -- incorrect JSON returned.", base, exc_info=True)
+            failed_articles += 1
+            all_articles.put(fname)
+            log.info("Article %s was not successfully parsed and re-enqueued", base)
+
         # validate + insert
         if validate_json_via_dtd(parsed):
             with open(json_path,'w',encoding='utf-8') as f: json.dump(parsed,f,indent=2)

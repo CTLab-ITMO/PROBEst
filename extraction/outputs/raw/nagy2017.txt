@@ -1,0 +1,215 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1038/srep41392",
+            "sample_group": [
+                {
+                    "id_group": "1",
+                    "experiment_ids": ["1", "2", "3"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": "1",
+                                "outcome": true,
+                                "fluorescence": 50
+                            },
+                            {
+                                "id_exp": "2",
+                                "outcome": true,
+                                "fluorescence": 60
+                            },
+                            {
+                                "id_exp": "3",
+                                "outcome": true,
+                                "fluorescence": 70
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": ["AAGTACGATCGTA", "CTTGAGCTGACTG"]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": "1",
+                                        "probe_sequence": "AAGTACGATCGTA",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 5,
+                                                "modification_type": "LNA"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "id_probe": "2",
+                                        "probe_sequence": "CTTGAGCTGACTG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 4,
+                                                "modification_type": "MGB"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1038/srep41392",
+            "experiment": [
+                {
+                    "id_exp": "1",
+                    "raw_description": "Dilution and calibration curves were constructed on the basis of a 10-fold dilution gradient of the synthetic DNA standard, covering a quantitative range of six magnitudes (from 1e2 to 1e7 NA standard copies per μl of template) in triplicates including three non-template controls.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Canine parvovirus 2",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7.5,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "1e6 copies/μl",
+                                "id_probe": "1",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": 200
+                            },
+                            {
+                                "dna_rna_concentration": "1e4 copies/μl",
+                                "id_probe": "2",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": 200
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "3 mM",
+                                "mg": "2.5 mM",
+                                "dmso": "7.5%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 3,
+                                "mg": 2.5,
+                                "dmso": 7.5
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": "2",
+                    "raw_description": "The dual-probe EAV RT-qPCR assay delimited a 399 bp-long region and included a pair of simple probes in opposite orientation.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Equine arteritis virus",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7.5,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "1e6 copies/μl",
+                                "id_probe": "3",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": 200
+                            },
+                            {
+                                "dna_rna_concentration": "1e4 copies/μl",
+                                "id_probe": "4",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": 200
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "3 mM",
+                                "mg": "2.5 mM",
+                                "dmso": "7.5%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 3,
+                                "mg": 2.5,
+                                "dmso": 7.5
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": "3",
+                    "raw_description": "The dual-probe CPV-2 qPCR assay consisted of a tandem simple-MGB probes, amplifying a 340 bp-long amplicon with the forward primer and first probe according to Streck end colleagues, and the reverse primer and the second probe according to Decaro end colleagues.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Canine parvovirus 2",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7.5,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "1e6 copies/μl",
+                                "id_probe": "5",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": 200
+                            },
+                            {
+                                "dna_rna_concentration": "1e4 copies/μl",
+                                "id_probe": "6",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": 200
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "3 mM",
+                                "mg": "2.5 mM",
+                                "dmso": "7.5%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 3,
+                                "mg": 2.5,
+                                "dmso": 7.5
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

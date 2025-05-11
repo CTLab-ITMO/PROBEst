@@ -1,0 +1,91 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1038/srep14007",
+            "sample_group": [
+                {
+                    "id_group": "1",
+                    "experiment_ids": ["1"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": "1",
+                                "outcome": true,
+                                "fluorescence": 52.3
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "TGGCAGGTG CATCGTGACT"
+                            ],
+                            "related_sequence": [
+                                "GCCTCAGCTCCATCATGCTT"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": "1",
+                                        "probe_sequence": "FAM-TTTAATGATCTGGCCCTCC-NFQ-MGB",
+                                        "modification": []
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1038/srep14007",
+            "experiment": [
+                {
+                    "id_exp": "1",
+                    "raw_description": "The LGTV-specific qRT-PCR assay was developed for the detection and quantification of Langat virus RNA using TaqMan technology.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Langat virus (LGTV)",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 7.4,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10 μM",
+                                "id_probe": "1",
+                                "concentration_article": "10 μM",
+                                "concentration_si": "1e-5 M"
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "2.5 mM",
+                                "mg": "1.5 mM",
+                                "dmso": "7.5%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 2.5,
+                                "mg": 1.5,
+                                "dmso": 7.5
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

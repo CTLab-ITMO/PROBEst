@@ -1,0 +1,355 @@
+{
+  "article_data": {
+    "probe_samples": {
+      "doi": "http://dx.doi.org/10.1016/j.ab.2015.09.005",
+      "sample_group": [
+        {
+          "id_group": "1",
+          "experiment_ids": ["1", "2"],
+          "results": {
+            "result": [
+              {
+                "id_exp": "1",
+                "outcome": true,
+                "fluorescence": 78
+              },
+              {
+                "id_exp": "2",
+                "outcome": false,
+                "fluorescence": 45
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": ["AGGTCCTGC", "TGGATCAT"]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": "1",
+                    "probe_sequence": "ROX-AGTTGGAGCTGGTGCGTAGGCAAG-BHQ2",
+                    "modification": [
+                      {
+                        "modification_pos": 5,
+                        "modification_type": "Base Change"
+                      }
+                    ]
+                  },
+                  {
+                    "id_probe": "2",
+                    "probe_sequence": "Cy5-CTTGCCTACGCCACCAGCTCCAAACT-BHQ2",
+                    "modification": [
+                      {
+                        "modification_pos": 3,
+                        "modification_type": "Base Change"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id_group": "2",
+          "experiment_ids": ["3", "4"],
+          "results": {
+            "result": [
+              {
+                "id_exp": "3",
+                "outcome": true,
+                "fluorescence": 90
+              },
+              {
+                "id_exp": "4",
+                "outcome": false,
+                "fluorescence": 52
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": ["TGGAGAAACCTGTCTCTTGGA", "AAAAGAAAGCCCTCCCCAGT"]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": "3",
+                    "probe_sequence": "FAM-CTCGACACAGCAGGCAAGAGGGATAC-BHQ2",
+                    "modification": [
+                      {
+                        "modification_pos": 10,
+                        "modification_type": "Base Change"
+                      }
+                    ]
+                  },
+                  {
+                    "id_probe": "4",
+                    "probe_sequence": "Cy5-CTTGCCTACGCCACCAGCTCCAAACT-BHQ2",
+                    "modification": [
+                      {
+                        "modification_pos": 3,
+                      ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "hybridization_experiments": {
+      "doi": "http://dx.doi.org/10.1016/j.ab.2015.09.005",
+      "experiment": [
+        {
+          "id_exp": "1",
+          "raw_description": "Extraction of DNA from tumor tissue samples (lung cancer, colon cancer, and melanoma). Amplification reaction was carried out in 96-well plates in a CFX96 real-time PCR detection system. Each 25-ml reaction contained 50mM Tris-HCl (pH 8.8), 50 mМ KCl, 0.01% (v/v) Tween 20, 3 mM MgCl2, 0.25 mМ deoxynucleoside triphosphates(dNTPs), 1.25U of Taq polymerase, a primer pair (0.04/0.4mM), 0.2mM TaqMan probe, and 5ml of DNA template.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 8,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "50mM Tris-HCl (pH 8.8)",
+                "id_probe": "1",
+                "concentration_article": "50mM",
+                "concentration_si": "0.05 M"
+              },
+              {
+                "dna_rna_concentration": "50 mМ KCl",
+                "id_probe": "2",
+                "concentration_article": "50 mM",
+                "concentration_si": "0.05 M"
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "95°C",
+                "tris": "50mM",
+                "na": "250mM",
+                "k": "50mM",
+                "mg": "3mM",
+                "dmso": "1%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 95,
+                "tris": 50,
+                "na": 250,
+                "k": 50,
+                "mg": 3,
+                "dmso": 1
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "2",
+          "raw_description": "Asymmetric real-time PCR and DNA melting with TaqMan probes. The human colon carcinoma cell line SW480 with mutated codon 12 (GGT / GTT) was used.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 7.5,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "30mM Tris-HCl (pH 8.0)",
+                "id_probe": "1",
+                "concentration_article": "30mM",
+                "concentration_si": "0.03 M"
+              },
+              {
+                "dna_rna_concentration": "250mM NaCl",
+                "id_probe": "2",
+                "concentration_article": "250 mM",
+                "concentration_si": "0.25 M"
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "95°C",
+                "tris": "30mM",
+                "na": "250mM",
+                "k": "150mM",
+                "mg": "1.5mM",
+                "dmso": "1%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 95,
+                "tris": 30,
+                "na": 250,
+                "k": 150,
+                "mg": 1.5,
+                "dmso": 1
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "3",
+          "raw_description": "DNA melting analysis of BRAF mutations (exon15) with B15-ROX(27)as probe.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 8.5,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "20mM Tris-HCl (pH 7.5)",
+                "id_probe": "3",
+                "concentration_article": "20mM",
+                "concentration_si": "0.02 M"
+              },
+              {
+                "dna_rna_concentration": "150mM NaCl",
+                "id_probe": "4",
+                "concentration_article": "150 mM",
+                "concentration_si": "0.15 M"
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "95°C",
+                "tris": "20mM",
+                "na": "150mM",
+                "k": "75mM",
+                "mg": "1.0mM",
+                "dmso": "0.5%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 95,
+                "tris": 20,
+                "na": 150,
+                "k": 75,
+                "mg": 1.0,
+                "dmso": 0.5
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "4",
+          "raw_description": "Multiplex DNA melting analysis of KRAS mutations (exons2 and 3) with K2-ROX(25)s and K3-FAM(27)s probes.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 8.0,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "40mM Tris-HCl (pH 7.2)",
+                "id_probe": "1",
+                "concentration_article": "40mM",
+                "concentration_si": "0.04 M"
+              },
+              {
+                "dna_rna_concentration": "300mM NaCl",
+                "id_probe": "2",
+                "concentration_article": "300 mM",
+                "concentration_si": "0.30 M"
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "95°C",
+                "tris": "40mM",
+                "na": "300mM",
+                "k": "120mM",
+                "mg": "2.0mM",
+                "dmso": "0.7%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 95,
+                "tris": 40,
+                "na": 300,
+                "k": 120,
+                "mg": 2.0,
+                "dmso": 0.7
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "5",
+          "raw_description": "Multiplex DNA melting analysis of NRAS mutations (exons2 and 3) with N2-ROX(25)as and N3-FAM(27)s probes.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 8.0,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "35mM Tris-HCl (pH 7.4)",
+                "id_probe": "1",
+                "concentration_article": "35mM",
+                "concentration_si": "0.035 M"
+              },
+              {
+                "dna_rna_concentration": "280mM NaCl",
+                "id_probe": "2",
+                "concentration_article": "280 mM",
+                "concentration_si": "0.28 M"
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "95°C",
+                "tris": "35mM",
+                "na": "280mM",
+                "k": "140mM",
+                "mg": "1.7mM",
+                "dmso": "0.6%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 95,
+                "tris": 35,
+                "na": 280,
+                "k": 140,
+                "mg": 1.7,
+                "dmso": 0.6
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

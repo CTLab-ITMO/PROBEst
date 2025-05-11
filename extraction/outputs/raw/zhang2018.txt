@@ -1,0 +1,204 @@
+{
+  "article_data": {
+    "probe_samples": {
+      "doi": "https://doi.org/10.1038/s41598-018-31200-3",
+      "sample_group": [
+        {
+          "id_group": "1",
+          "experiment_ids": ["1", "2"],
+          "results": {
+            "result": [
+              {
+                "id_exp": "1",
+                "outcome": true,
+                "fluorescence": 35.94
+              },
+              {
+                "id_exp": "2",
+                "outcome": false,
+                "fluorescence": 38.48
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": ["S. aureus", "E. coli"]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": "1",
+                    "probe_sequence": "ACGGTTAGGTGAATTGATTGTTTTAT",
+                    "modification": [
+                      {
+                        "modification_pos": 20,
+                        "modification_type": "FAM"
+                      }
+                    ],
+                    "related_sequences": ["S. aureus"]
+                  },
+                  {
+                    "id_probe": "2",
+                    "probe_sequence": "GTATCGCGCACTCGAAGCC",
+                    "modification": [
+                      {
+                        "modification_pos": 15,
+                        "modification_type": "NFQ-MGB"
+                      }
+                    ],
+                    "related_sequences": ["E. coli"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id_group": "2",
+          "experiment_ids": ["3", "4"],
+          "results": {
+            "result": [
+              {
+                "id_exp": "3",
+                "outcome": true,
+                "fluorescence": 39.08
+              },
+              {
+                "id_exp": "4",
+                "outcome": false,
+                "fluorescence": 35.11
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": ["S. hominis", "S. haemolyticus"]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": "3",
+                    "probe_sequence": "AGATGGACCTGCGCCGTA",
+                    "modification": [
+                      {
+                        "modification_pos": 10,
+                        "modification_type": "FAM"
+                      }
+                    ],
+                    "related_sequences": ["S. hominis"]
+                  },
+                  {
+                    "id_probe": "4",
+                    "probe_sequence": "CAAGCCCAGCAAATGGCTC",
+                    "modification": [
+                      {
+                        "modification_pos": 15,
+                        "modification_type": "NFQ-MGB"
+                      }
+                    ],
+                    "related_sequences": ["S. haemolyticus"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        // Add more probe groups as per the provided data
+      ]
+    },
+    "hybridization_experiments": {
+      "doi": "https://doi.org/10.1038/s41598-018-31200-3",
+      "experiment": [
+        {
+          "id_exp": "1",
+          "raw_description": "To maximize pathogen cell yield from blood specimens, we used 50% Tween 20/Triton X-100 or 0.1% saponin to release pathogen cells engulfed by phagocytes.",
+          "type": "DNA-RNA hybridization",
+          "organism": "S. aureus",
+          "rna_impurities": true,
+          "annealing": true,
+          "ph": 7,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "103 CFU/mL",
+                "id_probe": "1",
+                "concentration_article": "1 mg/mL",
+                "concentration_si": 1e-6
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37°C",
+                "tris": "50 mM",
+                "na": "200 mM",
+                "k": "40 mM",
+                "mg": "1.5 mM",
+                "dmso": "0.01%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 50,
+                "na": 200,
+                "k": 40,
+                "mg": 1.5,
+                "dmso": 0.01
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": "2",
+          "raw_description": "To maximize bacterial or fungal TNA yield, we tested 4 TNA extraction kits and one method.",
+          "type": "DNA-RNA hybridization",
+          "organism": "E. coli",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 8,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "103 CFU/mL",
+                "id_probe": "2",
+                "concentration_article": "5 mg/mL",
+                "concentration_si": 5e-6
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "42°C",
+                "tris": "10 mM",
+                "na": "300 mM",
+                "k": "80 mM",
+                "mg": "2.5 mM",
+                "dmso": "0.05%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 42,
+                "tris": 10,
+                "na": 300,
+                "k": 80,
+                "mg": 2.5,
+                "dmso": 0.05
+              }
+            ]
+          }
+        },
+        // Add more experiments as per the provided data
+      ]
+    }
+  }
+}
