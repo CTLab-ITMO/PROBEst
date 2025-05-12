@@ -11,20 +11,9 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 
 ## Installation
 
-1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/PROBEst.git
+git clone https://github.com/CTLab-ITMO/PROBEst.git
 cd PROBEst
-```
-
-2. Create and activate a virtual environment (recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install the package in development mode:
-```bash
 pip install -e .
 ```
 
