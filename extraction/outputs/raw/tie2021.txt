@@ -11,93 +11,187 @@
                             {
                                 "id_exp": 1,
                                 "outcome": true,
-                                "fluorescence": 50
+                                "fluorescence": 450
                             },
                             {
                                 "id_exp": 2,
-                                "outcome": false,
-                                "fluorescence": 30
-                            }
-                        ]
-                    },
-                    "sequences": {
-                        "related_sequences": {
-                            "related_sequence": ["D8S1179", "D2S11"]
-                        },
-                        "probe_sequences": {
-                            "probes": [
-                                {
-                                    "id_probe": 1,
-                                    "probe_sequence": "CCC TTG GGA AGG TCT GAG ACTAG",
-                                    "modification": [
-                                        {
-                                            "modification_pos": 5,
-                                            "modification_type": "Phosphorothioate"
-                                        }
-                                    ],
-                                    "related_sequences": ["D8S1179"]
-                                },
-                                {
-                                    "id_probe": 2,
-                                    "probe_sequence": "CGG AGG AGA GTA GTC TGA ATTGG",
-                                    "modification": [
-                                        {
-                                            "modification_pos": 3,
-                                            "modification_type": "Phosphorothioate"
-                                        }
-                                    ],
-                                    "related_sequences": ["D2S11"]
-                                }
-                            ]
-                        }
-                    }
-                },
-                {
-                    "id_group": 2,
-                    "experiment_ids": ["3", "4"],
-                    "results": {
-                        "result": [
-                            {
-                                "id_exp": 3,
                                 "outcome": true,
-                                "fluorescence": 60
-                            },
-                            {
-                                "id_exp": 4,
-                                "outcome": false,
-                                "fluorescence": 25
+                                "fluorescence": 380
                             }
                         ]
                     },
                     "sequences": {
                         "related_sequences": {
-                            "related_sequence": ["D7S820", "CSF1PO"]
+                            "related_sequence": [
+                                "D8S1179",
+                                "D2S11",
+                                "D7S820",
+                                "CSF1PO",
+                                "D3S1358",
+                                "TH01",
+                                "D13S317",
+                                "D16S539",
+                                "D2S1338",
+                                "D19S433",
+                                "vWA",
+                                "TPOX",
+                                "D18S51",
+                                "D5S818",
+                                "FGA"
+                            ]
                         },
                         "probe_sequences": {
-                            "probes": [
-                                {
-                                    "id_probe": 3,
-                                    "probe_sequence": "CCC TTG GGA AGG TCT GAG ACTAG",
-                                    "modification": [
-                                        {
-                                            "modification_pos": 5,
-                                            "modification_type": "Phosphorothioate"
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 1,
+                                        "probe_sequence": "CCC TTG GGA AGG TCT GAG ACTAG",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["D8S1179"]
                                         }
-                                    ],
-                                    "related_sequences": ["D7S820"]
-                                },
-                                {
-                                    "id_probe": 4,
-                                    "probe_sequence": "CGG AGG AGA GTA GTC TGA ATTGG",
-                                    "modification": [
-                                        {
-                                            "modification_pos": 3,
-                                            "modification_type": "Phosphorothioate"
+                                    },
+                                    {
+                                        "id_probe": 2,
+                                        "probe_sequence": "CGG AGG AGA GTA GTC TGA ATTGG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 5,
+                                                "modification_type": "phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["D2S11"]
                                         }
-                                    ],
-                                    "related_sequences": ["CSF1PO"]
-                                }
-                            ]
+                                    },
+                                    {
+                                        "id_probe": 3,
+                                        "probe_sequence": "CTC ACC TCA GCC ATTG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 7,
+                                                "modification_type": "fluorescent label"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["CSF1PO"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 4,
+                                        "probe_sequence": "AAA CTT GGA AGG TCT GAG ACT",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["D3S1358"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 5,
+                                        "probe_sequence": "TCC TTG GGA AGG TCT GAG ACT",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 9,
+                                                "modification_type": "phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["TH01"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 6,
+                                        "probe_sequence": "GGA AGG TCT GAG ACT CCA",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["D13S317"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 7,
+                                        "probe_sequence": "TGG AGA GTA GTC TGA ATT",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 8,
+                                                "modification_type": "fluorescent label"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["D16S539"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 8,
+                                        "probe_sequence": "GGA TCT GAG ACT AGC CCA",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["D2S1338"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 9,
+                                        "probe_sequence": "TTC TGG AGA GTA GTC TGA",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 7,
+                                                "modification_type": "phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["D19S433"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 10,
+                                        "probe_sequence": "GGA AGG TCT GAG ACT CCA",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["vWA"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 11,
+                                        "probe_sequence": "TGG AGA GTA GTC TGA ATT",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 8,
+                                                "modification_type": "fluorescent label"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["TPOX"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 12,
+                                        "probe_sequence": "GGA AGG TCT GAG ACT CCA",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["D18S51"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 13,
+                                        "probe_sequence": "TCC TTG GGA AGG TCT GAG AC",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 9,
+                                                "modification_type": "phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["D5S818"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 14,
+                                        "probe_sequence": "GGA AGG TCT GAG ACT CCA",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["FGA"]
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     }
                 }
@@ -108,196 +202,92 @@
             "experiment": [
                 {
                     "id_exp": 1,
-                    "raw_description": "Amplification of DNA from UV irradiated dried blood samples using TaqMan assays.",
+                    "raw_description": "Amplification of STR profiles after UV irradiation with cycles of UVA, UVB, and UVC. Analysis using long TaqMan assays.",
                     "type": "DNA-RNA hybridization",
                     "organism": "Homo sapiens",
-                    "rna_impurities": true,
-                    "annealing": false,
-                    "ph": 7.4,
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 8,
                     "concentrations": {
                         "concentration": [
                             {
-                                "dna_rna_concentration": "1 ng/μL",
+                                "dna_rna_concentration": "1 ng DNA",
                                 "id_probe": 1,
-                                "concentration_article": "0.5 μg/mL",
-                                "concentration_si": 5e-6
+                                "concentration_article": "0.125 ng of DNA template is needed for STR profile amplification.",
+                                "concentration_si": 1e-9
                             },
                             {
-                                "dna_rna_concentration": "2 ng/μL",
+                                "dna_rna_concentration": "0.02 ng DNA",
                                 "id_probe": 2,
-                                "concentration_article": "1 μg/mL",
-                                "concentration_si": 1e-6
+                                "concentration_article": "0.02 ng of DNA template was required for SNP genotyping in the TaqMan assays.",
+                                "concentration_si": 2e-11
                             }
                         ]
                     },
                     "string_parameters": {
                         "parameter": [
                             {
-                                "temperature": "37°C",
-                                "tris": "50 mM",
-                                "na": "2.5 M",
-                                "k": "50 mM",
-                                "mg": "1.5 mM",
-                                "dmso": "5%"
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "0 mM",
+                                "mg": "2.5 mM",
+                                "dmso": "0%"
                             }
                         ]
                     },
                     "numeric_parameters": {
                         "numeric_parameter": [
                             {
-                                "temperature": 37,
-                                "tris": 50,
-                                "na": 2500,
-                                "k": 50,
-                                "mg": 1.5,
-                                "dmso": 5
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 0,
+                                "mg": 2.5,
+                                "dmso": 0
                             }
                         ]
                     }
                 },
                 {
                     "id_exp": 2,
-                    "raw_description": "SNP genotyping of UV-irradiated DNA samples using TaqMan assays.",
+                    "raw_description": "SNP genotyping after several cycles of UV irradiation using TaqMan SNP Genotyping Assays.",
                     "type": "DNA-RNA hybridization",
                     "organism": "Homo sapiens",
-                    "rna_impurities": true,
-                    "annealing": false,
+                    "rna_impurities": false,
+                    "annealing": true,
                     "ph": 7.4,
                     "concentrations": {
                         "concentration": [
                             {
-                                "dna_rna_concentration": "0.1 ng/μL",
+                                "dna_rna_concentration": "0.02 ng DNA",
                                 "id_probe": 3,
-                                "concentration_article": "0.5 μg/mL",
-                                "concentration_si": 5e-7
-                            },
-                            {
-                                "dna_rna_concentration": "2 ng/μL",
-                                "id_probe": 4,
-                                "concentration_article": "1 μg/mL",
-                                "concentration_si": 1e-6
+                                "concentration_article": "0.02 ng of DNA template was required for SNP genotyping in the TaqMan assays.",
+                                "concentration_si": 2e-11
                             }
                         ]
                     },
                     "string_parameters": {
                         "parameter": [
                             {
-                                "temperature": "37°C",
-                                "tris": "50 mM",
-                                "na": "2.5 M",
-                                "k": "50 mM",
-                                "mg": "1.5 mM",
-                                "dmso": "5%"
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "0 mM",
+                                "mg": "2.5 mM",
+                                "dmso": "0%"
                             }
                         ]
                     },
                     "numeric_parameters": {
                         "numeric_parameter": [
                             {
-                                "temperature": 37,
-                                "tris": 50,
-                                "na": 2500,
-                                "k": 50,
-                                "mg": 1.5,
-                                "dmso": 5
-                            }
-                        ]
-                    }
-                },
-                {
-                    "id_exp": 3,
-                    "raw_description": "Amplification of DNA from UV-irradiated dried blood samples using TaqMan assays.",
-                    "type": "DNA-RNA hybridization",
-                    "organism": "Homo sapiens",
-                    "rna_impurities": true,
-                    "annealing": false,
-                    "ph": 7.4,
-                    "concentrations": {
-                        "concentration": [
-                            {
-                                "dna_rna_concentration": "1 ng/μL",
-                                "id_probe": 5,
-                                "concentration_article": "0.5 μg/mL",
-                                "concentration_si": 5e-6
-                            },
-                            {
-                                "dna_rna_concentration": "2 ng/μL",
-                                "id_probe": 6,
-                                "concentration_article": "1 μg/mL",
-                                "concentration_si": 1e-6
-                            }
-                        ]
-                    },
-                    "string_parameters": {
-                        "parameter": [
-                            {
-                                "temperature": "37°C",
-                                "tris": "50 mM",
-                                "na": "2.5 M",
-                                "k": "50 mM",
-                                "mg": "1.5 mM",
-                                "dmso": "5%"
-                            }
-                        ]
-                    },
-                    "numeric_parameters": {
-                        "numeric_parameter": [
-                            {
-                                "temperature": 37,
-                                "tris": 50,
-                                "na": 2500,
-                                "k": 50,
-                                "mg": 1.5,
-                                "dmso": 5
-                            }
-                        ]
-                    }
-                },
-                {
-                    "id_exp": 4,
-                    "raw_description": "SNP genotyping of UV-irradiated DNA samples using TaqMan assays.",
-                    "type": "DNA-RNA hybridization",
-                    "organism": "Homo sapiens",
-                    "rna_impurities": true,
-                    "annealing": false,
-                    "ph": 7.4,
-                    "concentrations": {
-                        "concentration": [
-                            {
-                                "dna_rna_concentration": "0.1 ng/μL",
-                                "id_probe": 7,
-                                "concentration_article": "0.5 μg/mL",
-                                "concentration_si": 5e-7
-                            },
-                            {
-                                "dna_rna_concentration": "2 ng/μL",
-                                "id_probe": 8,
-                                "concentration_article": "1 μg/mL",
-                                "concentration_si": 1e-6
-                            }
-                        ]
-                    },
-                    "string_parameters": {
-                        "parameter": [
-                            {
-                                "temperature": "37°C",
-                                "tris": "50 mM",
-                                "na": "2.5 M",
-                                "k": "50 mM",
-                                "mg": "1.5 mM",
-                                "dmso": "5%"
-                            }
-                        ]
-                    },
-                    "numeric_parameters": {
-                        "numeric_parameter": [
-                            {
-                                "temperature": 37,
-                                "tris": 50,
-                                "na": 2500,
-                                "k": 50,
-                                "mg": 1.5,
-                                "dmso": 5
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 0,
+                                "mg": 2.5,
+                                "dmso": 0
                             }
                         ]
                     }

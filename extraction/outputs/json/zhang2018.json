@@ -5,7 +5,10 @@
       "sample_group": [
         {
           "id_group": 1,
-          "experiment_ids": ["1", "2"],
+          "experiment_ids": [
+            "1",
+            "2"
+          ],
           "results": {
             "result": [
               {
@@ -35,7 +38,9 @@
                     "probe_sequence": "TAKGACCAYCACGRGTC",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Staphylococcus aureus"]
+                      "related_sequence": [
+                        "Staphylococcus aureus"
+                      ]
                     }
                   },
                   {
@@ -48,7 +53,9 @@
                       }
                     ],
                     "related_sequences": {
-                      "related_sequence": ["Staphylococcus haemolyticus"]
+                      "related_sequence": [
+                        "Staphylococcus haemolyticus"
+                      ]
                     }
                   },
                   {
@@ -56,7 +63,9 @@
                     "probe_sequence": "TGGTGGCGAACCTA",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Enterococcus faecium"]
+                      "related_sequence": [
+                        "Enterococcus faecium"
+                      ]
                     }
                   },
                   {
@@ -69,7 +78,9 @@
                       }
                     ],
                     "related_sequences": {
-                      "related_sequence": ["Streptococcus pneumoniae"]
+                      "related_sequence": [
+                        "Streptococcus pneumoniae"
+                      ]
                     }
                   },
                   {
@@ -77,7 +88,9 @@
                     "probe_sequence": "AACTCATCAAGGATTTCT",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Streptococcus agalactiae"]
+                      "related_sequence": [
+                        "Streptococcus agalactiae"
+                      ]
                     }
                   },
                   {
@@ -90,7 +103,9 @@
                       }
                     ],
                     "related_sequences": {
-                      "related_sequence": ["Clostridium perfringens"]
+                      "related_sequence": [
+                        "Clostridium perfringens"
+                      ]
                     }
                   },
                   {
@@ -98,7 +113,9 @@
                     "probe_sequence": "ACTGACCGGATRCCGA",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Escherichia coli"]
+                      "related_sequence": [
+                        "Escherichia coli"
+                      ]
                     }
                   },
                   {
@@ -111,7 +128,9 @@
                       }
                     ],
                     "related_sequences": {
-                      "related_sequence": ["Acinetobacter baumannii"]
+                      "related_sequence": [
+                        "Acinetobacter baumannii"
+                      ]
                     }
                   },
                   {
@@ -119,7 +138,9 @@
                     "probe_sequence": "TGCAGTGGAACGACA",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Pseudomonas aeruginosa"]
+                      "related_sequence": [
+                        "Pseudomonas aeruginosa"
+                      ]
                     }
                   },
                   {
@@ -132,7 +153,9 @@
                       }
                     ],
                     "related_sequences": {
-                      "related_sequence": ["Burkholderia cepacia"]
+                      "related_sequence": [
+                        "Burkholderia cepacia"
+                      ]
                     }
                   },
                   {
@@ -140,7 +163,9 @@
                     "probe_sequence": "TTGTAGTATTGATACGCTTTGT",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Haemophilus influenzae"]
+                      "related_sequence": [
+                        "Haemophilus influenzae"
+                      ]
                     }
                   },
                   {
@@ -153,7 +178,9 @@
                       }
                     ],
                     "related_sequences": {
-                      "related_sequence": ["Cryptococcus neoformans"]
+                      "related_sequence": [
+                        "Cryptococcus neoformans"
+                      ]
                     }
                   },
                   {
@@ -161,7 +188,9 @@
                     "probe_sequence": "TGGGCTTGGGACTCT",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Candida glabrata"]
+                      "related_sequence": [
+                        "Candida glabrata"
+                      ]
                     }
                   },
                   {
@@ -174,7 +203,9 @@
                       }
                     ],
                     "related_sequences": {
-                      "related_sequence": ["Candida albicans"]
+                      "related_sequence": [
+                        "Candida albicans"
+                      ]
                     }
                   },
                   {
@@ -182,7 +213,9 @@
                     "probe_sequence": "AGTTTACCGGGCCAGCA",
                     "modification": [],
                     "related_sequences": {
-                      "related_sequence": ["Candida parapsilosis"]
+                      "related_sequence": [
+                        "Candida parapsilosis"
+                      ]
                     }
                   }
                 ]
@@ -209,14 +242,14 @@
                 "dna_rna_concentration": "103 CFU/mL",
                 "id_probe": 1,
                 "concentration_article": "103 CFU/mL",
-                "concentration_si": 1.0E-6
+                "concentration_si": 1e-06
               }
             ]
           },
           "string_parameters": {
             "parameter": [
               {
-                "temperature": "37 °C",
+                "temperature": "37 \u00b0C",
                 "tris": "5 mM",
                 "na": "20 mM",
                 "k": "5 mM",
@@ -242,7 +275,7 @@
           "id_exp": 2,
           "raw_description": "To maximize bacterial or fungal TNA yield, we tested 4 TNA extraction kits and one method",
           "type": "DNA-RNA hybridization",
-          "organism": "Escherichia coli (G−)",
+          "organism": "Escherichia coli (G\u2212)",
           "rna_impurities": true,
           "annealing": false,
           "ph": 7.2,
@@ -252,14 +285,14 @@
                 "dna_rna_concentration": "103 CFU/mL",
                 "id_probe": 7,
                 "concentration_article": "103 CFU/mL",
-                "concentration_si": 1.0E-6
+                "concentration_si": 1e-06
               }
             ]
           },
           "string_parameters": {
             "parameter": [
               {
-                "temperature": "42 °C",
+                "temperature": "42 \u00b0C",
                 "tris": "10 mM",
                 "na": "50 mM",
                 "k": "30 mM",
@@ -295,14 +328,14 @@
                 "dna_rna_concentration": "103 CFU/mL",
                 "id_probe": 14,
                 "concentration_article": "103 CFU/mL",
-                "concentration_si": 1.0E-6
+                "concentration_si": 1e-06
               }
             ]
           },
           "string_parameters": {
             "parameter": [
               {
-                "temperature": "37 °C",
+                "temperature": "37 \u00b0C",
                 "tris": "5 mM",
                 "na": "20 mM",
                 "k": "5 mM",

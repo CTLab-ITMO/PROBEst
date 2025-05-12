@@ -1,236 +1,316 @@
 {
-  "article_data": {
-    "probe_samples": {
-      "doi": "https://doi.org/10.1038/s41467-022-34183-y",
-      "sample_group": [
-        {
-          "id_group": 1,
-          "experiment_ids": ["1", "2"],
-          "results": {
-            "result": [
-              {
-                "id_exp": 1,
-                "outcome": true,
-                "fluorescence": 50
-              },
-              {
-                "id_exp": 2,
-                "outcome": false,
-                "fluorescence": 30
-              }
+    "article_data": {
+        "probe_samples": {
+            "doi": "https://doi.org/10.1038/s41467-022-34183-y",
+            "sample_group": [
+                {
+                    "id_group": 1,
+                    "experiment_ids": [1, 2],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": 1,
+                                "outcome": true,
+                                "fluorescence": 45
+                            },
+                            {
+                                "id_exp": 2,
+                                "outcome": false,
+                                "fluorescence": 30
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "GATCAGTACGTACGTA",
+                                "CGTAGCTA"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 1,
+                                        "probe_sequence": "GATCAGTACGTACGTA",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["GATCAGTACGTACGTA"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 2,
+                                        "probe_sequence": "CGTAGCTA",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 3,
+                                                "modification_type": "biotin"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["CGTAGCTA"]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "id_group": 2,
+                    "experiment_ids": [3, 4],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": 3,
+                                "outcome": true,
+                                "fluorescence": 70
+                            },
+                            {
+                                "id_exp": 4,
+                                "outcome": false,
+                                "fluorescence": 25
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "AGCTTAGC",
+                                "TACGAT"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 3,
+                                        "probe_sequence": "AGCTTAGC",
+                                        "modification": [],
+                                        "related_sequences": {
+                                            "related_sequence": ["AGCTTAGC"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 4,
+                                        "probe_sequence": "TACGAT",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 2,
+                                                "modification_type": "fluorescein"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["TACGAT"]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
             ]
-          },
-          "sequences": {
-            "related_sequences": {
-              "related_sequence": ["AATTA", "TAATT"]
-            },
-            "probe_sequences": {
-              "probes": {
-                "probe": [
-                  {
-                    "id_probe": 1,
-                    "probe_sequence": "ACGT",
-                    "modification": [
-                      {
-                        "modification_pos": 2,
-                        "modification_type": "phosphorothioate"
-                      }
-                    ],
-                    "related_sequences": ["AATTA", "TAATT"]
-                  },
-                  {
-                    "id_probe": 2,
-                    "probe_sequence": "TACG",
-                    "modification": [
-                      {
-                        "modification_pos": 1,
-                        "modification_type": "phosphorothioate"
-                      }
-                    ],
-                    "related_sequences": ["AATTA", "TAATT"]
-                  }
-                ]
-              }
-            }
-          }
         },
-        {
-          "id_group": 2,
-          "experiment_ids": ["3"],
-          "results": {
-            "result": [
-              {
-                "id_exp": 3,
-                "outcome": true,
-                "fluorescence": 40
-              }
+        "hybridization_experiments": {
+            "doi": "https://doi.org/10.1038/s41467-022-34183-y",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "FRET-FISH implementation and optimization.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Mouse embryonic fibroblasts (MEFs)",
+                    "rna_impurities": true,
+                    "annealing": false,
+                    "ph": 7.4,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10nM",
+                                "id_probe": 1,
+                                "concentration_article": "10nM",
+                                "concentration_si": 1e-8
+                            },
+                            {
+                                "dna_rna_concentration": "20nM",
+                                "id_probe": 2,
+                                "concentration_article": "20nM",
+                                "concentration_si": 2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "37°C",
+                                "tris": "10mM",
+                                "na": "150mM",
+                                "k": "5mM",
+                                "mg": "1mM",
+                                "dmso": "0.2%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 37,
+                                "tris": 10,
+                                "na": 150,
+                                "k": 5,
+                                "mg": 1,
+                                "dmso": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 2,
+                    "raw_description": "FRET-FISH validation.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Mouse embryonic fibroblasts (MEFs)",
+                    "rna_impurities": true,
+                    "annealing": false,
+                    "ph": 7.4,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10nM",
+                                "id_probe": 3,
+                                "concentration_article": "10nM",
+                                "concentration_si": 1e-8
+                            },
+                            {
+                                "dna_rna_concentration": "20nM",
+                                "id_probe": 4,
+                                "concentration_article": "20nM",
+                                "concentration_si": 2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "37°C",
+                                "tris": "10mM",
+                                "na": "150mM",
+                                "k": "5mM",
+                                "mg": "1mM",
+                                "dmso": "0.2%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 37,
+                                "tris": 10,
+                                "na": 150,
+                                "k": 5,
+                                "mg": 1,
+                                "dmso": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 3,
+                    "raw_description": "FRET-FISH optimization.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Mouse embryonic fibroblasts (MEFs)",
+                    "rna_impurities": true,
+                    "annealing": false,
+                    "ph": 7.4,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10nM",
+                                "id_probe": 5,
+                                "concentration_article": "10nM",
+                                "concentration_si": 1e-8
+                            },
+                            {
+                                "dna_rna_concentration": "20nM",
+                                "id_probe": 6,
+                                "concentration_article": "20nM",
+                                "concentration_si": 2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "37°C",
+                                "tris": "10mM",
+                                "na": "150mM",
+                                "k": "5mM",
+                                "mg": "1mM",
+                                "dmso": "0.2%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 37,
+                                "tris": 10,
+                                "na": 150,
+                                "k": 5,
+                                "mg": 1,
+                                "dmso": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 4,
+                    "raw_description": "Validation of FRET-FISH method.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Mouse embryonic fibroblasts (MEFs)",
+                    "rna_impurities": true,
+                    "annealing": false,
+                    "ph": 7.4,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10nM",
+                                "id_probe": 7,
+                                "concentration_article": "10nM",
+                                "concentration_si": 1e-8
+                            },
+                            {
+                                "dna_rna_concentration": "20nM",
+                                "id_probe": 8,
+                                "concentration_article": "20nM",
+                                "concentration_si": 2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "37°C",
+                                "tris": "10mM",
+                                "na": "150mM",
+                                "k": "5mM",
+                                "mg": "1mM",
+                                "dmso": "0.2%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 37,
+                                "tris": 10,
+                                "na": 150,
+                                "k": 5,
+                                "mg": 1,
+                                "dmso": 2
+                            }
+                        ]
+                    }
+                }
             ]
-          },
-          "sequences": {
-            "related_sequences": {
-              "related_sequence": ["AATTA", "TAATT"]
-            },
-            "probe_sequences": {
-              "probes": {
-                "probe": [
-                  {
-                    "id_probe": 3,
-                    "probe_sequence": "GCTA",
-                    "modification": [],
-                    "related_sequences": ["AATTA", "TAATT"]
-                  }
-                ]
-              }
-            }
-          }
         }
-      ]
-    },
-    "hybridization_experiments": {
-      "doi": "https://doi.org/10.1038/s41467-022-34183-y",
-      "experiment": [
-        {
-          "id_exp": 1,
-          "raw_description": "FRET-FISH implementation and optimization.",
-          "type": "DNA-RNA hybridization",
-          "organism": "Human",
-          "rna_impurities": true,
-          "annealing": false,
-          "ph": 7.5,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "20nM",
-                "id_probe": 1,
-                "concentration_article": "20nM",
-                "concentration_si": 2e-8
-              },
-              {
-                "dna_rna_concentration": "40nM",
-                "id_probe": 2,
-                "concentration_article": "40nM",
-                "concentration_si": 4e-8
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "37°C",
-                "tris": "5.5×Denhardt’s solution",
-                "na": "111ng/μL ssDNA",
-                "k": "50mM sodium phosphate buffer",
-                "mg": "1.1mM EDTA",
-                "dmso": "2.2×SSC"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 37,
-                "tris": 5500,
-                "na": 111,
-                "k": 50000,
-                "mg": 1100,
-                "dmso": 2200
-              }
-            ]
-          }
-        },
-        {
-          "id_exp": 2,
-          "raw_description": "FRET-FISH validation.",
-          "type": "DNA-RNA hybridization",
-          "organism": "Mouse",
-          "rna_impurities": true,
-          "annealing": false,
-          "ph": 7.5,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "20nM",
-                "id_probe": 3,
-                "concentration_article": "20nM",
-                "concentration_si": 2e-8
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "37°C",
-                "tris": "5.5×Denhardt’s solution",
-                "na": "111ng/μL ssDNA",
-                "k": "50mM sodium phosphate buffer",
-                "mg": "1.1mM EDTA",
-                "dmso": "2.2×SSC"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 37,
-                "tris": 5500,
-                "na": 111,
-                "k": 50000,
-                "mg": 1100,
-                "dmso": 2200
-              }
-            ]
-          }
-        },
-        {
-          "id_exp": 3,
-          "raw_description": "Induction of chromatin condensation by ATP depletion.",
-          "type": "DNA-RNA hybridization",
-          "organism": "Mouse",
-          "rna_impurities": true,
-          "annealing": false,
-          "ph": 7.5,
-          "concentrations": {
-            "concentration": [
-              {
-                "dna_rna_concentration": "20nM",
-                "id_probe": 1,
-                "concentration_article": "20nM",
-                "concentration_si": 2e-8
-              },
-              {
-                "dna_rna_concentration": "40nM",
-                "id_probe": 2,
-                "concentration_article": "40nM",
-                "concentration_si": 4e-8
-              }
-            ]
-          },
-          "string_parameters": {
-            "parameter": [
-              {
-                "temperature": "37°C",
-                "tris": "5.5×Denhardt’s solution",
-                "na": "111ng/μL ssDNA",
-                "k": "50mM sodium phosphate buffer",
-                "mg": "1.1mM EDTA",
-                "dmso": "2.2×SSC"
-              }
-            ]
-          },
-          "numeric_parameters": {
-            "numeric_parameter": [
-              {
-                "temperature": 37,
-                "tris": 5500,
-                "na": 111,
-                "k": 50000,
-                "mg": 1100,
-                "dmso": 2200
-              }
-            ]
-          }
-        }
-      ]
     }
-  }
 }
