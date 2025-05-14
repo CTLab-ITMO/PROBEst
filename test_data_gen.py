@@ -1,12 +1,13 @@
 import argparse
 import json
-import sys
+import pandas as pd
 import random
+import sys
 from Bio.SeqUtils import MeltingTemp
-from Bio import pairwise2
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from Bio.Align import PairwiseAligner
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, List
 
 
 def parse_args():
@@ -143,8 +144,14 @@ def parse_args():
 
 
 def compute_similarity(original: str, mutated: str) -> float:
-    aln = pairwise2.align.globalms(original, mutated, 1, 0, -1, -0.5, one_alignment_only=True)
-    score = aln[0][2]
+    aligner = PairwiseAligner()
+    aligner.mode = 'global'
+    aligner.match_score = 1
+    aligner.mismatch_score = 0
+    aligner.open_gap_score = -1
+    aligner.extend_gap_score = -0.5
+    alignments = aligner.align(original, mutated)
+    score = alignments[0].score
     return (score / len(original)) * 100
 
 
@@ -172,8 +179,7 @@ def generate_insert(
     bases = ['A', 'C', 'G', 'T']
     for _ in range(gen_attempts):  # limit attempts to avoid infinite loops
         seq = ''.join(random.choice(bases) for _ in range(length))
-        gc_content = calc_gc_content(seq)
-        if not (min_gc <= gc_content <= max_gc):
+        if not (min_gc <= calc_gc_content(seq) <= max_gc):
             continue
         # calculate Tm using nearest-neighbor model from Bio.SeqUtils
         tm = MeltingTemp.Tm_NN(seq)
@@ -213,7 +219,11 @@ def mutate_seq(seq: str, mut_rate: float, indel_prob: float) -> str:
     return ''.join(new_seq)
 
 
-def generate_sequence(is_target: bool, insert_seq: str, args, idx: int) -> Tuple[str, str]:
+def generate_sequence(
+        is_target: bool, insert_seq: str, args, idx: int, seed: int
+        ) -> Tuple[Tuple[str, str], List[Tuple]]:
+
+    random.seed(seed)
     # Generate random background of variable length between min_length and max_length
     bg_len = random.randint(args.min_length, args.max_length)
     bg = ''.join(random.choice('ACGT') for _ in range(bg_len))
@@ -221,33 +231,112 @@ def generate_sequence(is_target: bool, insert_seq: str, args, idx: int) -> Tuple
     # Decide how many inserts (1 or possibly 2)
     n_inserts = 1 + (random.random() < args.multiinsert_prob)
     mut_rate = args.insert_mutation_rate if is_target else args.offtarget_insert_mutation_rate
+    metadata = []
 
     # Insert mutated copies
-    print(f'Num inserts: {n_inserts}')
-    for _ in range(n_inserts):
-        mutated_insert = mutate_seq(insert_seq, mut_rate, args.indel_prob)
-        print(mutated_insert)
-        print_alignment(insert_seq, mutated_insert)
+    for ins_idx in range(n_inserts):
+        mutated = mutate_seq(insert_seq, mut_rate, args.indel_prob)
         pos = random.randint(0, len(seq))
-        seq = seq[:pos] + mutated_insert + seq[pos:]
-    prefix = 'target' if is_target else 'off'
-    header = f">{prefix}_{idx}"
-    return header, seq
+        seq = seq[:pos] + mutated + seq[pos:]
+        rec_id = f"{'target' if is_target else 'off'}_{idx}"
+        sim = compute_similarity(insert_seq, mutated)
+        metadata.append({
+            'record_id': rec_id,
+            'insert_idx': ins_idx + 1,
+            'inserted_seq': mutated,
+            'position': pos,
+            'similarity': sim
+        })
+    header = f">{'target' if is_target else 'off'}_{idx}"
+    return (header, seq), metadata
 
-
-def print_alignment(seq1, seq2, mode='global'):
-    from Bio.Align import PairwiseAligner
-    aligner = PairwiseAligner()
-    aligner.mode = mode
-    aligner.match_score = 1
-    aligner.mismatch_score = -1
-    aligner.open_gap_score = -1
-    aligner.extend_gap_score = -1
-    alignments = aligner.align(seq1, seq2)
-    print(next(alignments))
 
 def main():
     args = parse_args()
-    
+    random.seed(args.random_seed)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    # write all params
+    with open(args.output_dir / 'params.json', 'w') as pf:
+        json.dump(
+            {
+                k: v for k, v in vars(args).items()
+                if (k != 'metadata' and not isinstance(v, Path))
+            }, pf, indent=2)
+
+
+    print('Generating insert')
+    # generate initial insert and save it's parameters
+    insert_seq = generate_insert(
+        args.insert_length,
+        args.insert_min_gc,
+        args.insert_max_gc,
+        args.insert_min_tm,
+        args.insert_max_tm)
+
+    insert_info = {
+        'sequence': insert_seq,
+        'length': len(insert_seq),
+        'gc_content': calc_gc_content(insert_seq),
+        'tm': MeltingTemp.Tm_NN(insert_seq)
+    }
+
+    with open(args.output_dir / 'insert.json', 'w') as inf:
+        json.dump(insert_info, inf, indent=2)
+
+    # parallel generation
+    print('Generating databases')
+    records: List[Tuple[str, str]] = []
+    metadata: List[dict] = []
+    base_seed = args.random_seed
+    with ProcessPoolExecutor(max_workers=args.threads) as pool:
+        futures = []
+        # target sequences
+        for i in range(args.n_targets):
+            futures.append(pool.submit(generate_sequence, True, insert_seq, args, i, base_seed + i))
+        # off-target sequences
+        for j in range(args.n_offtargets):
+            futures.append(pool.submit(generate_sequence, False, insert_seq, args, j, base_seed + 10000 + j))
+
+    for fut in as_completed(futures):
+        (header, seq), meta = fut.result()
+        records.append((header, seq))
+        metadata.extend(meta)
+
+    print('Writing output')
+    # Write FASTA
+    tgt_dir = args.output_dir / 'target'
+    off_dir = args.output_dir / 'offtarget'
+    tgt_dir.mkdir(exist_ok=True)
+    off_dir.mkdir(exist_ok=True)
+    for header, seq in records:
+        rid = header.lstrip('>')
+        subdir = tgt_dir if rid.startswith('target_') else off_dir
+        with open(subdir/f"{rid}.fasta", 'w') as f:
+            f.write(f"{header}\n{seq}\n")
+
+    # Create DataFrame from metadata and write TSV
+    df = pd.DataFrame(metadata)
+    df.to_csv(args.output_dir/'metadata.tsv', sep='\t', index=False)
+
+    # Compute metrics using pandas
+    # Count sequences with multi-inserts
+    target_insert_counts = df[df['record_id'].str.startswith('target_')].groupby('record_id').size()
+    off_insert_counts = df[df['record_id'].str.startswith('off_')].groupby('record_id').size()
+    multi_target = (target_insert_counts > 1).sum()
+    multi_off = (off_insert_counts > 1).sum()
+    # Average similarity
+    avg_target = df[df['record_id'].str.startswith('target_')]['similarity'].mean()
+    avg_off = df[df['record_id'].str.startswith('off_')]['similarity'].mean()
+
+    print('Finished!')
+    # Print summary
+    print('Summary:')
+    print(f"Number of target sequences with multi-inserts: {multi_target}")
+    print(f"Number of off-target sequences with multi-inserts: {multi_off}")
+    print(f"Average similarity in target_db: {avg_target:.2f}%")
+    print(f"Average similarity in off_target_db: {avg_off:.2f}%")
+
+
 if __name__ == '__main__':
     main()
