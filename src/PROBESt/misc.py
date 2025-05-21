@@ -63,35 +63,6 @@ def write_fasta(probes, output_file):
     except IOError as e:
         print(f"Error writing to file {output_file}: {e}")
 
-
-def out_dir(iter, output, output_tmp):
-    """
-    Warning: deprecated
-
-    Generates a directory path for temporary or output files based on the iteration number.
-
-    Args:
-        iter (int): The iteration number, used to create a unique subdirectory.
-
-    Returns:
-        str: The generated directory path.
-    """
-    try:
-        if args.output_tmp == "":
-            # Use the default output directory with a `.tmp` subdirectory
-            path = os.path.join(args.output, ".tmp", str(iter))
-        else:
-            # Use the custom temporary output directory
-            path = os.path.join(args.output_tmp, str(iter))
-
-        # Create the directory if it does not exist
-        os.makedirs(path, exist_ok=True)
-        return path + "/"
-    except AttributeError:
-        raise AttributeError(
-            "The `args` object is missing required attributes (`output` or `output_tmp`).")
-
-
 def pairing(x):
     """
     Generates a pair of primer names by appending "RIGHT" and "LEFT" to a base name.

@@ -3,7 +3,6 @@
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
-from bs4 import BeautifulSoup
 from scripts.databases.probeBase import parse_probebase_page
 
 @pytest.fixture

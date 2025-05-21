@@ -6,7 +6,7 @@ from Bio.Blast import NCBIXML
 import pandas as pd
 import os
 import tempfile
-from typing import List, Tuple
+from typing import List
 
 # Set your email for Entrez
 Entrez.email = "dvsmutin@gmail.com"  # TODO: Make this configurable

@@ -14,20 +14,16 @@
 # 0. Imports: python packages ----
 
 import os
-import argparse
-from Bio import SeqIO
 import subprocess
 import numpy as np
 import pandas as pd
 import re
-import random
-import sys
 
 # 0 Imports: absolute import ----
 from PROBESt.primer3 import initial_set_generation
-from PROBESt.evolution import mutate_sequence, mutate_position
+from PROBESt.evolution import mutate_position
 from PROBESt.bash_wrappers import uniline_fasta, blastn_function, probe_check_function
-from PROBESt.misc import write_stats, write_fasta, pairing  # out_dir
+from PROBESt.misc import write_stats
 from PROBESt.merge import merge
 from PROBESt.args import arguments_parse
 

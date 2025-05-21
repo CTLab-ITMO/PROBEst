@@ -3,7 +3,6 @@
 import pytest
 import os
 import pandas as pd
-from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from unittest.mock import patch, MagicMock, mock_open

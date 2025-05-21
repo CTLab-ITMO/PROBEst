@@ -7,9 +7,6 @@ import sys
 import subprocess
 import tempfile
 from pathlib import Path
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
 
 # Add the project root directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))

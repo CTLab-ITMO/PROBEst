@@ -5,8 +5,7 @@ from Bio.SeqUtils import MeltingTemp as mt
 from PROBESt.probe_alignment_profiler import (
     calculate_gc_content,
     calculate_melting_temperature,
-    process_sequence_pair,
-    profile_alignment
+    process_sequence_pair
 )
 
 

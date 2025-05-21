@@ -1,7 +1,6 @@
 import pytest
 import os
 import sys
-from Bio import SeqIO
 from src.PROBESt.primer3 import primer_template, parse_primer3_output
 from src.PROBESt.args import arguments_parse
 
