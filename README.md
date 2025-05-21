@@ -100,13 +100,118 @@ python test_parameters.py \
    d. **Mutation in Probe**
    
    e. **AI corrections**
+
+```mermaid
+---
+config:
+  layout: elk
+  flowchart: 
+    curve: linear
+  theme: neo
+  look: classic
+  style:
+    node:
+      borderColor: linear-gradient(to right, #FFAC1C, #90EE90)
+      fill: white
+    edge:
+      color: black
+    subgraph:
+      borderStyle: dotted
+---
+flowchart TD
+  subgraph inputs
+  A
+  A1
+  T1
+  T3
+  end
+
+  A([Initial probe generation]):::input -- primer3 --> B(probe set):::probe
+  A -- oligominer --> B
+  A1([Custom probes]):::input --> B
+
+  T1([Target sequences]):::input -- blastn-db --> T2[(target database)]
+  T3([Offtarget sequences]):::input -- blastn-db --> T4[(offtarget database)]
+
+  T2 --- E1[ ]:::empty
+  B --- E1
+  E1 -- blastn --> T5[target hits]
+
+  T4 --- E2[ ]:::empty
+  B --- E2
+  E2 -- blastn --> T6[offtarget hits]
+
+  T5 -- coverage --> T6[universality check]
+  T5 -- duplications --> T7[multimapping check]
+  T5 -- hits --> T8[specificity check]
+
+  subgraph modeling
+  M1[2D-modeling]
+  M2[3D-modeling]
+  M3[feature extraction]
+  M1 --> M3
+  end
+
+  B --> M0[RNA/DNA complex]
+  T3 --> M0
+  M0 --> M1
+  M0 --> M2
+  M0 --> M3
+  B --> M1
+  B --> M2
+  B --> M3
+
+  subgraph AI
+  PD[(open probe database)]
+  M11[2D modeling]
+  M12[3D modeling]
+  M13[feature extraction]
+  M11 --> M13
+  PD --> M11
+  PD --> M12
+  PD --> M13
+  end
+
+  modeling --- AI -- quality prediction --- E5
+
+  
+  T7 --- E3[ ]:::empty
+  T8 --- E3
+  E3 -- filtration --- E4[ ]:::empty
+  T6 --- E5[ ]:::empty
+  E5 -- arrangement --- E4
+  T5 --- E4
+  E4 --- T9[ ]:::empty
+  T9 ---> B1[probe set]:::probe
+  B1 -- mutations --> B
+  B1 --> T11([output]):::input
+
+  classDef empty width:0px,height:0px;
+  classDef input fill:#90EE9020,shape:ellipse;
+  classDef probe fill:#FFAC1C20,border-color:white;
+```
     
 
 ## Project Structure
 
 ```mermaid
+---
+config:
+  flowchart: 
+    curve: linear
+  theme: neo
+  look: classic
+  style:
+    node:
+      borderColor: linear-gradient(to right, #FFAC1C, #90EE90)
+      fill: white
+    edge:
+      color: black
+    subgraph:
+      borderStyle: dotted
+---
 graph LR
-    PROBEst[PROBEst/] --> src[src/]
+    PROBEst([PROBEst]) --> src[src/]
     PROBEst --> tests[tests/]
     PROBEst --> scripts[scripts/]
     
@@ -116,7 +221,6 @@ graph LR
     tests --> A
     tests --> B
     tests --> C
-    
     
     scripts --> B[database parsing]
 ```
