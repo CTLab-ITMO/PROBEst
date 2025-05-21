@@ -183,7 +183,6 @@ config:
 }}%%
 
 graph TD
-
   subgraph evolutionary algorithm
     subgraph hits
     TP
@@ -207,16 +206,14 @@ graph TD
     B --- E6[ ]:::empty --> M1[modeling]
     TP --- E6
 
-    M1 -- quality prediction --- E5
-    T7 --- E3[ ]:::empty
+    M1 --- E3[ ]:::empty
+    T6 --- E3
+    T7 --- E3
     T8 --- E3
-    E3 -- filtration --- E4[ ]:::empty
-    T6 --- E5[ ]:::empty
-    E5 -- arrangement --- E4
-    E4 --- T9[ ]:::empty
-    T9 -- mutations --> B
+    E3 -- quality prediction --> B1(filtered probe set):::probe
+    B1 -- mutations --> B
   end
-  B --> T11(results):::probe
+  B1 --> T11(results):::probe
 
   classDef empty width:0px,height:0px;
   classDef input fill:#90EE9020,stroke:#fff,stroke-width:2px,shape:ellipse;
