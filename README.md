@@ -1,11 +1,12 @@
 # PROBEst v.0.1.3. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
 ### St. Petersburg tool for genereting nucleotide probes with specified properties
 
-PROBEst is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
+<font color="red">**Warning**:</font> tool is under active development
 
-At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for initial oligonucleotide generation, BLASTn for specificity and universality checks, and a mutation module for probe optimization. The tool allows users to input target sequences, select reference files for universality and specificity validation, and customize layouts for probe design. The evolutionary algorithm iteratively refines the probes by introducing mutations and evaluating their performance, ensuring that the final output is both specific to the target and universally applicable across related sequences. This AI-driven approach significantly enhances the efficiency and accuracy of probe generation, making PROBEst a valuable resource for molecular biology research.
+**PROBEst** is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
 
-**Warning**: tool is under development
+At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for initial oligonucleotide generation, BLASTn for specificity and universality checks, and a mutation module for probe optimization. The tool allows users to input target sequences, select reference files for universality and specificity validation, and customize layouts for probe design. The evolutionary algorithm iteratively refines the probes by introducing mutations and evaluating their performance, ensuring that the final output is both specific to the target and universally applicable across related sequences.
+
 
 # Download and installation
 
@@ -17,34 +18,7 @@ cd PROBEst
 pip install -e .
 ```
 
-## Project Structure
 
-```
-PROBEst/
-├── src/
-│   └── PROBEst/
-│       ├── __init__.py
-│       ├── genome_operations.py
-│       ├── probe_alignment_profiler.py
-│       ├── primer3.py
-│       ├── evolution.py
-│       ├── merge.py
-│       ├── misc.py
-│       ├── args.py
-│       └── bash_wrappers.py
-├── tests/
-│   ├── PROBEst/
-│   │   └── test_genome_operations.py
-│   ├── database/
-│   │   └── test_probebase.py
-│   └── test_probe_alignment_profiler.py
-├── scripts/
-│   └── databases/
-│       └── probeBase.py
-├── setup.py
-├── requirements.txt
-└── README.md
-```
 
 ## Usage
 
@@ -128,12 +102,30 @@ python test_parameters.py \
    e. **AI corrections**
     
 
+## Project Structure
+
+```mermaid
+graph LR
+    PROBEst[PROBEst/] --> src[src/]
+    PROBEst --> tests[tests/]
+    PROBEst --> scripts[scripts/]
+    
+    src --> A[generation]
+    src --> B[database parsing]
+    src --> C[benchmarking]
+    tests --> A
+    tests --> B
+    tests --> C
+    
+    
+    scripts --> B[database parsing]
+```
 
 # Testing
 
 - To check the installation: `bash test_run_generator.sh`
 
-- For developers: use `.test/`
+- For developers: use `pytest`
 
 
 # License
@@ -143,13 +135,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 # Contribution
 
 We welcome contributions from the community! To contribute:
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix.
-3. Commit your changes and push to the branch.
-4. Open a pull request with a detailed description of your changes.
+
 
 Please read the [Contribution Guidelines](CONTRIBUTING.md) for more details.
 
 # Wiki
 
-Tool have its own Wiki pages with detailed information on usage cases, data description and another neccessary information
+Tool have its own <a href = "https://github.com/CTLab-ITMO/PROBEst/wiki">Wiki</a> pages with detailed information on usage cases, data description and another neccessary information

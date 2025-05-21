@@ -7,8 +7,10 @@ data/test/grid2
 data/param_search
 src/PROBESt/__pycache__
 tests/PROBESt/__pycache__
+test_download/
 data/databases/open/probeBase_formatted.csv
 genome_parse_results.csv
+data/genomes/
 
 # Python
 __pycache__/
