@@ -126,7 +126,7 @@ config:
   }
 }}%%
 
-graph TD
+graph LR
   subgraph inputs
   A
   A1
@@ -137,7 +137,6 @@ graph TD
   A([Initial probe generation]):::input -- primer3 --> B2(initial probe set):::probe
   A -- oligominer --> B2
   A1([Custom probes]):::input --> B2
-  B2 --> B(probe set):::probe
 
   T1([Target sequences]):::input -- blastn-db --> T2[(target)]
   T3([Offtarget sequences]):::input -- blastn-db --> T4[(offtarget)]
@@ -147,19 +146,52 @@ graph TD
   T4
   end
 
+  T2 --> EA
+  T4 --> EA
+  B2 --> EA
+
+  EA[evolutionary algorithm] --> T11(results):::probe
+
+  classDef empty width:0px,height:0px;
+  classDef input fill:#90EE9020,stroke:#fff,stroke-width:2px,shape:ellipse;
+  classDef probe fill:#FFAC1C20,stroke:#fff,stroke-width:2px;
+```
+
+```mermaid
+---
+config:
+  layout: elk
+  look: classic
+---
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'fontFamily': 'arial',
+    'fontSize': '16px',
+    'primaryColor': '#fff',
+    'primaryBorderColor': '#FFAC1C',
+    'primaryTextColor': '#000',
+    'lineColor': '#000',
+    'secondaryColor': 'white',
+    'tertiaryColor': '#fff',
+    'subgraphBorderStyle': 'dotted'
+  },
+  'flowchart': {
+    'curve': 'monotoneY',
+    'padding': 15
+  }
+}}%%
+
+graph TD
+
   subgraph evolutionary algorithm
     subgraph hits
     TP
     TN
     end
 
-    T2 --- E1[ ]:::empty
-    B --- E1
-    E1 -- blastn --> TP[target]
-
-    T4 --- E2[ ]:::empty
-    B --- E2
-    E2 -- blastn --> TN[offtarget]
+    B(probe set):::probe --> TP[target]
+    B --> TN[offtarget]
 
     TP -- coverage --> T6[universality]
     TP -- duplications --> T7[multimapping]
@@ -175,10 +207,7 @@ graph TD
     B --- E6[ ]:::empty --> M1[modeling]
     TP --- E6
 
-
     M1 -- quality prediction --- E5
-
-    
     T7 --- E3[ ]:::empty
     T8 --- E3
     E3 -- filtration --- E4[ ]:::empty
@@ -217,7 +246,7 @@ config:
     'subgraphBorderStyle': 'dotted'
   },
   'flowchart': {
-    'curve': 'monotoneY',
+    'curve': 'natural',
     'padding': 15
   }
 }}%%
