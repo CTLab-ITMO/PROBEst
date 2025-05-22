@@ -9,6 +9,8 @@ src/PROBESt/__pycache__
 tests/PROBESt/__pycache__
 test_download/
 data/databases/open/probeBase_formatted.csv
+data/databases/open/probeBase_formamide.tsv
+data/databases/open/probeBase_genome_results.csv
 genome_parse_results.csv
 data/genomes/
 
@@ -59,7 +61,6 @@ htmlcov/
 *.log
 
 # Local development
-*.csv
 *.xml
 *.fasta
 *.fna
