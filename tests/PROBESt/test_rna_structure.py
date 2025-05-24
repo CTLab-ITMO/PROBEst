@@ -1,0 +1,56 @@
+import pytest
+from src.PROBESt.rna_structure import calculate_hairpin_prob, calculate_dimer_G
+
+def test_calculate_hairpin_prob():
+    # Test with a simple hairpin sequence
+    seq = "GGGAAACCC"
+    prob = calculate_hairpin_prob(seq)
+    assert isinstance(prob, float)
+    assert 0 <= prob <= 1
+    
+    # Test with a more complex sequence
+    seq = "AUGCAUGCAUGC"
+    prob = calculate_hairpin_prob(seq)
+    assert isinstance(prob, float)
+    assert 0 <= prob <= 1
+
+def test_calculate_dimer_G():
+    # Test RNA-RNA dimer
+    seq1 = "AUGCAUGCAUGC"
+    seq2 = "UACGUACGUACG"
+    energy = calculate_dimer_G(seq1, seq2, type1="RNA", type2="RNA")
+    assert isinstance(energy, float)
+    
+    # Test DNA-DNA dimer
+    seq1 = "ATGCATGCATGC"
+    seq2 = "TACGTACGTACG"
+    energy = calculate_dimer_G(seq1, seq2, type1="DNA", type2="DNA")
+    assert isinstance(energy, float)
+    
+    # Test RNA-DNA dimer
+    seq1 = "AUGCAUGCAUGC"
+    seq2 = "TACGTACGTACG"
+    energy = calculate_dimer_G(seq1, seq2, type1="RNA", type2="DNA")
+    assert isinstance(energy, float)
+
+def test_input_validation():
+    # Test with invalid characters
+    with pytest.raises(ValueError, match="Invalid characters in RNA sequence"):
+        calculate_hairpin_prob("ATGCXYZ")
+    
+    with pytest.raises(ValueError, match="Invalid characters in DNA sequence"):
+        calculate_dimer_G("ATGCXYZ", "TACGTAC", type1="DNA", type2="DNA")
+    
+    # Test with empty sequences
+    with pytest.raises(ValueError, match="Sequence cannot be empty"):
+        calculate_hairpin_prob("")
+    
+    with pytest.raises(ValueError, match="Sequence cannot be empty"):
+        calculate_dimer_G("", "TACGTAC")
+    
+    # Test with invalid sequence types
+    with pytest.raises(ValueError, match="Invalid characters in RNA sequence"):
+        calculate_dimer_G("ATGC", "TACG", type1="RNA", type2="DNA")  # T in RNA sequence
+    
+    with pytest.raises(ValueError, match="Invalid characters in DNA sequence"):
+        calculate_dimer_G("AUGC", "TACG", type1="DNA", type2="DNA")  # U in DNA sequence 
