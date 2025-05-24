@@ -17,13 +17,9 @@ def validate_sequence(sequence: str, seq_type: str = "RNA") -> None:
     
     # Check for type mismatches
     seq = sequence.upper()
-    if seq_type == "RNA" and "T" in seq:
-        raise ValueError("Invalid characters in RNA sequence: {'T'}")
-    if seq_type == "DNA" and "U" in seq:
-        raise ValueError("Invalid characters in DNA sequence: {'U'}")
     
     # Check for other invalid characters
-    valid_chars = set("ATGCU" if seq_type == "RNA" else "ATGC")
+    valid_chars = set("ATGCUIN")
     invalid_chars = set(seq) - valid_chars
     
     if invalid_chars:
