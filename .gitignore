@@ -71,3 +71,4 @@ data/databases/open/probeBase_false_formatted.csv
 data/databases/open/probeBase_false_genome_results.csv
 PROBEst.Rproj
 .Rproj.user
+.Rhistory
