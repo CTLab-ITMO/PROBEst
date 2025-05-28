@@ -1,5 +1,7 @@
-# PROBEst v.0.1.3. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
+# PROBEst v.0.1.4. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
 ### St. Petersburg tool for genereting nucleotide probes with specified properties
+
+[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yaml?label=build)
 
 <font color="red">**Warning**:</font> tool is under active development
 
@@ -22,7 +24,7 @@ pip install -e .
 
 ## Usage
 
-## Preparation
+### Preparation
 
 `pipeline.py` relies on pre-prepared BLASTn databases. To create the required `true_base`, `false_base`, and `contig_table`, you can use the following script:
 
@@ -34,13 +36,13 @@ bash scripts/generator/prep_db.sh \
   [FASTA]
 ```
 
-### Arguments:
+#### Arguments:
 - `-n DATABASE_NAME`:  Name of the output BLAST database (required).  
 - `-c CONTIG_TABLE`:  Output file to store contig names and their corresponding sequence headers (required).  
 - `-t TMP_DIR`:  Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
 - `FASTA`:  List of input FASTA files (gzipped or uncompressed). 
 
-## Generation
+### Generation
 
 PROBEst can be run using the following command:
 
@@ -53,7 +55,7 @@ python pipeline.py [-h] \
   -o {OUTPUT}
 ```
 
-### Key Arguments:
+#### Key arguments:
 - `-i INPUT`: Input FASTA file for probe generation.
 - `-tb TRUE_BASE`: Input BLASTn database path for primer adjusting.
 - `-fb FALSE_BASE`: Input BLASTn database path for non-specific testing.
@@ -89,7 +91,6 @@ python test_parameters.py \
 3. **Select Files for Specificity Check** (`FALSE_BASE`)
    
 4. **Select Layouts and Run Wrapped Evolutionary Algorithm** (`pipeline.py`)
-   - Execute the following steps within the evolutionary algorithm:
    
    a. **Primer3 Generation**
       
