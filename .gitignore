@@ -15,8 +15,7 @@ data/databases/open/probeBase_formamide.tsv
 data/databases/open/probeBase_genome_results.csv
 genome_parse_results.csv
 data/genomes/
-data/articles/
-!data/articles/*.txt
+data/articles2/
 
 # Python
 __pycache__/
@@ -73,3 +72,4 @@ htmlcov/
 PROBEst.Rproj
 .Rproj.user
 .Rhistory
+articles.tar.bz2
