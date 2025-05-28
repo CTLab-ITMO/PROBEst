@@ -8,11 +8,15 @@ data/param_search
 src/PROBESt/__pycache__
 tests/PROBESt/__pycache__
 test_download/
+data/databases/open/probeBase_false_formatted.csv
+data/databases/open/probeBase_false_genome_results.csv
 data/databases/open/probeBase_formatted.csv
 data/databases/open/probeBase_formamide.tsv
 data/databases/open/probeBase_genome_results.csv
 genome_parse_results.csv
 data/genomes/
+data/articles/
+!data/articles/*.txt
 
 # Python
 __pycache__/
@@ -65,10 +69,7 @@ htmlcov/
 *.fasta
 *.fna
 *.faa
-*.txt
 *.out
-data/databases/open/probeBase_false_formatted.csv
-data/databases/open/probeBase_false_genome_results.csv
 PROBEst.Rproj
 .Rproj.user
 .Rhistory
