@@ -167,6 +167,7 @@ config:
   look: classic
 ---
 %%{init: {
+  'layout': 'elk',
   'theme': 'base',
   'themeVariables': {
     'fontFamily': 'arial',
@@ -246,7 +247,7 @@ config:
     'subgraphBorderStyle': 'dotted'
   },
   'flowchart': {
-    'curve': 'natural',
+    'curve': 'monotoneY',
     'padding': 15
   }
 }}%%
