@@ -1,15 +1,15 @@
 """Module for genome operations including fetching, BLAST search and parsing."""
 
 from Bio import Entrez, SeqIO
-from Bio.Blast.Applications import NcbiblastnCommandline
 from Bio.Blast import NCBIXML
 import pandas as pd
 import os
 import tempfile
+import subprocess
 from typing import List
 
 # Set your email for Entrez
-Entrez.email = "dvsmutin@gmail.com"  # TODO: Make this configurable
+Entrez.email = "test@PROBESt.com"  # TODO: Make this configurable
 
 def genome_fetch(species: str) -> str:
     """
@@ -63,22 +63,23 @@ def genome_blastn(genome_file: str, probe: str, extend: int = 0) -> str:
         probe_path = probe_file.name
     
     try:
-        # Run BLAST
+        # Run BLAST using subprocess
         output_file = tempfile.NamedTemporaryFile(delete=False, suffix='.xml').name
-        blastn_cline = NcbiblastnCommandline(
-            query=probe_path, 
-            subject=genome_file,  # Use subject instead of db to avoid makeblastdb
-            outfmt='5',  # XML format as string
-            out=output_file
-        )
+        blast_cmd = [
+            'blastn',
+            '-query', probe_path,
+            '-subject', genome_file,
+            '-outfmt', '5',  # XML format
+            '-out', output_file
+        ]
         
-        stdout, stderr = blastn_cline()
+        subprocess.run(blast_cmd, check=True, capture_output=True)
         
         # Parse results
         best_hit = ""
         if os.path.exists(output_file):
             try:
-                with open(output_file, 'r') as result_handle:  # Open in text mode since we're mocking in tests
+                with open(output_file, 'r') as result_handle:
                     blast_records = NCBIXML.parse(result_handle)
                     try:
                         first_record = next(blast_records)

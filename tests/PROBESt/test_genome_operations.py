@@ -88,14 +88,13 @@ def test_genome_fetch(mock_file, mock_read, mock_efetch, mock_esearch, mock_entr
     mock_file.assert_called_once_with("mock_species.fasta", "w")
     mock_file.return_value.__enter__.return_value.write.assert_called_once_with(">mock_genome\nATGCATGC")
 
-@patch('PROBESt.genome_operations.NcbiblastnCommandline')
+@patch('subprocess.run')
 @patch('builtins.open', new_callable=mock_open)
 @patch('Bio.SeqIO.read')
-def test_genome_blastn(mock_seqio, mock_file, mock_blastn, mock_genome_file, mock_blast_xml):
+def test_genome_blastn(mock_seqio, mock_file, mock_subprocess, mock_genome_file, mock_blast_xml):
     """Test BLAST search functionality."""
-    # Setup mock BLAST command
-    mock_blastn.return_value = MagicMock()
-    mock_blastn.return_value.return_value = ("", "")  # stdout, stderr
+    # Setup mock subprocess.run
+    mock_subprocess.return_value = MagicMock()
     
     # Setup mock file for XML reading
     mock_file.return_value.__enter__.return_value.read.return_value = mock_blast_xml
@@ -114,10 +113,14 @@ def test_genome_blastn(mock_seqio, mock_file, mock_blastn, mock_genome_file, moc
     assert len(result) > 0
     assert "ATGC" in result
     
-    # Verify BLAST command was called correctly
-    mock_blastn.assert_called_once()
-    args, kwargs = mock_blastn.call_args
-    assert kwargs['outfmt'] == '5'  # XML format
+    # Verify subprocess.run was called correctly
+    mock_subprocess.assert_called_once()
+    args, kwargs = mock_subprocess.call_args
+    assert args[0][0] == 'blastn'  # First argument should be 'blastn'
+    assert '-outfmt' in args[0]  # Should have outfmt parameter
+    assert args[0][args[0].index('-outfmt') + 1] == '5'  # XML format
+    assert kwargs['check'] is True  # Should have check=True
+    assert kwargs['capture_output'] is True  # Should have capture_output=True
 
 @patch('PROBESt.genome_operations.genome_fetch')
 @patch('PROBESt.genome_operations.genome_blastn')
