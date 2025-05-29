@@ -3,7 +3,7 @@
 
 [![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yaml?label=build)
 
-<font color="red">**Warning**:</font> tool is under active development
+<span style="color: red">**Warning**:</span> tool is under active development
 
 **PROBEst** is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
 
@@ -47,13 +47,15 @@ bash scripts/generator/prep_db.sh \
 PROBEst can be run using the following command:
 
 ```bash
-python pipeline.py [-h] \
+python pipeline.py \
   -i {INPUT} \
   -tb {TRUE_BASE} \
-  -fb [FALSE_BASE [FALSE_BASE ...]] \
+  -fb [FALSE_BASE ...] \
   -c {CONTIG_TABLE} \
   -o {OUTPUT}
 ```
+
+**Blastn databases** and **contig table** are results of the ```prep_db.sh```
 
 #### Key arguments:
 - `-i INPUT`: Input FASTA file for probe generation.
@@ -183,15 +185,16 @@ config:
   }
 }}%%
 
-graph TD
+graph LR
   subgraph evolutionary algorithm
     subgraph hits
-    TP
-    TN
+      TP
+      TN
     end
 
     B(probe set):::probe --> TP[target]
     B --> TN[offtarget]
+    B1 -- mutations --> B
 
     TP -- coverage --> T6[universality]
     TP -- duplications --> T7[multimapping]
@@ -212,7 +215,6 @@ graph TD
     T7 --- E3
     T8 --- E3
     E3 -- quality prediction --> B1(filtered probe set):::probe
-    B1 -- mutations --> B
   end
   B1 --> T11(results):::probe
 
@@ -251,17 +253,22 @@ config:
 
 graph LR
     PROBEst([PROBEst]) --> src[src/]
-    PROBEst --> tests[tests/]
     PROBEst --> scripts[scripts/]
+    PROBEst --> tests[tests/]
+
+    subgraph folders
+    src
+    scripts
+    tests
+    end
     
-    src --> A[generation]
-    src --> B[database parsing]
     src --> C[benchmarking]
+    src --> A[generation]
     tests --> A
-    tests --> B
-    tests --> C
     
+    scripts --> D[preprocessing]
     scripts --> B[database parsing]
+    D --> A
 ```
 
 # Testing
