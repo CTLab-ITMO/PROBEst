@@ -274,7 +274,7 @@ graph LR
 
 # Testing
 
-- To check the installation: `bash test_run_generator.sh`
+- To check the installation: `bash test_generator.sh`
 
 - For developers: use `pytest`
 

@@ -1,10 +1,9 @@
 #!/bin/bash
-# Script: test_run_generation.sh
 # Description: This script prepares BLAST databases and a contigs table for a given set of FASTA files,
 #              then executes a Python pipeline for probe generation and analysis. It is designed to handle
 #              multiple input datasets (true and false bases) and generate output for further analysis.
 #
-# Usage: ./test_run_generation.sh
+# Usage: bash test_generator.sh
 #
 # Workflow:
 #   1. Cleans up previous output directories.

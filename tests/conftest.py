@@ -13,7 +13,7 @@ sys.path.insert(0, str(project_root))
 def setup_test_env():
     """Setup test environment."""
     # Set test-specific environment variables
-    os.environ['ENTREZ_EMAIL'] = 'test@example.com'
+    os.environ['ENTREZ_EMAIL'] = 'test@PROBESt.com'
     
     # Create temporary directory for test files
     test_dir = project_root / 'tests' / 'test_data'
