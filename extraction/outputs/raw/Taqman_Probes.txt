@@ -1,0 +1,240 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "DOI:10.2144/000114515",
+            "sample_group": [
+                {
+                    "id_group": 1,
+                    "experiment_ids": ["1", "2"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": 1,
+                                "outcome": true,
+                                "fluorescence": 687
+                            },
+                            {
+                                "id_exp": 2,
+                                "outcome": false,
+                                "fluorescence": 453
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "GAGATCTACTGTTTTCCTTTACTT",
+                                "GGCCAAAAATTAACTGTA"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 1,
+                                        "probe_sequence": "ROX-Acctccatcgagatttcactgt-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 5,
+                                                "modification_type": "Phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "GAGATCTACTGTTTTCCTTTACTT",
+                                                "GGCCAAAAATTAACTGTA"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 2,
+                                        "probe_sequence": "Cy5-acccactccatcgagatttcactgta-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 10,
+                                                "modification_type": "Phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "GAGATCTACTGTTTTCCTTTACTT",
+                                                "GGCCAAAAATTAACTGTA"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "id_group": 2,
+                    "experiment_ids": ["3", "4"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": 3,
+                                "outcome": true,
+                                "fluorescence": 756
+                            },
+                            {
+                                "id_exp": 4,
+                                "outcome": false,
+                                "fluorescence": 398
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "CCCAGGATTCTTACAGAAAAC",
+                                "TGGCAAATAcacagaggaag"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 3,
+                                        "probe_sequence": "ROX-tgttggacatactggatacagctggaca-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 7,
+                                                "modification_type": "Phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "CCCAGGATTCTTACAGAAAAC",
+                                                "TGGCAAATAcacagaggaag"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 4,
+                                        "probe_sequence": "Cy5-catggcactgtactcttcttgtccag-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 12,
+                                                "modification_type": "Phosphorothioate"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "CCCAGGATTCTTACAGAAAAC",
+                                                "TGGCAAATAcacagaggaag"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "DOI:10.2144/000114515",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "Asymmetric PCR and DNA melting analysis (DMA) with TaqMan probes applied for mutation detection of BRAF gene.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Human",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 8.8,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "1 µM",
+                                "id_probe": 1,
+                                "concentration_article": "0.25 µM each",
+                                "concentration_si": 2.5e-6
+                            },
+                            {
+                                "dna_rna_concentration": "1 µM",
+                                "id_probe": 2,
+                                "concentration_article": "0.25 µM each",
+                                "concentration_si": 2.5e-6
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95˚C",
+                                "tris": "50 mM",
+                                "na": "50 mM",
+                                "k": "0.15 µM",
+                                "mg": "3 mM",
+                                "dmso": "0.2 µL"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 50,
+                                "na": 50,
+                                "k": 150,
+                                "mg": 3,
+                                "dmso": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 2,
+                    "raw_description": "Asymmetric PCR and DNA melting analysis (DMA) with TaqMan probes applied for mutation detection of NRAS gene.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Human",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 8.8,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "1 µM",
+                                "id_probe": 3,
+                                "concentration_article": "0.25 µM each",
+                                "concentration_si": 2.5e-6
+                            },
+                            {
+                                "dna_rna_concentration": "1 µM",
+                                "id_probe": 4,
+                                "concentration_article": "0.25 µM each",
+                                "concentration_si": 2.5e-6
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95˚C",
+                                "tris": "50 mM",
+                                "na": "50 mM",
+                                "k": "1 µM",
+                                "mg": "3 mM",
+                                "dmso": "0.2 µL"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 50,
+                                "na": 50,
+                                "k": 1000,
+                                "mg": 3,
+                                "dmso": 2
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

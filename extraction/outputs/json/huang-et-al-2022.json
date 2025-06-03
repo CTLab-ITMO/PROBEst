@@ -1,0 +1,330 @@
+{
+  "article_data": {
+    "probe_samples": {
+      "doi": "DOI identificator",
+      "sample_group": [
+        {
+          "id_group": 1,
+          "experiment_ids": [
+            1,
+            2
+          ],
+          "results": {
+            "result": [
+              {
+                "id_exp": 1,
+                "outcome": true,
+                "fluorescence": 450
+              },
+              {
+                "id_exp": 2,
+                "outcome": false,
+                "fluorescence": 300
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": [
+                "TACGCTAGCGTA",
+                "ATGCCGGCTA"
+              ]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": 1,
+                    "probe_sequence": "ATGCCGGCTA",
+                    "modification": [
+                      {
+                        "modification_pos": 5,
+                        "modification_type": "phosphorothioate"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": [
+                        "TACGCTAGCGTA"
+                      ]
+                    }
+                  },
+                  {
+                    "id_probe": 2,
+                    "probe_sequence": "TACGCTAGCGTA",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": [
+                        "ATGCCGGCTA"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id_group": 2,
+          "experiment_ids": [
+            3,
+            4
+          ],
+          "results": {
+            "result": [
+              {
+                "id_exp": 3,
+                "outcome": true,
+                "fluorescence": 500
+              },
+              {
+                "id_exp": 4,
+                "outcome": false,
+                "fluorescence": 280
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": [
+                "GCTAAGCGTACG",
+                "CGTAGCTAAGC"
+              ]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": 3,
+                    "probe_sequence": "GCTAAGCGTACG",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": [
+                        "CGTAGCTAAGC"
+                      ]
+                    }
+                  },
+                  {
+                    "id_probe": 4,
+                    "probe_sequence": "CGTAGCTAAGC",
+                    "modification": [
+                      {
+                        "modification_pos": 7,
+                        "modification_type": "methylation"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": [
+                        "GCTAAGCGTACG"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "hybridization_experiments": {
+      "doi": "DOI identificator",
+      "experiment": [
+        {
+          "id_exp": 1,
+          "raw_description": "Experiment with human Y chromosome microdeletions detection.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7.5,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "100 ng/reaction",
+                "id_probe": 1,
+                "concentration_article": "100 ng/reaction",
+                "concentration_si": 1e-07
+              },
+              {
+                "dna_rna_concentration": "50 pg/reaction",
+                "id_probe": 2,
+                "concentration_article": "50 pg/reaction",
+                "concentration_si": 5e-09
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "60\u00b0C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "2.5 mM",
+                "mg": "3 mM",
+                "dmso": "0.05%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 60,
+                "tris": 10,
+                "na": 50,
+                "k": 2.5,
+                "mg": 3,
+                "dmso": 5
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 2,
+          "raw_description": "Experiment with Escherichia coli O serovars detection.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Escherichia coli",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 7.0,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "20 ng/reaction",
+                "id_probe": 3,
+                "concentration_article": "20 ng/reaction",
+                "concentration_si": 2e-08
+              },
+              {
+                "dna_rna_concentration": "10 pg/reaction",
+                "id_probe": 4,
+                "concentration_article": "10 pg/reaction",
+                "concentration_si": 1e-09
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "56\u00b0C",
+                "tris": "8 mM",
+                "na": "40 mM",
+                "k": "2 mM",
+                "mg": "2.5 mM",
+                "dmso": "0.1%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 56,
+                "tris": 8,
+                "na": 40,
+                "k": 2,
+                "mg": 2.5,
+                "dmso": 10
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 3,
+          "raw_description": "Experiment with respiratory pathogens detection.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human and various pathogens",
+          "rna_impurities": true,
+          "annealing": true,
+          "ph": 7.2,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "100 ng/reaction",
+                "id_probe": 5,
+                "concentration_article": "100 ng/reaction",
+                "concentration_si": 1e-07
+              },
+              {
+                "dna_rna_concentration": "50 pg/reaction",
+                "id_probe": 6,
+                "concentration_article": "50 pg/reaction",
+                "concentration_si": 5e-09
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "62\u00b0C",
+                "tris": "12 mM",
+                "na": "55 mM",
+                "k": "3.0 mM",
+                "mg": "4 mM",
+                "dmso": "0.1%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 62,
+                "tris": 12,
+                "na": 55,
+                "k": 3,
+                "mg": 4,
+                "dmso": 10
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 4,
+          "raw_description": "Experiment with KRAS mutations detection.",
+          "type": "DNA-RNA hybridization",
+          "organism": "Human",
+          "rna_impurities": false,
+          "annealing": true,
+          "ph": 7.8,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "50 ng/reaction",
+                "id_probe": 7,
+                "concentration_article": "50 ng/reaction",
+                "concentration_si": 5e-08
+              },
+              {
+                "dna_rna_concentration": "25 pg/reaction",
+                "id_probe": 8,
+                "concentration_article": "25 pg/reaction",
+                "concentration_si": 2.5e-09
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "60\u00b0C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "2.5 mM",
+                "mg": "3 mM",
+                "dmso": "0.05%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 60,
+                "tris": 10,
+                "na": 50,
+                "k": 2.5,
+                "mg": 3,
+                "dmso": 5
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

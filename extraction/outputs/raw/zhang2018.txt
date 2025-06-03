@@ -1,0 +1,330 @@
+{
+  "article_data": {
+    "probe_samples": {
+      "doi": "10.1038/s41598-018-31200-3",
+      "sample_group": [
+        {
+          "id_group": 1,
+          "experiment_ids": ["1", "2"],
+          "results": {
+            "result": [
+              {
+                "id_exp": 1,
+                "outcome": true,
+                "fluorescence": 35.94
+              },
+              {
+                "id_exp": 2,
+                "outcome": false,
+                "fluorescence": 38.48
+              }
+            ]
+          },
+          "sequences": {
+            "related_sequences": {
+              "related_sequence": [
+                "F: ACGGTTAGGTGAATTGATTGTTTTAT",
+                "R: CGCATTTGAGCTGAAGTTG"
+              ]
+            },
+            "probe_sequences": {
+              "probes": {
+                "probe": [
+                  {
+                    "id_probe": 1,
+                    "probe_sequence": "TAKGACCAYCACGRGTC",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Staphylococcus aureus"]
+                    }
+                  },
+                  {
+                    "id_probe": 2,
+                    "probe_sequence": "TCAAACAGCTGTTCGTAATA",
+                    "modification": [
+                      {
+                        "modification_pos": 10,
+                        "modification_type": "FAM"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": ["Staphylococcus haemolyticus"]
+                    }
+                  },
+                  {
+                    "id_probe": 3,
+                    "probe_sequence": "TGGTGGCGAACCTA",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Enterococcus faecium"]
+                    }
+                  },
+                  {
+                    "id_probe": 4,
+                    "probe_sequence": "AACGCTTGATACAGGGAG",
+                    "modification": [
+                      {
+                        "modification_pos": 15,
+                        "modification_type": "NFQ-MGB"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": ["Streptococcus pneumoniae"]
+                    }
+                  },
+                  {
+                    "id_probe": 5,
+                    "probe_sequence": "AACTCATCAAGGATTTCT",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Streptococcus agalactiae"]
+                    }
+                  },
+                  {
+                    "id_probe": 6,
+                    "probe_sequence": "TGCCGCGCTAGCA",
+                    "modification": [
+                      {
+                        "modification_pos": 12,
+                        "modification_type": "NFQ-MGB"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": ["Clostridium perfringens"]
+                    }
+                  },
+                  {
+                    "id_probe": 7,
+                    "probe_sequence": "ACTGACCGGATRCCGA",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Escherichia coli"]
+                    }
+                  },
+                  {
+                    "id_probe": 8,
+                    "probe_sequence": "AGTTGAACCAACTCCA",
+                    "modification": [
+                      {
+                        "modification_pos": 14,
+                        "modification_type": "FAM"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": ["Acinetobacter baumannii"]
+                    }
+                  },
+                  {
+                    "id_probe": 9,
+                    "probe_sequence": "TGCAGTGGAACGACA",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Pseudomonas aeruginosa"]
+                    }
+                  },
+                  {
+                    "id_probe": 10,
+                    "probe_sequence": "AACGCGCGTGAATT",
+                    "modification": [
+                      {
+                        "modification_pos": 8,
+                        "modification_type": "NFQ-MGB"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": ["Burkholderia cepacia"]
+                    }
+                  },
+                  {
+                    "id_probe": 11,
+                    "probe_sequence": "TTGTAGTATTGATACGCTTTGT",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Haemophilus influenzae"]
+                    }
+                  },
+                  {
+                    "id_probe": 12,
+                    "probe_sequence": "CTGGAGCCATTCGG",
+                    "modification": [
+                      {
+                        "modification_pos": 9,
+                        "modification_type": "NFQ-MGB"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": ["Cryptococcus neoformans"]
+                    }
+                  },
+                  {
+                    "id_probe": 13,
+                    "probe_sequence": "TGGGCTTGGGACTCT",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Candida glabrata"]
+                    }
+                  },
+                  {
+                    "id_probe": 14,
+                    "probe_sequence": "TGCGTTTACCGGGCCA",
+                    "modification": [
+                      {
+                        "modification_pos": 12,
+                        "modification_type": "FAM"
+                      }
+                    ],
+                    "related_sequences": {
+                      "related_sequence": ["Candida albicans"]
+                    }
+                  },
+                  {
+                    "id_probe": 15,
+                    "probe_sequence": "AGTTTACCGGGCCAGCA",
+                    "modification": [],
+                    "related_sequences": {
+                      "related_sequence": ["Candida parapsilosis"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "hybridization_experiments": {
+      "doi": "10.1038/s41598-018-31200-3",
+      "experiment": [
+        {
+          "id_exp": 1,
+          "raw_description": "To maximize pathogen cell yield from blood specimens, we used 50% Tween 20/Triton X-100 or 0.1% saponin to release pathogen cells engulfed by phagocytes",
+          "type": "DNA-RNA hybridization",
+          "organism": "Staphylococcus aureus (G+)",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 7.4,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "103 CFU/mL",
+                "id_probe": 1,
+                "concentration_article": "103 CFU/mL",
+                "concentration_si": 1.0E-6
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37 °C",
+                "tris": "5 mM",
+                "na": "20 mM",
+                "k": "5 mM",
+                "mg": "1.5 mM",
+                "dmso": "0.04%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 5,
+                "na": 20,
+                "k": 5,
+                "mg": 1.5,
+                "dmso": 4
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 2,
+          "raw_description": "To maximize bacterial or fungal TNA yield, we tested 4 TNA extraction kits and one method",
+          "type": "DNA-RNA hybridization",
+          "organism": "Escherichia coli (G−)",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 7.2,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "103 CFU/mL",
+                "id_probe": 7,
+                "concentration_article": "103 CFU/mL",
+                "concentration_si": 1.0E-6
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "42 °C",
+                "tris": "10 mM",
+                "na": "50 mM",
+                "k": "30 mM",
+                "mg": "1.5 mM",
+                "dmso": "0.08%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 42,
+                "tris": 10,
+                "na": 50,
+                "k": 30,
+                "mg": 1.5,
+                "dmso": 8
+              }
+            ]
+          }
+        },
+        {
+          "id_exp": 3,
+          "raw_description": "To improve lysing efficiency, we used an enzyme cocktail composed of lysozyme (20 mg/mL), mutanolysin (300 U/mL), lysostaphin (40 U/mL), and lyticase (1000 U/mL)",
+          "type": "DNA-RNA hybridization",
+          "organism": "Candida albicans (fungi)",
+          "rna_impurities": true,
+          "annealing": false,
+          "ph": 7.6,
+          "concentrations": {
+            "concentration": [
+              {
+                "dna_rna_concentration": "103 CFU/mL",
+                "id_probe": 14,
+                "concentration_article": "103 CFU/mL",
+                "concentration_si": 1.0E-6
+              }
+            ]
+          },
+          "string_parameters": {
+            "parameter": [
+              {
+                "temperature": "37 °C",
+                "tris": "5 mM",
+                "na": "20 mM",
+                "k": "5 mM",
+                "mg": "1.5 mM",
+                "dmso": "0.04%"
+              }
+            ]
+          },
+          "numeric_parameters": {
+            "numeric_parameter": [
+              {
+                "temperature": 37,
+                "tris": 5,
+                "na": 20,
+                "k": 5,
+                "mg": 1.5,
+                "dmso": 4
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
