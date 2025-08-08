@@ -53,3 +53,4 @@ transformers==4.51.3
 triton==3.3.0
 typing_extensions==4.13.2
 urllib3==2.4.0
+json5

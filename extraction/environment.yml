@@ -16,4 +16,5 @@ dependencies:
     - lxml                                  # XML + DTD validation
     - rich                                  # pretty logging
     - accelerate
+    - json5
 

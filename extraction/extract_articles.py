@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import re
-import json
+import json5 as json
 import tempfile
 import threading
 import argparse
@@ -33,7 +33,7 @@ warnings.filterwarnings("ignore", "Sliding Window Attention")
 # ── Configuration ──────────────────────────────────────────────────────────────
 MODEL_NAME    = "Qwen/Qwen2.5-7B-Instruct-1M"
 PROMPT_FILE   = "extraction_prompt.txt"
-INPUT_DIR     = "articles"
+INPUT_DIR     = "/mnt/Models/articles2/"
 RAW_OUT_DIR   = os.path.join("outputs", "raw")
 JSON_OUT_DIR  = os.path.join("outputs", "json")
 DTD_DIR       = "schema"
@@ -42,6 +42,7 @@ DB_PATH       = "outputs/extraction.db"
 
 OLLAMA_URL    = "http://localhost:11434/api/generate"
 OLLAMA_MODEL  = "myaniu/qwen2.5-1m:14b"
+OLLAMA_CONTEXT_SIZE = 131072
 
 MAX_NEW_TOKENS: int = 40960
 
@@ -151,7 +152,7 @@ def validate_json_via_dtd(json_obj: dict) -> bool:
 # Ollama API streaming
 def call_ollama(prompt: str):
     headers = {"Content-Type": "application/json"}
-    payload = {"model": OLLAMA_MODEL, "prompt": prompt, "max_tokens": MAX_NEW_TOKENS, "stream":True}
+    payload = {"model": OLLAMA_MODEL, "prompt": prompt, "max_tokens": MAX_NEW_TOKENS, "num_ctx": OLLAMA_CONTEXT_SIZE, "stream":True}
     with requests.post(OLLAMA_URL, json=payload, headers=headers, stream=True) as resp:
         resp.raise_for_status()
         buffer = b""
@@ -435,8 +436,9 @@ def main():
         log.info("Loading local model %s…", MODEL_NAME)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-        model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, trust_remote_code=True).to(device)
+        model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, trust_remote_code=True, torch_dtype="auto", load_in_8bit=True)
         model.eval()
+        log.info("Context length is %d", model.config.max_position_embeddings)
         tokenizer.pad_token = tokenizer.eos_token
         model.config.attn_config = None
         def local_generate(prompt):
@@ -472,79 +474,103 @@ def main():
     while not all_articles.empty():
         fname = all_articles.get()
         if not fname.lower().endswith('.pdf'): continue
-        base = os.path.splitext(fname)[0]
-        raw_path = os.path.join(RAW_OUT_DIR, f"{base}.txt")
-        json_path = os.path.join(JSON_OUT_DIR, f"{base}.json")
-
-        log.info("Parsing article %s", base)
-
-        # If JSON exists: validate and DB insert (or skip)
-        if os.path.isfile(json_path):
-            try:
-                with open(json_path,'r') as f: parsed = json.load(f)
-                # validate
-                if validate_json_via_dtd(parsed):
-                    insert_into_db(conn, base, parsed, force=args.force)
-                    cached_articles += 1
-                    log.info("Valid JSON cache was found for article %s", base)
-                    continue
-                else:
-                    log.info("JSON cache was found for article %s, but failed validation", base)
-            except Exception as e:
-                log.error("Failed to load JSON representation of article %s extraction result.", base, exc_info=True)
-        # If raw exists but no JSON: parse & validate
-        if os.path.isfile(raw_path):
-            try:
-                raw_str = open(raw_path).read().strip()
-                parsed = json.loads(raw_str)
-                # save JSON
-                if validate_json_via_dtd(parsed):
-                    with open(json_path,'w', encoding='utf-8') as f: json.dump(parsed,f,indent=2)
-                    insert_into_db(conn, base, parsed, force=args.force)
-                    cached_articles += 1
-                    log.info("Valid RAW cache was found for article %s", base)
-                    continue
-                else:
-                    log.info("RAW cache was found for article %s, but failed validation", base)
-            except Exception as e:
-                log.error("Failed to parse article %s RAW output.", base, exc_info=True)
-
-        # ELSE: run full extraction
-        log.info("▶ Processing %s…", fname)
-        full_text = extract_text_from_pdf(os.path.join(INPUT_DIR,fname))
-        prompt = f"{instruction}\n\n{full_text}"
-        # stream LLM
-        out_accum = ''
-        for chunk in infer_fn(prompt):
-            print(chunk,end='',flush=True); out_accum+=chunk
-            if out_accum.count('```')>=2: break
-        print()
-        m = re.search(r"```json\n(.*?)\n```", out_accum, re.S)
-        if not m: log.error("No JSON delimiters for %s", fname); continue
-        raw_json = m.group(1).strip()
-        with open(raw_path,'w') as f: f.write(raw_json)
         try:
-            parsed = json.loads(raw_json)
-        except Exception as e:
-            log.error("Failed to parse JSON for article %s -- incorrect JSON returned.", base, exc_info=True)
-            failed_articles += 1
-            all_articles.put(fname)
-            log.info("Article %s was not successfully parsed and re-enqueued", base)
+            base = os.path.splitext(fname)[0]
+            txt_path = os.path.join(RAW_OUT_DIR, f"{base}_text.txt")
+            raw_path = os.path.join(RAW_OUT_DIR, f"{base}.txt")
+            json_path = os.path.join(JSON_OUT_DIR, f"{base}.json")
 
-        # validate + insert
-        if validate_json_via_dtd(parsed):
-            with open(json_path,'w',encoding='utf-8') as f: json.dump(parsed,f,indent=2)
-            insert_into_db(conn, base, parsed, force=args.force)
-            ok_articles += 1
-            log.info("Article %s was parsed successfully", base)
-        else:
-            failed_articles += 1
-            all_articles.put(fname)
-            log.info("Article %s was not successfully parsed and re-enqueued", base)
+            log.info("Parsing article %s", base)
+
+            # If JSON exists: validate and DB insert (or skip)
+            if os.path.isfile(json_path):
+                try:
+                    with open(json_path,'r') as f: parsed = json.load(f)
+                    # validate
+                    if validate_json_via_dtd(parsed):
+                        insert_into_db(conn, base, parsed, force=args.force)
+                        cached_articles += 1
+                        log.info("Valid JSON cache was found for article %s", base)
+                        continue
+                    else:
+                        log.info("JSON cache was found for article %s, but failed validation", base)
+                except Exception:
+                    log.error("Failed to load JSON representation of article %s extraction result.", base, exc_info=True)
+            # If raw exists but no JSON: parse & validate
+            if os.path.isfile(raw_path):
+                try:
+                    with open(raw_path, mode='rt', encoding='utf-8') as f:
+                        raw_str = f.read().strip()
+                    parsed = json.loads(raw_str)
+                    # save JSON
+                    if validate_json_via_dtd(parsed):
+                        with open(json_path, mode='wt', encoding='utf-8') as f: 
+                            json.dump(parsed,f,indent=2)
+                        insert_into_db(conn, base, parsed, force=args.force)
+                        cached_articles += 1
+                        log.info("Valid RAW cache was found for article %s", base)
+                        continue
+                    else:
+                        log.info("RAW cache was found for article %s, but failed validation", base)
+                except Exception:
+                    log.error("Failed to parse article %s RAW output.", base, exc_info=True)
+
+            # ELSE: run full extraction
+            log.info("▶ Processing %s…", fname)
+            try:
+                if os.path.isfile(txt_path):
+                    with open(txt_path, mode='rt', encoding='utf-8') as f:
+                        full_text = f.read().strip()
+                else:
+                    full_text = extract_text_from_pdf(os.path.join(INPUT_DIR,fname))
+                    with open(txt_path, mode='wt', encoding='utf-8') as f:
+                        f.write(full_text.strip())
+            except Exception:
+                log.exception("Exception during parsing text from the article %s", base, exc_info=True)
+                log.error("Can't parse article %s text, removing it from the queue", base)
+                failed_articles += 1
+                continue
+                
+            prompt = f"{instruction}\n\n{full_text}"
+            # stream LLM
+            out_accum = ''
+            for chunk in infer_fn(prompt):
+                print(chunk,end='',flush=True); out_accum+=chunk
+                if out_accum.count('```')>=2: 
+                    break
+            print()
+            m = re.search(r"```json\n(.*?)\n```", out_accum, re.S)
+            if not m: log.error("No JSON delimiters for %s", fname); continue
+            raw_json = m.group(1).strip()
+            
+            with open(raw_path, mode='wt', encoding='utf-8') as f: 
+                f.write(raw_json)
+                
+            try:
+                parsed = json.loads(raw_json)
+            except Exception:
+                log.error("Failed to parse JSON for article %s -- incorrect JSON returned.", base, exc_info=True)
+                failed_articles += 1
+                all_articles.put(fname)
+                log.info("Article %s was not successfully parsed and re-enqueued", base)
+                continue
+
+            # validate + insert
+            if validate_json_via_dtd(parsed):
+                with open(json_path,'w',encoding='utf-8') as f: json.dump(parsed,f,indent=2)
+                insert_into_db(conn, base, parsed, force=args.force)
+                ok_articles += 1
+                log.info("Article %s was parsed successfully", base)
+            else:
+                failed_articles += 1
+                all_articles.put(fname)
+                log.info("Article %s was not successfully parsed and re-enqueued", base)
+        except Exception:
+            log.exception("Generic error catched for article %s", fname, exc_info=True)
 
     conn.close()
     log.info("%d new articles were successfully parsed, %d articles had valid cache, %d article extraction attempts failed", ok_articles, cached_articles, failed_articles)
     log.info("✅ All done.")
 
-if __name__=='__main__': 
+if __name__=='__main__':
     main()
