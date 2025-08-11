@@ -17,9 +17,8 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 ```bash
 git clone https://github.com/CTLab-ITMO/PROBEst.git
 cd PROBEst
-conda create -n probest
+conda env create -f environment.yml
 conda activate probest
-conda install --file requirements.txt
 python setup.py install
 ```
 
