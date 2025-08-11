@@ -1,18 +1,12 @@
 from setuptools import setup, find_packages
 import os
 
-def read_requirements():
-    """Read requirements from requirements.txt."""
-    with open('requirements.txt') as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
-
 setup(
     name='PROBESt',
     version='0.1.4',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     python_requires='>=3.8',
-    install_requires=read_requirements(),
     author='Your Name',
     author_email='your.email@example.com',
     description='PROBESt: package for nucleotide probes generation',
