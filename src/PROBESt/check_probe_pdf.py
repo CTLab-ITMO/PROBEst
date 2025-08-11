@@ -140,20 +140,11 @@ def find_nucleotide_sequences(text: str, min_length: int = 7) -> List[str]:
     # Degenerate bases: R (A/G), Y (C/T), S (G/C), W (A/T), K (G/T), M (A/C), B (C/G/T), D (A/G/T), H (A/C/T), V (A/C/G), N (any)
     # RNA nucleotides: I (inosine)
     #nucleotide_pattern = r'[ATGCIURYSWKMBDHVNatgciuryswkmbdhvn]{' + str(min_length) + r',}'
-    nucleotide_pattern = r'[ATGCIUatgciu]{' + str(min_length) + r',}'
+    nucleotide_pattern = '[ATGCUatgcu -]{'+ str(min_length) + '}+'
     
     sequences = re.findall(nucleotide_pattern, text)
     
-    # Filter out sequences that are too repetitive (likely not real sequences)
-    filtered_sequences = []
-    for seq in sequences:
-        # Check if sequence has reasonable diversity (not just repeating the same character)
-        # Allow sequences with at least 2 different characters, or sequences that are long enough
-        # to be biologically relevant even if repetitive
-        if len(set(seq)) >= 2 or len(seq) >= 10:  # At least 2 different chars OR length >= 10
-            filtered_sequences.append(seq)
-    
-    return filtered_sequences
+    return sequences
 
 
 def check_pdf_for_sequences(pdf_path: str, min_length: int = 10) -> Tuple[bool, List[str]]:
