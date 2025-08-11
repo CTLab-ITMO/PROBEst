@@ -20,12 +20,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
-        activate-environment: probest
         environment-file: environment.yml
         auto-activate-base: false
+        activate-environment: probest
         channels: conda-forge,bioconda,defaults
     - name: Install dependencies
       shell: bash -l {0}
