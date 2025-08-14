@@ -1,6 +1,4 @@
-# python package
-
-name: Python package
+name: conda build
 
 on:
   push:
