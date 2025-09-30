@@ -1,8 +1,12 @@
 {
-    "model_name": "myaniu/qwen2.5-1m:7b",
-    "num_ctx": 131072,
-    "num_predict": 65536,
-    "timeout_s": 1800,
+    "model_names": ["llama3.1", "myaniu/qwen2.5-1m:7b", "gemma3:27b", "llava:34b", "phi3", "phi4"],
+    "ollama_parameters":{
+        "num_ctx": 65536,
+        "num_predict": 32768,
+        "timeout_s": 1800,
+        "temperature": 0.15,
+        "seed": 42
+    },
     "input_dir": "input/txt/",
     "out_dir": "outlines_output",
     "full_schema_path": "schema/json/article.json",
