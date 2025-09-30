@@ -3,11 +3,11 @@
     "num_ctx": 131072,
     "num_predict": 65536,
     "timeout_s": 1800,
-    "input_dir": "outputs/text",
+    "input_dir": "input/txt/",
     "out_dir": "outlines_output",
     "full_schema_path": "schema/json/article.json",
     "db_path": "outlines_output/massive.sqlite",
-    "article_glob": "input/txt*.txt",
+    "article_glob": "*.txt",
     "passes": [
         {
             "name": "A_core",
