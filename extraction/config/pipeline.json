@@ -7,7 +7,7 @@
         "seed": 42
     },
     "timeout_s": 1800,
-    "input_dir": "input/txt/",
+    "input_dir": "../outputs/text",
     "out_dir": "outlines_output",
     "full_schema_path": "schema/json/article.json",
     "db_path": "outlines_output/massive.sqlite",
