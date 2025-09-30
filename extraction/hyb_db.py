@@ -1,0 +1,875 @@
+# -*- coding: utf-8 -*-
+import outlines
+from outlines.types import JsonSchema
+import ollama
+import re
+from typing import Optional, Tuple, Dict, Any, List
+import json
+from pathlib import Path
+from tqdm import tqdm
+#from __future__ import annotations
+import sqlite3
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from loguru import logger
+from ollama import chat, ChatResponse 
+from json_repair import repair_json
+import os, sys
+from jsonschema import Draft202012Validator
+
+# -*- coding: utf-8 -*-
+"""
+SQLite dataset builder for hybridization-article extractions.
+
+Public API:
+    init_db(db_path)
+    insert_article_object(db_path, article_obj, model_name, article_name)
+
+Features:
+- Auto-initializes schema (tables, indexes, views).
+- Preserves every run (no overwrites).
+- Normalizes sense/antisense & prime markers.
+- Guards against non-oligo "probes" (skips probe insertion but keeps experiment).
+- Includes Ollama-style helper tools with Google docstrings.
+"""
+import json
+import re
+import sqlite3
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional, Tuple, List
+
+
+@contextmanager
+def _db(db_path: str):
+    """Context manager for SQLite connection with FK + WAL enabled."""
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute("PRAGMA foreign_keys = ON;")
+        conn.execute("PRAGMA journal_mode = WAL;")
+        yield conn
+        conn.commit()
+    finally:
+        conn.close()
+
+
+# ----------------------------- Schema DDL ----------------------------- #
+
+_TABLES_AND_INDEXES_SQL = """
+CREATE TABLE IF NOT EXISTS articles (
+    id                  INTEGER PRIMARY KEY,
+    doi                 TEXT NOT NULL UNIQUE,
+    latest_article_name TEXT,
+    latest_abstract     TEXT,
+    latest_topic        TEXT,
+    created_at          TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS runs (
+    id           INTEGER PRIMARY KEY,
+    article_id   INTEGER NOT NULL,
+    model_name   TEXT    NOT NULL,
+    article_name TEXT,
+    branch       TEXT    NOT NULL CHECK (branch IN ('experiments','no_sequences')),
+    created_at   TEXT    NOT NULL,
+    FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_runs_article ON runs(article_id);
+CREATE INDEX IF NOT EXISTS idx_runs_created ON runs(created_at);
+CREATE INDEX IF NOT EXISTS idx_runs_model   ON runs(model_name);
+
+CREATE TABLE IF NOT EXISTS raw_payloads (
+    run_id  INTEGER PRIMARY KEY,
+    json    TEXT NOT NULL,
+    FOREIGN KEY (run_id) REFERENCES runs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS experiments (
+    id                          INTEGER PRIMARY KEY,
+    run_id                      INTEGER NOT NULL,
+    id_exp                      TEXT    NOT NULL,
+    type                        TEXT,
+    description                 TEXT    NOT NULL,
+    raw_description             TEXT,
+    organism                    TEXT,
+    technology                  TEXT,
+    annealing_qualitative       INTEGER,  -- NULL/0/1
+    rna_impurities_qualitative  INTEGER,  -- NULL/0/1
+    UNIQUE (run_id, id_exp),
+    FOREIGN KEY (run_id) REFERENCES runs(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_experiments_run   ON experiments(run_id);
+CREATE INDEX IF NOT EXISTS idx_experiments_idexp ON experiments(id_exp);
+
+CREATE TABLE IF NOT EXISTS oligos (
+    id                      INTEGER PRIMARY KEY,
+    raw                     TEXT NOT NULL,
+    sequence                TEXT,
+    length_bases            INTEGER,
+    prime_prefix            INTEGER CHECK (prime_prefix IN (3,5)),
+    five_prime_label        TEXT,
+    three_prime_label       TEXT,
+    sense_antisense         TEXT CHECK (sense_antisense IN ('sense','antisense')),
+    provenance_source_type  TEXT,
+    provenance_page         INTEGER,
+    provenance_section      TEXT,
+    provenance_quote        TEXT,
+    provenance_notes        TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_oligos_seq ON oligos(sequence);
+
+CREATE TABLE IF NOT EXISTS probes (
+    id               INTEGER PRIMARY KEY,
+    experiment_id    INTEGER NOT NULL,
+    name             TEXT    NOT NULL,
+    amplicon_id      TEXT,
+    oligo_id         INTEGER NOT NULL,
+    fluorophore      TEXT,
+    quencher         TEXT,
+    sense_antisense  TEXT CHECK (sense_antisense IN ('sense','antisense')),
+    notes            TEXT,
+    FOREIGN KEY (experiment_id) REFERENCES experiments(id) ON DELETE CASCADE,
+    FOREIGN KEY (oligo_id)     REFERENCES oligos(id)
+);
+CREATE INDEX IF NOT EXISTS idx_probes_name ON probes(name);
+CREATE INDEX IF NOT EXISTS idx_probes_exp  ON probes(experiment_id);
+
+CREATE TABLE IF NOT EXISTS target_sequences (
+    id             INTEGER PRIMARY KEY,
+    experiment_id  INTEGER NOT NULL,
+    oligo_id       INTEGER NOT NULL,
+    FOREIGN KEY (experiment_id) REFERENCES experiments(id) ON DELETE CASCADE,
+    FOREIGN KEY (oligo_id)     REFERENCES oligos(id)
+);
+
+CREATE TABLE IF NOT EXISTS primer_pairs (
+    id               INTEGER PRIMARY KEY,
+    experiment_id    INTEGER NOT NULL,
+    forward_oligo_id INTEGER NOT NULL,
+    reverse_oligo_id INTEGER NOT NULL,
+    FOREIGN KEY (experiment_id)    REFERENCES experiments(id) ON DELETE CASCADE,
+    FOREIGN KEY (forward_oligo_id) REFERENCES oligos(id),
+    FOREIGN KEY (reverse_oligo_id) REFERENCES oligos(id)
+);
+CREATE INDEX IF NOT EXISTS idx_primers_exp ON primer_pairs(experiment_id);
+
+CREATE TABLE IF NOT EXISTS related_sequences (
+    id             INTEGER PRIMARY KEY,
+    experiment_id  INTEGER NOT NULL,
+    oligo_id       INTEGER NOT NULL,
+    description    TEXT,
+    FOREIGN KEY (experiment_id) REFERENCES experiments(id) ON DELETE CASCADE,
+    FOREIGN KEY (oligo_id)     REFERENCES oligos(id)
+);
+CREATE INDEX IF NOT EXISTS idx_relseqs_exp ON related_sequences(experiment_id);
+
+CREATE TABLE IF NOT EXISTS outcomes (
+    id                 INTEGER PRIMARY KEY,
+    experiment_id      INTEGER NOT NULL,
+    outcome            INTEGER,   -- NULL/0/1
+    comparative_notes  TEXT,
+    FOREIGN KEY (experiment_id) REFERENCES experiments(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_outcomes_exp ON outcomes(experiment_id);
+
+CREATE TABLE IF NOT EXISTS measurements (
+    id                      INTEGER PRIMARY KEY,
+    experiment_id           INTEGER NOT NULL,
+    key                     TEXT    NOT NULL,
+    raw                     TEXT    NOT NULL,
+    value                   REAL,
+    unit                    TEXT,
+    si_value                REAL,
+    si_unit                 TEXT,
+    assumptions             TEXT,
+    provenance_source_type  TEXT,
+    provenance_page         INTEGER,
+    provenance_section      TEXT,
+    provenance_quote        TEXT,
+    provenance_notes        TEXT,
+    FOREIGN KEY (experiment_id) REFERENCES experiments(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_measurements_exp_key ON measurements(experiment_id, key);
+
+CREATE TABLE IF NOT EXISTS pairings (
+    id                        INTEGER PRIMARY KEY,
+    experiment_id             INTEGER NOT NULL,
+    paired_with_probe_name    TEXT,
+    relationship              TEXT,
+    FOREIGN KEY (experiment_id) REFERENCES experiments(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_pairings_exp ON pairings(experiment_id);
+
+CREATE TABLE IF NOT EXISTS extraction_report_entries (
+    id            INTEGER PRIMARY KEY,
+    run_id        INTEGER NOT NULL,
+    experiment_id INTEGER,
+    kind          TEXT NOT NULL CHECK (kind IN ('missing','uncertain')),
+    json_pointer  TEXT NOT NULL,
+    notes         TEXT,
+    FOREIGN KEY (run_id)        REFERENCES runs(id) ON DELETE CASCADE,
+    FOREIGN KEY (experiment_id) REFERENCES experiments(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_report_run_kind ON extraction_report_entries(run_id, kind);
+
+CREATE TABLE IF NOT EXISTS no_sequences_explanations (
+    id          INTEGER PRIMARY KEY,
+    run_id      INTEGER NOT NULL,
+    explanation TEXT    NOT NULL,
+    FOREIGN KEY (run_id) REFERENCES runs(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_no_seq_run ON no_sequences_explanations(run_id);
+"""
+
+_VIEWS_SQL = """
+CREATE VIEW IF NOT EXISTS view_experiments_flat AS
+SELECT
+    a.doi                               AS doi,
+    r.model_name                        AS model_name,
+    r.article_name                      AS article_name,
+    r.created_at                        AS run_created_at,
+    e.id                                AS experiment_id,
+    e.id_exp                            AS id_exp,
+    e.type                              AS exp_type,
+    e.description                       AS exp_description,
+    e.organism                          AS organism,
+    e.technology                        AS technology,
+    p.name                              AS probe_name,
+    p.amplicon_id                       AS amplicon_id,
+    p.fluorophore                       AS probe_fluorophore,
+    p.quencher                          AS probe_quencher,
+    po.sequence                         AS probe_sequence,
+    po.five_prime_label                 AS probe_5p_label,
+    po.three_prime_label                AS probe_3p_label,
+    tgo.sequence                        AS target_sequence,
+    o.outcome                           AS outcome_bool,
+    o.comparative_notes                 AS outcome_notes
+FROM experiments e
+JOIN runs r           ON r.id = e.run_id
+JOIN articles a       ON a.id = r.article_id
+LEFT JOIN probes p    ON p.experiment_id = e.id
+LEFT JOIN oligos po   ON po.id = p.oligo_id
+LEFT JOIN target_sequences ts ON ts.experiment_id = e.id
+LEFT JOIN oligos tgo   ON tgo.id = ts.oligo_id
+LEFT JOIN outcomes o   ON o.experiment_id = e.id;
+
+CREATE VIEW IF NOT EXISTS view_measurements_flat AS
+SELECT
+    a.doi,
+    r.model_name,
+    r.article_name,
+    r.created_at        AS run_created_at,
+    e.id                AS experiment_id,
+    e.id_exp,
+    m.key,
+    m.raw,
+    m.value,
+    m.unit,
+    m.si_value,
+    m.si_unit,
+    m.assumptions
+FROM measurements m
+JOIN experiments e ON e.id = m.experiment_id
+JOIN runs r       ON r.id = e.run_id
+JOIN articles a   ON a.id = r.article_id;
+"""
+
+
+def _ensure_schema(conn: sqlite3.Connection) -> None:
+    """Create all tables, indexes, and views if they don't exist."""
+    cur = conn.cursor()
+    cur.executescript(_TABLES_AND_INDEXES_SQL)
+    cur.executescript(_VIEWS_SQL)
+    conn.commit()
+
+
+# ----------------------------- Public API ----------------------------- #
+
+def init_db(db_path: str) -> None:
+    """Create (if not exists) the SQLite database schema, indices, and views.
+
+    Args:
+      db_path: Path to the SQLite file. Created if it doesn't exist.
+    """
+    with _db(db_path) as conn:
+        _ensure_schema(conn)
+
+
+def insert_article_object(db_path: str, article_obj: Dict[str, Any],
+                          model_name: str, article_name: Optional[str]) -> int:
+    """Insert a schema-conformant JSON object into the SQLite DB.
+
+    Auto-creates the DB schema if missing. Preserves every run.
+
+    Args:
+      db_path: SQLite file path.
+      article_obj: Dict that conforms to the Hybridization Article schema.
+      model_name: Model identifier (e.g., 'Qwen2.5-Instruct-1M:14b').
+      article_name: Name/key for the source file processed.
+
+    Returns:
+      run_id (int) for this insertion.
+    """
+    with _db(db_path) as conn:
+        _ensure_schema(conn)
+        cur = conn.cursor()
+
+        doi = article_obj.get("doi")
+        if not doi:
+            raise ValueError("Input must contain a top-level 'doi' string.")
+
+        has_experiments = isinstance(article_obj.get("experiments"), list)
+        branch = "experiments" if has_experiments else "no_sequences"
+
+        article_id = _get_or_create_article(
+            cur,
+            doi=doi,
+            article_name=article_name or article_obj.get("article_name"),
+            abstract=article_obj.get("abstract"),
+            topic=article_obj.get("topic"),
+        )
+
+        run_id = _create_run(cur, article_id, model_name, article_name, branch, raw_json=article_obj)
+
+        # Top-level extraction report (if any)
+        _insert_extraction_report(cur, run_id, article_obj.get("extraction_report"), experiment_id=None)
+
+        if branch == "no_sequences":
+            explanation = article_obj.get("explanation_why_does_not_this_article_have_any_hybridization_probes_sequences") or ""
+            cur.execute(
+                "INSERT INTO no_sequences_explanations (run_id, explanation) VALUES (?, ?)",
+                (run_id, explanation),
+            )
+            return run_id
+
+        # ---- experiments branch ----
+        for exp in (article_obj.get("experiments") or []):
+            id_exp = exp.get("id_exp")
+            desc = exp.get("description") or ""
+            cur.execute(
+                """
+                INSERT INTO experiments
+                    (run_id, id_exp, type, description, raw_description,
+                     organism, technology, annealing_qualitative, rna_impurities_qualitative)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    run_id,
+                    id_exp,
+                    exp.get("type"),
+                    desc,
+                    exp.get("raw_description"),
+                    (exp.get("metadata") or {}).get("organism"),
+                    (exp.get("metadata") or {}).get("technology"),
+                    _to_int_bool(((exp.get("metadata") or {}).get("annealing") or {}).get("qualitative")),
+                    _to_int_bool(((exp.get("metadata") or {}).get("rna_impurities") or {}).get("qualitative")),
+                ),
+            )
+            experiment_id = cur.lastrowid
+
+            # Per-experiment extraction report
+            _insert_extraction_report(cur, run_id, exp.get("extraction_report"), experiment_id=experiment_id)
+
+            # Sequences
+            seqs = exp.get("sequences") or {}
+
+            # Validate the probe looks like a real oligo
+            probe = seqs.get("probe") or {}
+            if not _has_real_probe(probe):
+                # Record and skip probe insertion, but keep experiment row and any metadata/measurements/outcomes
+                _insert_extraction_report(
+                    cur, run_id,
+                    {"missing": ["/experiments/*/sequences/probe/oligo/sequence"],
+                     "notes": "Rejected probable non-oligo probe (no bases/labels/length)."},
+                    experiment_id=experiment_id,
+                )
+            else:
+                # Target (optional)
+                tgt = seqs.get("target_sequence")
+                if isinstance(tgt, dict) and (tgt.get("raw") is not None):
+                    tgt_oligo_id = _insert_oligo(cur, tgt)
+                    cur.execute(
+                        "INSERT INTO target_sequences (experiment_id, oligo_id) VALUES (?, ?)",
+                        (experiment_id, tgt_oligo_id),
+                    )
+
+                # Probe (required by schema; normalized before insert)
+                probe_oligo = probe.get("oligo") or {}
+                probe_oligo_id = _insert_oligo(cur, probe_oligo)
+                sa = _coerce_sa(probe.get("sense_antisense"), probe.get("name"))
+                cur.execute(
+                    """
+                    INSERT INTO probes
+                        (experiment_id, name, amplicon_id, oligo_id, fluorophore, quencher, sense_antisense, notes)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        experiment_id,
+                        probe.get("name"),
+                        probe.get("amplicon_id"),
+                        probe_oligo_id,
+                        probe.get("fluorophore"),
+                        probe.get("quencher"),
+                        sa,
+                        probe.get("notes"),
+                    ),
+                )
+
+                # Primers (optional)
+                primers = seqs.get("primer_sequences")
+                if isinstance(primers, dict):
+                    fwd = primers.get("forward") or {}
+                    rev = primers.get("reverse") or {}
+                    fwd_id = _insert_oligo(cur, fwd)
+                    rev_id = _insert_oligo(cur, rev)
+                    cur.execute(
+                        "INSERT INTO primer_pairs (experiment_id, forward_oligo_id, reverse_oligo_id) VALUES (?, ?, ?)",
+                        (experiment_id, fwd_id, rev_id),
+                    )
+
+                # Related sequences (0..N)
+                for rs in (seqs.get("related_sequences") or []):
+                    r_oligo = rs.get("related_sequence")
+                    if isinstance(r_oligo, dict) and (r_oligo.get("raw") is not None):
+                        r_oligo_id = _insert_oligo(cur, r_oligo)
+                        cur.execute(
+                            "INSERT INTO related_sequences (experiment_id, oligo_id, description) VALUES (?, ?, ?)",
+                            (experiment_id, r_oligo_id, rs.get("description")),
+                        )
+
+            # Measurements (experiment_properties + metadata)
+            exprops = exp.get("experiment_properties") or {}
+            concs = (exprops.get("concentrations") or {})
+            _insert_measurement(cur, experiment_id, "experiment_properties.concentrations.dna_rna_concentration",
+                                concs.get("dna_rna_concentration"))
+            _insert_measurement(cur, experiment_id, "experiment_properties.concentrations.concentration_SI",
+                                concs.get("concentration_SI"))
+
+            params = (exprops.get("parameters_SI") or {})
+            for key in ("temperature", "Tris", "Na", "K", "Mg", "DMSO"):
+                _insert_measurement(cur, experiment_id, f"experiment_properties.parameters_SI.{key}", params.get(key))
+
+            meta = exp.get("metadata") or {}
+            _insert_measurement(cur, experiment_id, "metadata.pH", meta.get("pH"))
+            ann = meta.get("annealing") or {}
+            _insert_measurement(cur, experiment_id, "metadata.annealing.quantitative", ann.get("quantitative"))
+            rimp = meta.get("rna_impurities") or {}
+            _insert_measurement(cur, experiment_id, "metadata.rna_impurities.quantitative", rimp.get("quantitative"))
+
+            # Outcome
+            out = exp.get("outcome") or {}
+            cur.execute(
+                "INSERT INTO outcomes (experiment_id, outcome, comparative_notes) VALUES (?, ?, ?)",
+                (experiment_id, _to_int_bool(out.get("outcome")), out.get("comparative_notes")),
+            )
+            _insert_measurement(cur, experiment_id, "outcome.fluorescence", out.get("fluorescence"))
+
+            # Pairing (optional)
+            pair = exp.get("pairing") or {}
+            if pair.get("paired_with_probe_name") or pair.get("relationship"):
+                cur.execute(
+                    "INSERT INTO pairings (experiment_id, paired_with_probe_name, relationship) VALUES (?, ?, ?)",
+                    (experiment_id, pair.get("paired_with_probe_name"), pair.get("relationship")),
+                )
+
+        return run_id
+
+
+# ----------------------------- Ollama-style helper tools ----------------------------- #
+
+def to_si(value: Optional[float], unit: Optional[str]) -> Tuple[Optional[float], Optional[str]]:
+    """Convert a numeric value and unit to SI.
+
+    Supports common units from hybridization papers:
+    - Temperature: °C -> K (K = °C + 273.15), K stays K.
+    - Concentration: M, mM, µM/um, nM -> mol/m^3 (1 mM = 1 mol/m^3).
+    - Percent: % -> dimensionless fraction (value/100).
+
+    Args:
+      value: The numeric value parsed from the article, or None if unknown.
+      unit: The unit string as written in the article (e.g., '°C', 'C', 'mM', 'µM', 'nM', '%'), or None.
+
+    Returns:
+      A pair (si_value, si_unit):
+        - si_value: The value converted to SI, or None if not convertible.
+        - si_unit: The SI unit string ('K', 'mol/m^3', 'dimensionless'), or None if not convertible.
+
+    Examples:
+      >>> to_si(25, '°C')
+      (298.15, 'K')
+      >>> to_si(2, 'mM')
+      (2.0, 'mol/m^3')
+      >>> to_si(10, '%')
+      (0.1, 'dimensionless')
+    """
+    if value is None or unit is None:
+        return None, None
+
+    u = unit.strip().lower().replace('µ', 'u')
+    # Temperature
+    if u in {'c', '°c', 'deg c', 'celsius'}:
+        return value + 273.15, 'K'
+    if u in {'k', 'kelvin'}:
+        return value, 'K'
+
+    # Concentration (to mol/m^3)
+    if u in {'m', 'mol/l'}:
+        return value * 1000.0, 'mol/m^3'
+    if u in {'mm', 'mmol/l', 'mmol', 'mm'}:  # 'mm' for mM as often OCR'd
+        return value * 1.0, 'mol/m^3'
+    if u in {'um', 'umol/l', 'µm', 'µmol/l', 'micromolar'}:
+        return value * 1e-3, 'mol/m^3'
+    if u in {'nm', 'nmol/l', 'nanomolar'}:
+        return value * 1e-6, 'mol/m^3'
+
+    # Percent
+    if u in {'%', 'percent', 'perc'}:
+        return value / 100.0, 'dimensionless'
+
+    return None, None
+
+
+OLIGO_RE = re.compile(r"""
+^\s*
+(?:(?P<prime>(?:5|3)(?:['′’]|0|O)?)\s*-\s*)?
+(?:(?P<prefix>(?:[A-Za-z0-9+]+-)+))?
+(?P<seq>[ACGUTRYSWKMBDHVN]+)
+(?:(?P<suffix>(?:-[A-Za-z0-9+]+)+))?
+(?:\s*\(\s*(?P<len>\d+)\s*(?:b|bp)\s*\)\s*)?
+\s*$
+""", re.X)
+
+def parse_oligo(raw: Optional[str]) -> Dict[str, Any]:
+    """Parse a decorated oligo string into schema-ready parts.
+
+    Accepts OCR-prone patterns like "50-FAM-...-BHQ2 (27 b)" and normalizes:
+    - prime_prefix: 5 or 3 when 5′/3′ (includes 50/5O variants)
+    - sequence: IUPAC bases (uppercase)
+    - length_bases: integer if present
+    - labels: all labels in order; five_prime_label and three_prime_label are the first/last, respectively
+
+    Args:
+      raw: The exact oligo string from the article (may include labels and length), or None.
+
+    Returns:
+      A dict matching the 'decoratedOligo' shape (minus provenance):
+        {
+          "raw": str or None,
+          "sequence": str or None,
+          "length_bases": int or None,
+          "prime_prefix": 5|3|None,
+          "five_prime_label": str or None,
+          "three_prime_label": str or None,
+          "labels": List[str],
+          "sense_antisense": None
+        }
+    """
+    result: Dict[str, Any] = {
+        "raw": raw,
+        "sequence": None,
+        "length_bases": None,
+        "prime_prefix": None,
+        "five_prime_label": None,
+        "three_prime_label": None,
+        "labels": [],
+        "sense_antisense": None
+    }
+    if not raw:
+        return result
+
+    m = OLIGO_RE.match(raw)
+    if not m:
+        return result
+
+    prime = m.group('prime')
+    if prime:
+        result["prime_prefix"] = 5 if prime.startswith('5') else 3
+
+    seq = m.group('seq')
+    if seq:
+        result["sequence"] = seq.upper()
+
+    if m.group('len'):
+        result["length_bases"] = int(m.group('len'))
+
+    labels: List[str] = []
+    if m.group('prefix'):
+        labels += [x for x in m.group('prefix').split('-') if x]
+    if m.group('suffix'):
+        labels += [x for x in m.group('suffix').split('-') if x]
+    result["labels"] = labels
+    if labels:
+        result["five_prime_label"] = labels[0]
+        result["three_prime_label"] = labels[-1]
+
+    return result
+
+
+def make_measurement(raw: Optional[str],
+                     value: Optional[float] = None,
+                     unit: Optional[str] = None) -> Dict[str, Any]:
+    """Build a 'measurement' object with SI conversion.
+
+    Convenience helper to populate the schema's measurement type while keeping the raw text.
+
+    Args:
+      raw: The raw textual measurement from the article (e.g., '58 °C', '2 mM', '10%').
+      value: Parsed numeric value, if available.
+      unit: Parsed unit string as written in the article (e.g., '°C', 'mM', '%').
+
+    Returns:
+      A dict with keys: raw, value, unit, si_value, si_unit, assumptions.
+      Unknown or unsupported units yield si_value/si_unit = None.
+    """
+    si_value, si_unit = to_si(value, unit) if (value is not None and unit is not None) else (None, None)
+    return {
+        "raw": raw or "",
+        "value": value,
+        "unit": unit,
+        "si_value": si_value,
+        "si_unit": si_unit,
+        "assumptions": None
+    }
+
+
+# ----------------------------- Normalization / validation helpers ----------------------------- #
+
+_SA_MAP = {
+    's': 'sense',
+    'sense': 'sense',
+    'as': 'antisense',
+    'antisense': 'antisense',
+    '+': 'sense',
+    '-': 'antisense',
+    'forward': 'sense',
+    'reverse': 'antisense',
+}
+_SA_NAME_RE = re.compile(r"\)\s*(as|s)\s*$", re.IGNORECASE)
+
+def _detect_sa_from_name(probe_name: Optional[str]) -> Optional[str]:
+    """Infer sense/antisense from a trailing '(...)s' or '(...)as' in the probe name.
+
+    Args:
+      probe_name: Probe name (e.g., 'N3-FAM(27)s').
+
+    Returns:
+      'sense', 'antisense', or None if not inferable.
+    """
+    if not probe_name:
+        return None
+    m = _SA_NAME_RE.search(probe_name.strip())
+    if not m:
+        return None
+    g = m.group(1).lower()
+    return 'antisense' if g == 'as' else 'sense'
+
+
+def _coerce_sa(value: Optional[str], probe_name: Optional[str] = None) -> Optional[str]:
+    """Coerce various encodings to 'sense'/'antisense'/None.
+
+    Args:
+      value: A string like 's', 'as', 'sense', 'antisense', '+', '-', or None.
+      probe_name: Fallback context to infer sense/antisense from the name suffix.
+
+    Returns:
+      'sense', 'antisense', or None.
+    """
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return _detect_sa_from_name(probe_name)
+    v = str(value).strip().lower()
+    if v in _SA_MAP:
+        return _SA_MAP[v]
+    return _detect_sa_from_name(probe_name)
+
+
+def _coerce_prime_prefix(value: Any) -> Optional[int]:
+    """Clamp prime prefix to {3, 5} or None.
+
+    Handles OCR-like strings such as '5', "5'", '50', '5O', '5′'.
+
+    Args:
+      value: Raw input for prime prefix.
+
+    Returns:
+      3, 5, or None.
+    """
+    if value is None:
+        return None
+    s = str(value).strip()
+    if s.startswith('5'):
+        return 5
+    if s.startswith('3'):
+        return 3
+    return None
+
+
+def _has_real_probe(probe: Dict[str, Any]) -> bool:
+    """Heuristic gate: reject obviously non-oligo 'probes'.
+
+    Accepts a probe only if at least one of these holds:
+      - >= 6 IUPAC bases appear in oligo.sequence or oligo.raw
+      - a known label is present (FAM/ROX/Cy5/BHQ1/BHQ2/RTQ1) in labels/five/three
+      - length_bases is present
+
+    Args:
+      probe: The 'probe' dict from the schema.
+
+    Returns:
+      True if looks like a real oligo; False otherwise.
+    """
+    if not isinstance(probe, dict):
+        return False
+    oligo = probe.get("oligo") or {}
+    raw = (oligo.get("raw") or "")
+    seq = (oligo.get("sequence") or "")
+    has_bases = bool(re.search(r"[ACGUTRYSWKMBDHVN]{6,}", (seq or raw).upper()))
+    has_label = any(bool(oligo.get(k)) for k in ("five_prime_label", "three_prime_label")) \
+                or bool(oligo.get("labels"))
+    has_length = bool(oligo.get("length_bases"))
+    return has_bases or has_label or has_length
+
+
+# ----------------------------- DB helpers ----------------------------- #
+
+def _utcnow_iso() -> str:
+    """UTC timestamp in ISO8601 format."""
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _get_or_create_article(cur: sqlite3.Cursor, doi: str,
+                           article_name: Optional[str],
+                           abstract: Optional[str],
+                           topic: Optional[str]) -> int:
+    """Fetch article.id by DOI, creating the row if needed (and refreshing metadata)."""
+    cur.execute("SELECT id FROM articles WHERE doi = ?", (doi,))
+    row = cur.fetchone()
+    if row:
+        article_id = row[0]
+        cur.execute(
+            """
+            UPDATE articles
+               SET latest_article_name = COALESCE(?, latest_article_name),
+                   latest_abstract     = COALESCE(?, latest_abstract),
+                   latest_topic        = COALESCE(?, latest_topic)
+             WHERE id = ?
+            """,
+            (article_name, abstract, topic, article_id),
+        )
+        return article_id
+    cur.execute(
+        """
+        INSERT INTO articles (doi, latest_article_name, latest_abstract, latest_topic, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (doi, article_name, abstract, topic, _utcnow_iso()),
+    )
+    return cur.lastrowid
+
+
+def _create_run(cur: sqlite3.Cursor, article_id: int, model_name: str,
+                article_name: Optional[str], branch: str,
+                raw_json: Dict[str, Any]) -> int:
+    """Create a run row and persist the raw JSON payload."""
+    cur.execute(
+        """
+        INSERT INTO runs (article_id, model_name, article_name, branch, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (article_id, model_name, article_name, branch, _utcnow_iso()),
+    )
+    run_id = cur.lastrowid
+    cur.execute("INSERT INTO raw_payloads (run_id, json) VALUES (?, ?)",
+                (run_id, json.dumps(raw_json, ensure_ascii=False)))
+    return run_id
+
+
+def _insert_provenance_cols(entity: Dict[str, Any]) -> Tuple[Optional[str], Optional[int], Optional[str], Optional[str], Optional[str]]:
+    """Extract provenance fields with safe defaults."""
+    prov = entity.get("provenance") or {}
+    return (
+        prov.get("source_type"),
+        prov.get("page"),
+        prov.get("section"),
+        prov.get("quote"),
+        prov.get("notes"),
+    )
+
+
+def _insert_oligo(cur: sqlite3.Cursor, oligo: Dict[str, Any]) -> int:
+    """Insert an oligo row after normalizing prime_prefix and sense/antisense."""
+    cleaned = dict(oligo or {})
+    cleaned["prime_prefix"] = _coerce_prime_prefix(cleaned.get("prime_prefix"))
+    cleaned["sense_antisense"] = _coerce_sa(cleaned.get("sense_antisense"))
+
+    ps, pg, sc, qu, no = _insert_provenance_cols(cleaned)
+    cur.execute(
+        """
+        INSERT INTO oligos
+            (raw, sequence, length_bases, prime_prefix,
+             five_prime_label, three_prime_label, sense_antisense,
+             provenance_source_type, provenance_page, provenance_section,
+             provenance_quote, provenance_notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            cleaned.get("raw", ""),
+            cleaned.get("sequence"),
+            cleaned.get("length_bases"),
+            cleaned.get("prime_prefix"),
+            cleaned.get("five_prime_label"),
+            cleaned.get("three_prime_label"),
+            cleaned.get("sense_antisense"),
+            ps, pg, sc, qu, no,
+        ),
+    )
+    return cur.lastrowid
+
+
+def _insert_measurement(cur: sqlite3.Cursor, experiment_id: int, key: str, m: Optional[Dict[str, Any]]) -> None:
+    """Insert a measurement if present."""
+    if not m:
+        return
+    ps, pg, sc, qu, no = _insert_provenance_cols(m)
+    cur.execute(
+        """
+        INSERT INTO measurements
+            (experiment_id, key, raw, value, unit, si_value, si_unit, assumptions,
+             provenance_source_type, provenance_page, provenance_section, provenance_quote, provenance_notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            experiment_id,
+            key,
+            (m.get("raw") or ""),
+            m.get("value"),
+            m.get("unit"),
+            m.get("si_value"),
+            m.get("si_unit"),
+            m.get("assumptions"),
+            ps, pg, sc, qu, no,
+        ),
+    )
+
+
+def _insert_extraction_report(cur: sqlite3.Cursor, run_id: int,
+                              report: Optional[Dict[str, Any]],
+                              experiment_id: Optional[int] = None) -> None:
+    """Insert extraction report entries (missing/uncertain pointers)."""
+    if not report:
+        return
+    for kind in ("missing", "uncertain"):
+        for ptr in report.get(kind, []) or []:
+            cur.execute(
+                """
+                INSERT INTO extraction_report_entries (run_id, experiment_id, kind, json_pointer, notes)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (run_id, experiment_id, kind, str(ptr), report.get("notes")),
+            )
+
+
+def _to_int_bool(val: Optional[bool]) -> Optional[int]:
+    """Convert Python bool/None -> 1/0/NULL for SQLite."""
+    if val is None:
+        return None
+    return 1 if bool(val) else 0

@@ -1,0 +1,43 @@
+{
+    "model_name": "myaniu/qwen2.5-1m:7b",
+    "num_ctx": 131072,
+    "num_predict": 65536,
+    "timeout_s": 1800,
+    "input_dir": "outputs/text",
+    "out_dir": "outlines_output",
+    "full_schema_path": "schema/json/article.json",
+    "db_path": "outlines_output/massive.sqlite",
+    "article_glob": "input/txt*.txt",
+    "passes": [
+        {
+            "name": "A_core",
+            "schema": "passes/A_core/schema.json",
+            "prompt": "passes/A_core/prompt.txt"
+        },
+        {
+            "name": "B_index",
+            "schema": "passes/B_index/schema.json",
+            "prompt": "passes/B_index/prompt.txt"
+        },
+        {
+            "name": "C_sequences",
+            "schema": "passes/C_sequences/schema.json",
+            "prompt": "passes/C_sequences/prompt.txt"
+        },
+        {
+            "name": "D_parameters",
+            "schema": "passes/D_parameters/schema.json",
+            "prompt": "passes/D_parameters/prompt.txt"
+        },
+        {
+            "name": "E_outcomes",
+            "schema": "passes/E_outcomes/schema.json",
+            "prompt": "passes/E_outcomes/prompt.txt"
+        },
+        {
+            "name": "F_pairings",
+            "schema": "passes/F_pairings/schema.json",
+            "prompt": "passes/F_pairings/prompt.txt"
+        }
+    ]
+}

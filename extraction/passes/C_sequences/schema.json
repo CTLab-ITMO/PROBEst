@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SequencesPerExperiment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "extraction_report"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id_exp", "probe", "target_sequence", "primer_sequences", "related_sequences"],
+        "properties": {
+          "id_exp": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "target_sequence": { "oneOf": [ { "$ref": "#/$defs/oligo_lite" }, { "type": "null" } ] },
+          "probe": { "$ref": "#/$defs/probe_lite" },
+          "primer_sequences": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["forward", "reverse"],
+                "properties": {
+                  "forward": { "$ref": "#/$defs/oligo_lite" },
+                  "reverse": { "$ref": "#/$defs/oligo_lite" }
+                }
+              },
+              { "type": "null" }
+            ]
+          },
+          "related_sequences": {
+            "type": "array",
+            "minItems": 0,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["related_sequence"],
+              "properties": {
+                "related_sequence": { "$ref": "#/$defs/oligo_lite" },
+                "description": { "type": ["string", "null"], "maxLength": 200 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "extraction_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "uncertain": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "$defs": {
+    "iupacBases": {
+      "type": "string",
+      "description": "DNA/RNA bases in uppercase IUPAC alphabet: A C G U/T R Y S W K M B D H V N. No separators and no ellipsis inside the sequence.",
+      "pattern": "^[ACGUTRYSWKMBDHVN]+$",
+      "minLength": 5,
+      "maxLength": 5000
+    },
+    "measurement_lite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw", "value", "unit"],
+      "properties": {
+        "raw": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "value": { "type": ["number", "null"] },
+        "unit": { "type": ["string", "null"], "maxLength": 50 }
+      }
+    },
+    "oligo_lite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw", "sequence", "length_bases", "five_prime_label", "three_prime_label", "sense_antisense"],
+      "properties": {
+        "raw": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9\\-\\(\\)\\[\\]'\"/\\+\\sµ′’]*[ACGTIU][A-Za-z0-9\\-\\(\\)\\[\\]'\"/\\+\\sµ′’]*$",
+          "description": "Keep exactly as printed; must include at least one nucleotide; no ellipses."
+        },
+        "sequence": { 
+          "$ref": "#/$defs/iupacBases"
+        },
+        "length_bases": { "type": ["integer", "null"], "minimum": 1 },
+        "five_prime_label": { "type": ["string", "null"], "maxLength": 30 },
+        "three_prime_label": { "type": ["string", "null"], "maxLength": 30 },
+        "sense_antisense": {
+          "type": ["string", "null"],
+          "enum": ["sense", "antisense", null]
+        }
+      }
+    },
+    "probe_lite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "oligo", "fluorophore", "quencher", "sense_antisense", "amplicon_id", "notes"],
+      "properties": {
+        "name": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "amplicon_id": { "type": ["string", "null"], "maxLength": 40 },
+        "oligo": { "$ref": "#/$defs/oligo_lite" },
+        "fluorophore": { "type": ["string", "null"], "maxLength": 40 },
+        "quencher": { "type": ["string", "null"], "maxLength": 40 },
+        "sense_antisense": { "type": ["string", "null"], "enum": ["sense", "antisense", null] },
+        "notes": { "type": ["string", "null"], "maxLength": 400 }
+      }
+    }
+  }
+}

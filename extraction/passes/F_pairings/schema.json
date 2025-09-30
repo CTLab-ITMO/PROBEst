@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PairingsPerExperiment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "extraction_report"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id_exp", "paired_with_probe_name", "relationship"],
+        "properties": {
+          "id_exp": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "paired_with_probe_name": { "type": ["string", "null"], "maxLength": 200 },
+          "relationship": { "type": ["string", "null"], "maxLength": 200 }
+        }
+      }
+    },
+    "extraction_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "uncertain": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
