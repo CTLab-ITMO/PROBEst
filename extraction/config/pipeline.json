@@ -3,10 +3,10 @@
     "ollama_parameters":{
         "num_ctx": 65536,
         "num_predict": 32768,
-        "timeout_s": 1800,
         "temperature": 0.15,
         "seed": 42
     },
+    "timeout_s": 1800,
     "input_dir": "input/txt/",
     "out_dir": "outlines_output",
     "full_schema_path": "schema/json/article.json",
