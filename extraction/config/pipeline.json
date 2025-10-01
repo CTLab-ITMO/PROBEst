@@ -46,6 +46,11 @@
             "prompt": "passes/C3_related/prompt.txt"
         },
         {
+            "name": "C_sequences",
+            "schema": "passes/C_sequences/schema.json",
+            "prompt": "passes/C_sequences/prompt.txt"
+        },
+        {
             "name": "D_parameters",
             "schema": "passes/D_parameters/schema.json",
             "prompt": "passes/D_parameters/prompt.txt"
