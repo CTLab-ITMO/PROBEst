@@ -83,7 +83,7 @@
                 "additionalProperties": false,
                 "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
                 "properties": {
-                  "raw": { },
+                  "raw": {  },
                   "sequence": { },
                   "length_bases": { },
                   "prime_prefix": { },

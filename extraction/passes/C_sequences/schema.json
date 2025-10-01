@@ -19,12 +19,12 @@
             "additionalProperties": false,
             "required": ["name", "amplicon_id", "fluorophore", "quencher", "sense_antisense", "notes", "oligo"],
             "properties": {
-              "name": { },
-              "amplicon_id": { },
-              "fluorophore": { },
-              "quencher": { },
-              "sense_antisense": { },
-              "notes": { },
+              "name": { "type": "string" },
+              "amplicon_id": { "type" :["string", "null"], "maxLength": 100 },
+              "fluorophore": { "type" :["string", "null"], "maxLength": 100 },
+              "quencher": { "type" :["string", "null"], "maxLength": 100 },
+              "sense_antisense": {"type": ["string", "null"], "enum": ["sense", "antisense"]},
+              "notes": { "type" :["string", "null"], "maxLength": 100 },
               "oligo": {
                 "type": "object",
                 "additionalProperties": false,
