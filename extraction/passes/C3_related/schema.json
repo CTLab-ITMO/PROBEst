@@ -1,23 +1,20 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RelatedSequencesPerExperiment",
+  "title": "RelatedSequencesPerExperiment (generation schema)",
   "type": "object",
   "additionalProperties": false,
   "required": ["items", "extraction_report"],
   "properties": {
     "items": {
       "type": "array",
-      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": ["id_exp", "related_sequences"],
         "properties": {
-          "id_exp": { "type": "string", "minLength": 1, "maxLength": 200 },
-
+          "id_exp": { "type": "string" },
           "related_sequences": {
             "type": "array",
-            "minItems": 0,
             "items": {
               "type": "object",
               "additionalProperties": false,
@@ -26,53 +23,47 @@
                 "related_sequence": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "raw", "sequence", "length_bases",
-                    "prime_prefix", "five_prime_label", "three_prime_label",
-                    "sense_antisense", "modifications", "fluorophore", "quencher"
-                  ],
+                  "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
                   "properties": {
-                    "raw": { "type": "string", "minLength": 5, "maxLength": 200, "pattern": ".*[ACGTIU].*" },
-                    "sequence": { "type": ["string", "null"], "pattern": "^[ACGUTRYSWKMBDHVN]+$", "minLength": 5, "maxLength": 5000 },
-                    "length_bases": { "type": ["integer", "null"], "minimum": 1 },
-                    "prime_prefix": { "type": ["integer", "null"] },
-                    "five_prime_label": { "type": ["string", "null"], "maxLength": 60 },
-                    "three_prime_label": { "type": ["string", "null"], "maxLength": 60 },
-                    "sense_antisense": { "type": ["string", "null"], "enum": ["sense", "antisense", null] },
+                    "raw": { },
+                    "sequence": { },
+                    "length_bases": { },
+                    "prime_prefix": { },
+                    "five_prime_label": { },
+                    "three_prime_label": { },
+                    "sense_antisense": { },
                     "modifications": {
                       "type": "array",
-                      "minItems": 0,
                       "items": {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["modification_position", "modification_type"],
+                        "required": ["modification_position", "modification_type", "description"],
                         "properties": {
-                          "modification_position": { "type": ["integer", "null"], "minimum": 1 },
-                          "modification_type": { "type": ["string", "null"], "maxLength": 120 },
-                          "description": { "type": ["string", "null"], "maxLength": 200 }
+                          "modification_position": { },
+                          "modification_type": { },
+                          "description": { }
                         }
                       }
                     },
-                    "fluorophore": { "type": ["string", "null"], "maxLength": 60 },
-                    "quencher": { "type": ["string", "null"], "maxLength": 60 }
+                    "fluorophore": { },
+                    "quencher": { }
                   }
                 },
-                "description": { "type": ["string", "null"], "maxLength": 200 }
+                "description": { }
               }
             }
           }
         }
       }
     },
-
     "extraction_report": {
       "type": "object",
       "additionalProperties": false,
       "required": ["missing", "uncertain", "notes"],
       "properties": {
-        "missing": { "type": "array", "items": { "type": "string" }, "minItems": 0 },
-        "uncertain": { "type": "array", "items": { "type": "string" }, "minItems": 0 },
-        "notes": { "type": ["string", "null"] }
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "uncertain": { "type": "array", "items": { "type": "string" } },
+        "notes": { }
       }
     }
   }
