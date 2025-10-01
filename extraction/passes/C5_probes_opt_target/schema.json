@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SequencesPerExperiment (generation schema)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "extraction_report"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id_exp", "probe", "target_sequence", "primer_sequences"],
+        "properties": {
+          "id_exp": { "type": "string", "maxLength": 100 },
+          "probe": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "oligo"],
+            "properties": {
+              "name": { "type": "string", "maxLength": 500 },
+              "oligo": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["raw", "sequence", "sense_antisense"],
+                "properties": {
+                  "raw": { "type": "string", "maxLength": 500 },
+                  "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+                  "sense_antisense": { "enum": ["sense", "antisense", null] }
+                }
+              }
+            }
+          },
+
+          "target_sequence": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["raw", "sequence", "sense_antisense"],
+            "properties": {
+              "raw": { "type": "string", "maxLength": 500 },
+              "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+              "sense_antisense": { "enum": ["sense", "antisense", null] }
+            }
+          },
+
+          "primer_sequences": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["forward", "reverse"],
+            "properties": {
+              "forward": {
+                "type": ["object", "null"],
+                "additionalProperties": false,
+                "required": ["raw", "sequence", "sense_antisense"],
+                "properties": {
+                  "raw": { "type": "string", "maxLength": 500 },
+                  "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+                  "sense_antisense": { "enum": ["sense", "antisense", null] }
+                }
+              },
+              "reverse": {
+                "type": ["object", "null"],
+                "additionalProperties": false,
+                "required": ["raw", "sequence", "sense_antisense"],
+                "properties": {
+                  "raw": { "type": "string", "maxLength": 500 },
+                  "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+                  "sense_antisense": { "enum": ["sense", "antisense", null] }
+                }
+              }
+            }
+          },
+
+          "related_sequences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["related_sequence", "description"],
+              "properties": {
+                "related_sequence": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["raw", "sequence", "sense_antisense"],
+                  "properties": {
+                    "raw": { "type": "string", "maxLength": 500 },
+                    "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+                    "sense_antisense": { "enum": ["sense", "antisense", null] }
+                  }
+                },
+                "description": { }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "extraction_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "uncertain": { "type": "array", "items": { "type": "string" } },
+        "notes": { }
+      }
+    }
+  }
+}

@@ -21,9 +21,9 @@
     "article_glob": "*.txt",
     "passes": [
         {
-            "name": "C_sequences",
-            "schema": "passes/C_sequences/schema.json",
-            "prompt": "passes/C_sequences/prompt.txt"
+            "name": "C5_probes_opt_target",
+            "schema": "passes/C5_probes_opt_target/schema.json",
+            "prompt": "passes/C5_probes_opt_target/prompt.txt"
         },
         {
             "name": "D_parameters",

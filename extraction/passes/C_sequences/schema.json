@@ -7,6 +7,7 @@
   "properties": {
     "items": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -20,11 +21,12 @@
             "required": ["name", "amplicon_id", "fluorophore", "quencher", "sense_antisense", "notes", "oligo"],
             "properties": {
               "name": { "type": "string", "maxLength": 500 },
-              "amplicon_id": { "type" :["string", "null"], "maxLength": 100 },
-              "fluorophore": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-              "quencher": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-              "sense_antisense": {"type": ["string", "null"], "enum": ["sense", "antisense"]},
-              "notes": { "type" :["string", "null"], "maxLength": 100 },
+              "amplicon_id": { "type": ["string", "null"], "maxLength": 100 },
+              "fluorophore": { "type": ["string", "null"], "maxLength": 100 },
+              "quencher": { "type": ["string", "null"], "maxLength": 100 },
+              "sense_antisense": { "enum": ["sense", "antisense", null] },
+              "notes": { "type": ["string", "null"], "maxLength": 100 },
+
               "oligo": {
                 "type": "object",
                 "additionalProperties": false,
@@ -32,21 +34,22 @@
                 "properties": {
                   "raw": { "type": "string", "maxLength": 500 },
                   "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
-                  "length_bases": { "type": "number" },
-                  "prime_prefix": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "five_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "three_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "sense_antisense": {"type": ["string", "null"], "enum": ["sense", "antisense"]},
+                  "length_bases": { "type": ["integer", "null"], "minimum": 1 },
+                  "prime_prefix": { "enum": [3, 5, null] },
+                  "five_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                  "three_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                  "sense_antisense": { "enum": ["sense", "antisense", null] },
                   "modifications": {
                     "type": "array",
+                    "minItems": 0,
                     "items": {
                       "type": "object",
                       "additionalProperties": false,
                       "required": ["modification_position", "modification_type", "description"],
                       "properties": {
-                        "modification_position": { "type": "number" },
-                        "modification_type": { "type" :"string", "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                        "description": { "type": "string", "maxLength": 100}
+                        "modification_position": { "type": ["integer", "null"], "minimum": 1 },
+                        "modification_type": { "type": ["string", "null"], "maxLength": 100 },
+                        "description": { "type": ["string", "null"], "maxLength": 100 }
                       }
                     }
                   }
@@ -61,29 +64,28 @@
             "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
             "properties": {
               "raw": { "type": "string", "maxLength": 500 },
-              "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
-              "length_bases": { "type": "number" },
-              "prime_prefix": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-              "five_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-              "three_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-              "sense_antisense": {"type": ["string", "null"], "enum": ["sense", "antisense"]},
+              "sequence": { "type": ["string", "null"], "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+              "length_bases": { "type": ["integer", "null"], "minimum": 1 },
+              "prime_prefix": { "enum": [3, 5, null] },
+              "five_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+              "three_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+              "sense_antisense": { "enum": ["sense", "antisense", null] },
               "modifications": {
                 "type": "array",
+                "minItems": 0,
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
                   "required": ["modification_position", "modification_type", "description"],
                   "properties": {
-                    "modification_position": { "type": "number" },
-                    "modification_type": { "type" :"string", "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                    "description": { "type": "string", "maxLength": 100}
+                    "modification_position": { "type": ["integer", "null"], "minimum": 1 },
+                    "modification_type": { "type": ["string", "null"], "maxLength": 100 },
+                    "description": { "type": ["string", "null"], "maxLength": 100 }
                   }
-                },
-                "minItems": 0,
-                "maxItems": 100
+                }
               },
-              "fluorophore": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-              "quencher": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" }
+              "fluorophore": { "type": ["string", "null"], "maxLength": 100 },
+              "quencher": { "type": ["string", "null"], "maxLength": 100 }
             }
           },
 
@@ -98,29 +100,28 @@
                 "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
                 "properties": {
                   "raw": { "type": "string", "maxLength": 500 },
-                  "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
-                  "length_bases": { "type": "number" },
-                  "prime_prefix": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "five_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "three_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "sense_antisense": {"type": ["string", "null"], "enum": ["sense", "antisense"]},
+                  "sequence": { "type": ["string", "null"], "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+                  "length_bases": { "type": ["integer", "null"], "minimum": 1 },
+                  "prime_prefix": { "enum": [3, 5, null] },
+                  "five_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                  "three_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                  "sense_antisense": { "enum": ["sense", "antisense", null] },
                   "modifications": {
                     "type": "array",
+                    "minItems": 0,
                     "items": {
                       "type": "object",
                       "additionalProperties": false,
                       "required": ["modification_position", "modification_type", "description"],
                       "properties": {
-                        "modification_position": { "type": "number" },
-                        "modification_type": { "type" :"string", "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                        "description": { "type": "string", "maxLength": 100}
+                        "modification_position": { "type": ["integer", "null"], "minimum": 1 },
+                        "modification_type": { "type": ["string", "null"], "maxLength": 100 },
+                        "description": { "type": ["string", "null"], "maxLength": 100 }
                       }
-                    },
-                    "minItems": 0,
-                    "maxItems": 100
+                    }
                   },
-                  "fluorophore": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "quencher": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" }
+                  "fluorophore": { "type": ["string", "null"], "maxLength": 100 },
+                  "quencher": { "type": ["string", "null"], "maxLength": 100 }
                 }
               },
               "reverse": {
@@ -129,29 +130,28 @@
                 "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
                 "properties": {
                   "raw": { "type": "string", "maxLength": 500 },
-                  "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
-                  "length_bases": { "type": "number" },
-                  "prime_prefix": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "five_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "three_prime_label": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "sense_antisense": {"type": ["string", "null"], "enum": ["sense", "antisense"]},
+                  "sequence": { "type": ["string", "null"], "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+                  "length_bases": { "type": ["integer", "null"], "minimum": 1 },
+                  "prime_prefix": { "enum": [3, 5, null] },
+                  "five_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                  "three_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                  "sense_antisense": { "enum": ["sense", "antisense", null] },
                   "modifications": {
                     "type": "array",
+                    "minItems": 0,
                     "items": {
                       "type": "object",
                       "additionalProperties": false,
                       "required": ["modification_position", "modification_type", "description"],
                       "properties": {
-                        "modification_position": { "type": "number" },
-                        "modification_type": { "type" :"string", "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                        "description": { "type": "string", "maxLength": 100}
+                        "modification_position": { "type": ["integer", "null"], "minimum": 1 },
+                        "modification_type": { "type": ["string", "null"], "maxLength": 100 },
+                        "description": { "type": ["string", "null"], "maxLength": 100 }
                       }
-                    },
-                    "minItems": 0,
-                    "maxItems": 100
+                    }
                   },
-                  "fluorophore": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" },
-                  "quencher": { "type" :["string", "null"], "maxLength": 100, "pattern": "^[\\w-_+()'`]+$" }
+                  "fluorophore": { "type": ["string", "null"], "maxLength": 100 },
+                  "quencher": { "type": ["string", "null"], "maxLength": 100 }
                 }
               }
             }
@@ -159,6 +159,7 @@
 
           "related_sequences": {
             "type": "array",
+            "minItems": 0,
             "items": {
               "type": "object",
               "additionalProperties": false,
@@ -169,31 +170,32 @@
                   "additionalProperties": false,
                   "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
                   "properties": {
-                    "raw": { },
-                    "sequence": { },
-                    "length_bases": { },
-                    "prime_prefix": { },
-                    "five_prime_label": { },
-                    "three_prime_label": { },
-                    "sense_antisense": { },
+                    "raw": { "type": "string", "maxLength": 500 },
+                    "sequence": { "type": ["string", "null"], "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+                    "length_bases": { "type": ["integer", "null"], "minimum": 1 },
+                    "prime_prefix": { "enum": [3, 5, null] },
+                    "five_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                    "three_prime_label": { "type": ["string", "null"], "maxLength": 100 },
+                    "sense_antisense": { "enum": ["sense", "antisense", null] },
                     "modifications": {
                       "type": "array",
+                      "minItems": 0,
                       "items": {
                         "type": "object",
                         "additionalProperties": false,
                         "required": ["modification_position", "modification_type", "description"],
                         "properties": {
-                          "modification_position": { },
-                          "modification_type": { },
-                          "description": { }
+                          "modification_position": { "type": ["integer", "null"], "minimum": 1 },
+                          "modification_type": { "type": ["string", "null"], "maxLength": 100 },
+                          "description": { "type": ["string", "null"], "maxLength": 100 }
                         }
                       }
                     },
-                    "fluorophore": { },
-                    "quencher": { }
+                    "fluorophore": { "type": ["string", "null"], "maxLength": 100 },
+                    "quencher": { "type": ["string", "null"], "maxLength": 100 }
                   }
                 },
-                "description": { }
+                "description": { "type": ["string", "null"], "maxLength": 200 }
               }
             }
           }
@@ -206,9 +208,9 @@
       "additionalProperties": false,
       "required": ["missing", "uncertain", "notes"],
       "properties": {
-        "missing": { "type": "array", "items": { "type": "string" } },
-        "uncertain": { "type": "array", "items": { "type": "string" } },
-        "notes": { }
+        "missing": { "type": "array", "items": { "type": "string" }, "minItems": 0 },
+        "uncertain": { "type": "array", "items": { "type": "string" }, "minItems": 0 },
+        "notes": { "type": ["string", "null"] }
       }
     }
   }
