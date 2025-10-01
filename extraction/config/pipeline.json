@@ -8,8 +8,8 @@
         "phi4"
     ],
     "ollama_parameters": {
-        "num_ctx": 65536,
-        "num_predict": 32768,
+        "num_ctx": 8192,
+        "num_predict": 4096,
         "temperature": 0.15,
         "seed": 42
     },
