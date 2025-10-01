@@ -1,6 +1,13 @@
 {
-    "model_names": ["llama3.1", "myaniu/qwen2.5-1m:7b", "gemma3:27b", "llava:34b", "phi3", "phi4"],
-    "ollama_parameters":{
+    "model_names": [
+        "llama3.1",
+        "myaniu/qwen2.5-1m:7b",
+        "gemma3:27b",
+        "llava:34b",
+        "phi3",
+        "phi4"
+    ],
+    "ollama_parameters": {
         "num_ctx": 65536,
         "num_predict": 32768,
         "temperature": 0.15,
@@ -24,9 +31,19 @@
             "prompt": "passes/B_index/prompt.txt"
         },
         {
-            "name": "C_sequences",
-            "schema": "passes/C_sequences/schema.json",
-            "prompt": "passes/C_sequences/prompt.txt"
+            "name": "C1_probe_core",
+            "schema": "passes/C1_probe_core/schema.json",
+            "prompt": "passes/C1_probe_core/prompt.txt"
+        },
+        {
+            "name": "C2_target_primers",
+            "schema": "passes/C2_target_primers/schema.json",
+            "prompt": "passes/C2_target_primers/prompt.txt"
+        },
+        {
+            "name": "C3_related",
+            "schema": "passes/C3_related/schema.json",
+            "prompt": "passes/C3_related/prompt.txt"
         },
         {
             "name": "D_parameters",
