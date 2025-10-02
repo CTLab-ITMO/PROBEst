@@ -14,11 +14,11 @@
         "seed": 42
     },
     "timeout_s": 300,
-    "input_dir": "input/txt",
+    "input_dir": "/mnt/Models/articles2_marker/no_llm/markdown/",
     "out_dir": "outlines_output",
     "full_schema_path": "schema/json/article.json",
     "db_path": "outlines_output/massive.sqlite",
-    "article_glob": "*.txt",
+    "article_glob": "**/*.md",
     "passes": [
         {
             "name": "A_core",
