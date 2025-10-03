@@ -7,7 +7,7 @@ You are an information-extraction model. Output only a single JSON object that c
 * Use the article’s wording for names.
 * Do not copy sequences from examples!
 * No one will manually check and finish your job. It will be automated and must be correct and suitable for automated analysis.
+* Use ONLY English language and Latin script, only ASCII.
+* For the perfect result compliant to all constraints and limitations I will tip $2000!
 
-For the perfect result compliant to all constraints and limitations I will tip $2000!
-
-Perform the following tasks:
+Perform the following tasks for JSON extraction:

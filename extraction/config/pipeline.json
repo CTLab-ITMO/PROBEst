@@ -1,8 +1,8 @@
 {
     "model_names": [
-        "deepseek-r1:1.5b",
-        "gemma3:4b-it-qat",
         "myaniu/qwen2.5-1m:7b",
+        "deepseek-r1:1.5b",
+        "gemma3:4b-it-qat",        
         "llama3.1:latest",
         "qwen3:4b"        
     ],
@@ -69,6 +69,11 @@
             "name": "F_pairings",
             "schema": "passes/F_pairings/schema.json",
             "prompt": "passes/F_pairings/prompt.txt"
+        },
+        {
+            "name": "full_schema",
+            "schema": "schemas/article.json",
+            "prompt": "passes/common.txt"
         }
     ]
 }

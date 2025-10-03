@@ -64,7 +64,7 @@
             "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
             "properties": {
               "raw": { "type": "string", "maxLength": 500 },
-              "sequence": { "type": ["string", "null"], "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$" },
+              "sequence": { "type": ["string", "null"], "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$", "description": "Provide IUPAC sequence for the target of this probe, if it's present in article. Otherwise put null here and just put name and description into the raw field." },
               "length_bases": { "type": ["integer", "null"], "minimum": 1 },
               "prime_prefix": { "enum": [3, 5, null] },
               "five_prime_label": { "type": ["string", "null"], "maxLength": 100 },
