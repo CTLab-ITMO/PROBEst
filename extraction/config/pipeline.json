@@ -7,8 +7,8 @@
         "qwen3:4b"        
     ],
     "ollama_parameters": {
-        "num_ctx": 65536,
-        "num_predict": 32768,
+        "num_ctx": 131072,
+        "num_predict": 131072,
         "temperature": 0.15,
         "seed": 42
     },
@@ -23,13 +23,27 @@
         {
             "name": "A_core",
             "schema": "passes/A_core/schema.json",
-            "prompt": "passes/A_core/prompt.txt"
+            "prompt": "passes/A_core/prompt.txt",
+            "timeout": 60
         },
         {
             "name": "B_index",
             "schema": "passes/B_index/schema.json",
-            "prompt": "passes/B_index/prompt.txt"
+            "prompt": "passes/B_index/prompt.txt",
+            "timeout": 600
         },
+        {
+            "name": "C5_probes_opt_target",
+            "schema": "passes/C5_probes_opt_target/schema.json",
+            "prompt": "passes/C5_probes_opt_target/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "C_sequences",
+            "schema": "passes/C_sequences/schema.json",
+            "prompt": "passes/C_sequences/prompt.txt",
+            "timeout": 600
+        }, 
         {
             "name": "C1_probe_core",
             "schema": "passes/C1_probe_core/schema.json",
@@ -44,17 +58,7 @@
             "name": "C3_related",
             "schema": "passes/C3_related/schema.json",
             "prompt": "passes/C3_related/prompt.txt"
-        },
-        {
-            "name": "C_sequences",
-            "schema": "passes/C_sequences/schema.json",
-            "prompt": "passes/C_sequences/prompt.txt"
-        },
-        {
-            "name": "C5_probes_opt_target",
-            "schema": "passes/C5_probes_opt_target/schema.json",
-            "prompt": "passes/C5_probes_opt_target/prompt.txt"
-        },
+        },       
         {
             "name": "D_parameters",
             "schema": "passes/D_parameters/schema.json",
@@ -73,7 +77,8 @@
         {
             "name": "full_schema",
             "schema": "schemas/article.json",
-            "prompt": "passes/common.txt"
+            "prompt": "passes/common.txt",
+            "timeout": 900
         }
     ]
 }
