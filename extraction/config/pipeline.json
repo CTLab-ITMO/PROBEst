@@ -34,9 +34,9 @@
             "timeout": 600
         },
         {
-            "name": "B_index_types",
-            "schema": "passes/B_index_types/schema.json",
-            "prompt": "passes/B_index_types/prompt.txt",
+            "name": "B2_index_desc",
+            "schema": "passes/B2_index_desc/schema.json",
+            "prompt": "passes/B2_index_desc/prompt.txt",
             "timeout": 600
         },
         {
