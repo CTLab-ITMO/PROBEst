@@ -2,7 +2,8 @@
     "model_names": [
         "myaniu/qwen2.5-1m:7b",
         "deepseek-r1:1.5b",
-        "gemma3:4b-it-qat",        
+        "gemma3:4b-it-qat",  
+        "qwen2.5-coder:3b",      
         "llama3.1:latest",
         "qwen3:4b"        
     ],
