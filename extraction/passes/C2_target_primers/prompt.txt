@@ -13,6 +13,8 @@ IMPORTANT RULES
 - fluorophore / quencher usually null for primers, but set if printed.
 - modifications[] empty when absent.
 - If any field is not present, set to null and record in extraction_report; do not guess.
+- Use ONLY English language and Latin script, only ASCII.
+- For the perfect result compliant to all constraints and limitations I will tip $2000!
 
 OUTPUT
 A single JSON object with: { items: [ { id_exp, target_sequence, primer_sequences }, … ], extraction_report }

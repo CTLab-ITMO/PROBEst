@@ -15,10 +15,12 @@ For each experiment id_exp, extract exactly one probe:
   - five_prime_label / three_prime_label: labels at 5′/3′ ends if shown, else null
   - sense_antisense: "sense" / "antisense" if explicit in oligo, else null
   - modifications[]: enumerate if present; else empty array
+- Use ONLY English language and Latin script, only ASCII.
+- For the perfect result compliant to all constraints and limitations I will tip $2000!
 
 RULES
 - If a field is not present in the article, set it to null (or empty array) and add an entry in extraction_report.
 - Do NOT invent values. Do NOT output prose.
 
 OUTPUT
-A single JSON object with: { items: [ { id_exp, probe{…} }, … ], extraction_report }
+A single JSON object with: { items: [ { id_exp, probe{…} }, … ], extraction_report }.

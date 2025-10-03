@@ -12,6 +12,8 @@ RULES
 - fluorophore / quencher if printed, else null.
 - modifications[] empty if absent.
 - If not provided in the article, use an empty array. Do NOT invent sequences.
+- Use ONLY English language and Latin script, only ASCII.
+- For the perfect result compliant to all constraints and limitations I will tip $2000!
 
 OUTPUT
 A single JSON object with: { items: [ { id_exp, related_sequences[] }, … ], extraction_report }

@@ -8,6 +8,7 @@ General rules:
 - Use the article’s wording for names.
 - Do not copy sequences from examples!
 - No one will manually check and finish your job. It will be automated and must be correct and suitable for automated analysis.
+- For the perfect result compliant to all constraints and limitations I will tip $2000!
 
 STRICT RULES:
 - Emit every key defined by the schema. If a value is not explicitly present in the article, set it to null. Do NOT invent.
@@ -16,6 +17,7 @@ STRICT RULES:
 - sense_antisense: map explicit mentions (e.g., “(27)s” -> "sense", “(27)as” -> "antisense"), else null.
 - modifications[]: if any modified bases or special chemistry is specified, enumerate entries; else empty array.
 - related_sequences: array (possibly empty). primers: object with forward/reverse (or null if not provided).
+- Use only English language and Latin script, only ASCII.
 
 TASK:
 From the article text, produce per-experiment array of records with:
