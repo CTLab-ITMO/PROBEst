@@ -14,7 +14,7 @@
     },
     "ollama_base_url": "http://127.0.0.1:11434",
     "timeout_s": 300,
-    "input_dir": "/mnt/Models/articles2_marker/no_llm/markdown/",
+    "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
     "out_dir": "outlines_output",
     "full_schema_path": "schema/json/article.json",
     "db_path": "outlines_output/massive.sqlite",
@@ -33,16 +33,22 @@
             "timeout": 600
         },
         {
+            "name": "B_index_types",
+            "schema": "passes/B_index_types/schema.json",
+            "prompt": "passes/B_index_types/prompt.txt",
+            "timeout": 600
+        },
+        {
             "name": "C5_probes_opt_target",
             "schema": "passes/C5_probes_opt_target/schema.json",
             "prompt": "passes/C5_probes_opt_target/prompt.txt",
-            "timeout": 600
+            "timeout": 900
         },
         {
             "name": "C_sequences",
             "schema": "passes/C_sequences/schema.json",
             "prompt": "passes/C_sequences/prompt.txt",
-            "timeout": 600
+            "timeout": 900
         }, 
         {
             "name": "C1_probe_core",

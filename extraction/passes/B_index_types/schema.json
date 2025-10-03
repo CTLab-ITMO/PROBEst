@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExperimentIndex",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["experiments", "extraction_report"],
+  "properties": {
+    "experiments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id_exp", "description", "type", "raw_description"],
+        "properties": {
+          "id_exp": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "type": {
+            "title": "Hybridization Probe Classification",
+            "description": "Normalized, multi-axis classification for nucleic-acid hybridization probes (literature or product datasheets). All fields are optional to accommodate incomplete metadata.",
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "probe_type": {
+                "title": "Probe Type",
+                "description": "Functional design/mechanism class of the probe. Use when the probe's reporting/capture behavior is known.",
+                "oneOf": [
+                  { "const": "linear", "title": "Linear", "description": "Simple oligo that hybridizes without structural activation; often end-labeled." },
+                  { "const": "molecular_beacon", "title": "Molecular beacon", "description": "Stem-loop with fluor/quencher; fluorescence turns on when the stem opens on target." },
+                  { "const": "hydrolysis_taqman", "title": "Hydrolysis (TaqMan)", "description": "Dual-labeled probe cleaved by 5'->3' exonuclease during PCR; signal increases on cleavage." },
+                  { "const": "fret_dual_hybridization", "title": "FRET dual-hybridization", "description": "Two adjacent probes with donor/acceptor dyes; FRET only when both bind nearby." },
+                  { "const": "scorpion", "title": "Scorpion", "description": "Primer-linked hairpin probe enabling fast intra-molecular reporting in qPCR." },
+                  { "const": "hcr", "title": "Hybridization Chain Reaction (HCR)", "description": "Initiator + hairpins polymerize upon target binding; enzyme-free signal amplification." },
+                  { "const": "branched_dna", "title": "Branched DNA (bDNA)", "description": "Signal amplification via multibranch DNA scaffolds without target amplification." },
+                  { "const": "padlock", "title": "Padlock", "description": "Linear probe circularizes on perfect match; detected via rolling-circle amplification." },
+                  { "const": "capture", "title": "Capture", "description": "Affinity-tagged probe used to enrich/pull down targets (e.g., biotinylated capture baits)." },
+                  { "const": "tiling_set", "title": "Tiling set", "description": "Multiple overlapping probes across a region/gene for robust detection." },
+                  { "const": "antisense", "title": "Antisense", "description": "Probe designed to bind and block or track transcripts (e.g., ISH tracking)." }
+                ]
+              },
+              "chemistry": {
+                "title": "Chemistry",
+                "description": "Backbone and chemical modifications (sequence-level chemistry rather than labels/reporters).",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "backbone": {
+                    "title": "Backbone",
+                    "description": "Primary nucleic-acid scaffold used by the probe.",
+                    "oneOf": [
+                      { "const": "dna", "title": "DNA", "description": "Unmodified DNA backbone." },
+                      { "const": "rna", "title": "RNA", "description": "Unmodified RNA backbone." },
+                      { "const": "cdna", "title": "cDNA", "description": "Complementary DNA derived from RNA." },
+                      { "const": "pna", "title": "PNA", "description": "Peptide nucleic acid backbone." },
+                      { "const": "morpholino", "title": "Morpholino", "description": "Morpholine-ring phosphorodiamidate backbone." },
+                      { "const": "lna_modified", "title": "LNA-modified", "description": "DNA/RNA with Locked Nucleic Acid residues incorporated." },
+                      { "const": "two_ome_rna", "title": "2′-O-Me RNA", "description": "2′-O-methyl RNA backbone." }
+                    ]
+                  },
+                  "modifications": {
+                    "title": "Chemical Modifications",
+                    "description": "Sequence-level chemistry (not labels): e.g., nuclease protection or affinity spacers.",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "phosphorothioate",
+                        "two_ome_spiked",
+                        "lna_spiked",
+                        "mgb",
+                        "inverted_dT_3prime",
+                        "amine_5prime",
+                        "thiol_5prime",
+                        "biotin_teg",
+                        "spacer_18",
+                        "cholesterol"
+                      ],
+                      "description": "Common modification keyword."
+                    }
+                  }
+                }
+              },
+              "labeling": {
+                "title": "Labeling",
+                "description": "Reporting/enrichment labels attached to the probe (fluors, quenchers, haptens, enzymes, isotopes).",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "strategy": {
+                    "title": "Label Strategy",
+                    "description": "High-level labeling approach; combine with concrete labels below as known.",
+                    "type": "string",
+                    "enum": ["none","fluor_only","fluor_quencher","hapten","enzymatic","radioisotope"]
+                  },
+                  "reporters": {
+                    "title": "Reporter Dyes",
+                    "description": "Fluorophores or other reporters (free text to allow any brand/dye).",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": { "type": "string", "description": "Reporter name (e.g., FAM, HEX, Cy3, ATTO647N)." }
+                  },
+                  "quenchers": {
+                    "title": "Quenchers",
+                    "description": "Quenchers used in hydrolysis or hairpin probes.",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": { "type": "string", "description": "Quencher name (e.g., BHQ1, BHQ2, Iowa Black FQ)." }
+                  },
+                  "haptens": {
+                    "title": "Haptens",
+                    "description": "Affinity tags detected by antibodies/streptavidin.",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": ["biotin","digoxigenin","dinitrophenol","fluorescein_hapten"],
+                      "description": "Common hapten tag."
+                    }
+                  },
+                  "enzymes": {
+                    "title": "Enzyme Labels",
+                    "description": "Enzyme conjugates used for colorimetric/chemiluminescent detection.",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": ["HRP","AP"],
+                      "description": "Common conjugated enzyme."
+                    }
+                  },
+                  "isotopes": {
+                    "title": "Radioisotopes",
+                    "description": "If radio-labeled, indicate isotope(s).",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": { "type": "string", "description": "Isotope (e.g., 32P, 33P, 35S)." }
+                  }
+                }
+              },
+              "targeting": {
+                "title": "Targeting",
+                "description": "What the probe is intended to hybridize to, and in what context.",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "biomolecule": {
+                    "title": "Biomolecule",
+                    "description": "High-level target class.",
+                    "type": "string",
+                    "enum": ["dna","rna","mrna","mirna","lncrna","rrna","genomic_dna","viral_rna","amplicon"]
+                  },
+                  "context": {
+                    "title": "Context",
+                    "description": "Assay/biological context for the target.",
+                    "type": "string",
+                    "enum": ["genomic","transcript","amplicon","in_situ","capture"]
+                  },
+                  "target_name": {
+                    "title": "Target Name",
+                    "description": "Gene/transcript/locus identifier (free text).",
+                    "type": "string"
+                  }
+                }
+              },
+              "set_design": {
+                "title": "Set / Panel Design",
+                "description": "Whether the probe is a single oligo or part of a designed set/panel.",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mode": {
+                    "title": "Set Mode",
+                    "description": "Single probe or specific multi-probe design.",
+                    "type": "string",
+                    "enum": ["single","tiling_set","capture_baits","smfish_panel","merfish_panel","padlock_set"]
+                  },
+                  "count": {
+                    "title": "Probe Count",
+                    "description": "Number of probes in the set/panel (if known).",
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              "amplification_mechanism": {
+                "title": "Amplification Mechanism",
+                "description": "Signal amplification paradigm, if applicable (complements—does not replace—probe_type).",
+                "type": "string",
+                "enum": ["none","hydrolysis","fret","hairpin_turn_on","rolling_circle","branched_dna","hcr"]
+              },
+              "application": {
+                "title": "Application",
+                "description": "Intended use(s) of the probe. Provide multiple if applicable.",
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": ["qpcr","ddpcr","pcr_probe","fish","ish","smfish","merfish","ngs_capture","microarray","southern","northern","dot_blot","in_cell_imaging"],
+                  "description": "Common application keyword."
+                }
+              },
+              "provenance": {
+                "title": "Provenance",
+                "description": "Source metadata for traceability.",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "doi": { "title": "DOI", "description": "Digital Object Identifier of the source article.", "type": "string", "format": "iri", "examples": ["https://doi.org/10.1038/xxxx"] },
+                  "pmid": { "title": "PMID", "description": "PubMed identifier.", "type": "string", "examples": ["12345678"] },
+                  "vendor": { "title": "Vendor", "description": "Commercial supplier (if from a catalog).", "type": "string", "examples": ["IDT"] },
+                  "catalog_number": { "title": "Catalog Number", "description": "Supplier’s catalog identifier.", "type": "string", "examples": ["1001234"] }
+                }
+              },
+              "notes": {
+                "title": "Notes",
+                "description": "Free-text comments or qualifiers that don’t fit other fields.",
+                "type": "string",
+                "examples": ["Probe includes internal ZEN quencher."]
+              }
+            }
+          },
+          "raw_description": { "type": ["string", "null"], "minLength": 1, "maxLength": 2000 },
+          "description": { "type": "string", "minLength": 8, "maxLength": 2000 }
+        }
+      }
+    },
+    "extraction_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": { "type": "array", "items": { "type": "string" }, "minItems": 0 },
+        "uncertain": { "type": "array", "items": { "type": "string" }, "minItems": 0 },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
