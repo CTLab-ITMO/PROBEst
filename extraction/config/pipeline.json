@@ -1,6 +1,5 @@
 {
     "model_names": [
-        "deepseek-r1:8b",
         "deepseek-r1:7b-qwen-distill-q4_K_M",
         "qwen2.5-coder:3b",      
         "llama3.1:latest",
@@ -9,7 +8,7 @@
     "ollama_parameters": {
         "num_ctx": 131072,
         "num_predict": 131072,
-        "temperature": 0.15,
+        "temperature": 0.35,
         "seed": 42
     },
     "ollama_base_url": "http://127.0.0.1:11434",
