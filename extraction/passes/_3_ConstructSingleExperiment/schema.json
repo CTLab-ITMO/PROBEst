@@ -344,8 +344,6 @@
         "additionalProperties": false,
         "required": [
             "doi",
-            "abstract",
-            "topic",
             "experiments",
             "extraction_report"
         ],
@@ -364,7 +362,6 @@
                     "id_exp",
                     "raw_description",
                     "experiment_type",
-                    "description",
                     "metadata",
                     "sequences",
                     "experiment_properties",
@@ -495,12 +492,6 @@
                                 }
                             ]
                         }
-                    },
-                    "description": {
-                        "type": "string",
-                        "minLength": 10,
-                        "maxLength": 1000,
-                        "description": "Concise human-readable summary of this specific target-probe experiment."
                     },
                     "metadata": {
                         "type": "object",
