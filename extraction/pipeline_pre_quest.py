@@ -1033,7 +1033,7 @@ def run_project(project_dir: str | Path) -> None:
                     article_text=article_text,
                     sequence=seq,
                     sequence_id=i,
-                    pass_cfg=p,
+                    pass_cfg=cfg.construct_single_experiment_pass,
                     out_base=out_base,
                     article_stem=article_name,
                     tools=tools,
