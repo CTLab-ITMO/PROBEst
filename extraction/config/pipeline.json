@@ -23,15 +23,15 @@
     "article_glob": "**/*.md",
     "pre_passes": [
         {
-            "name": "SeqPrompt",
-            "schema": "passes/_1_SeqPrompt/schema.json",
-            "prompt": "passes/_1_SeqPrompt/prompt.txt",
-            "timeout": 60
-        },
-        {
             "name": "SeqPrompt_strict",
             "schema": "passes/_1_SeqPrompt/schema_strict.json",
             "prompt": "passes/_1_SeqPrompt/prompt_strict.txt",
+            "timeout": 60
+        },
+        {
+            "name": "SeqPrompt",
+            "schema": "passes/_1_SeqPrompt/schema.json",
+            "prompt": "passes/_1_SeqPrompt/prompt.txt",
             "timeout": 60
         }
     ],

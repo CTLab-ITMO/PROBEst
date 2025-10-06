@@ -817,23 +817,32 @@
             }
         },
         "hybridization_experiment_outcome": {
-            "outcome": {
-                "type": [
-                    "boolean",
-                    "null"
-                ],
-                "description": "Put true in case of successful hybridization, false if unsuccessful, null if could not be onferred from the article text."
-            },
-            "fluorescence": {
-                "$ref": "#/$defs/measurement_lite",
-                "description": "Amount of fluorescence in this hybridization experiment."
-            },
-            "comparative_notes": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "maxLength": 500
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "outcome",
+                "fluorescence",
+                "comparative_notes"
+            ],
+            "properties": {
+                "outcome": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "description": "Put true in case of successful hybridization, false if unsuccessful, null if could not be onferred from the article text."
+                },
+                "fluorescence": {
+                    "$ref": "#/$defs/measurement_lite",
+                    "description": "Amount of fluorescence in this hybridization experiment."
+                },
+                "comparative_notes": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 500
+                }
             }
         }
     }
