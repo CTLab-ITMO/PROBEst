@@ -9,13 +9,13 @@
         "myaniu/qwen2.5-1m:14b"
     ],
     "ollama_parameters": {
-        "num_ctx": 65536,
+        "num_ctx": 131072,
         "num_predict": 131072,
-        "temperature": 0.15,
-        "seed": 42
+        "temperature": 0.2,
+        "seed": 52
     },
     "ollama_base_url": "http://127.0.0.1:11434",
-    "timeout_s": 300,
+    "timeout_s": 120,
     "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
     "out_dir": "outlines_output_pre",
     "full_schema_path": "schema/json/article.json",

@@ -481,78 +481,82 @@ def run_construct_single_experiment_pass(
         # ):
         #     response += chunk
         try:
-            response = model.chat(
-                messages=[
-                    {
-                        "role": "system",
-                        "content": prompt
-                        + "\n"
-                        + "And here is the article text you must base your answer on:\n\n<article>\n"
-                        + article_text
-                        + "\n<\\article>\n",
-                    },
-                    {
-                        "role": "user",
-                        "content": "Let's describe a single nucleotide sequence!",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
-                    },
-                    {
-                        "role": "user",
-                        "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
-                        + json.dumps(js)
-                        + "\n```\n\nIs it OK?",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
-                    },
-                    {
-                        'role': 'user',
-                        'content': sequence,
-                    }
-                ],
+            response = model.generate(
+                model_input=outlines.inputs.Chat(
+                    [
+                        {
+                            "role": "system",
+                            "content": prompt
+                            + "\n"
+                            + "And here is the article text you must base your answer on:\n\n<article>\n"
+                            + article_text
+                            + "\n<\\article>\n",
+                        },
+                        {
+                            "role": "user",
+                            "content": "Let's describe a single nucleotide sequence!",
+                        },
+                        {
+                            "role": "assistant",
+                            "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
+                        },
+                        {
+                            "role": "user",
+                            "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
+                            + js.schema
+                            + "\n```\n\nIs it OK?",
+                        },
+                        {
+                            "role": "assistant",
+                            "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
+                        },
+                        {
+                            "role": "user",
+                            "content": sequence,
+                        },
+                    ]
+                ),
                 output_type=js,
                 options=ollama_parameters,
                 think=True,
                 keep_alive="30s",
             )
         except ollama.ResponseError:
-            response = model.chat(
-                messages=[
-                    {
-                        "role": "system",
-                        "content": prompt
-                        + "\n"
-                        + "And here is the article text you must base your answer on:\n\n<article>\n"
-                        + article_text
-                        + "\n<\\article>\n",
-                    },
-                    {
-                        "role": "user",
-                        "content": "Let's describe a single nucleotide sequence!",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
-                    },
-                    {
-                        "role": "user",
-                        "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
-                        + json.dumps(js)
-                        + "\n```\n\nIs it OK?",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
-                    },
-                    {
-                        'role': 'user',
-                        'content': sequence,
-                    }
-                ],
+            response = model.generate(
+                model_input=outlines.inputs.Chat(
+                    [
+                        {
+                            "role": "system",
+                            "content": prompt
+                            + "\n"
+                            + "And here is the article text you must base your answer on:\n\n<article>\n"
+                            + article_text
+                            + "\n<\\article>\n",
+                        },
+                        {
+                            "role": "user",
+                            "content": "Let's describe a single nucleotide sequence!",
+                        },
+                        {
+                            "role": "assistant",
+                            "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
+                        },
+                        {
+                            "role": "user",
+                            "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
+                            + js.schema
+                            + "\n```\n\nIs it OK?",
+                        },
+                        {
+                            "role": "assistant",
+                            "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
+                        },
+                        {
+                            "role": "user",
+                            "content": sequence,
+                        },
+                    ]
+                ),
                 output_type=js,
                 options=ollama_parameters,
                 think=False,
@@ -1009,12 +1013,17 @@ def run_project(project_dir: str | Path) -> None:
                         f"Pass failed: {p.name} : {article_name} : {model_name}"
                     )
 
-            all_found_sequences = ", ".join(outputs["SeqPrompt_strict"])
-            logger.info("Pre-passes done, found sequences: " + all_found_sequences)
+            all_found_sequences = list(
+                sorted(
+                    set(set(outputs["SeqPrompt_strict"]).union(outputs["SeqPrompt"]))
+                )
+            )
+            all_found_sequences_str = ", ".join(all_found_sequences)
+            logger.info("Pre-passes done, found sequences: " + all_found_sequences_str)
 
             for i, seq in enumerate(
                 tqdm(
-                    set(outputs["SeqPrompt_strict"]).union(outputs["SeqPrompt"]),
+                    all_found_sequences,
                     desc=f"{article_name}: sequences construction",
                     leave=False,
                 )
@@ -1023,7 +1032,7 @@ def run_project(project_dir: str | Path) -> None:
                     model=model,
                     article_text=article_text,
                     sequence=seq,
-                    seq_id=i,
+                    sequence_id=i,
                     pass_cfg=p,
                     out_base=out_base,
                     article_stem=article_name,
