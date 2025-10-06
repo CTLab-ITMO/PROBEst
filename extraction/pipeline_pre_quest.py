@@ -119,7 +119,6 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
             )
         )
 
-
     p = data["construct_single_experiment_pass"]
     construct_single_experiment_pass = PassConfig(
         name=p["name"],
@@ -437,6 +436,7 @@ def run_construct_single_experiment_pass(
     model: Any,
     article_text: str,
     sequence: str,
+    sequence_id: int,
     pass_cfg: PassConfig,
     out_base: Path,
     article_stem: str,
@@ -459,15 +459,15 @@ def run_construct_single_experiment_pass(
     stamp = _now_stamp()
     raw_txt_path = (
         txt_dir
-        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.txt"
+        / f"{article_stem}__{pass_cfg.name}__{sequence_id}__{model_name_encode(model_name)}__{stamp}.txt"
     )
     json_out_path = (
         json_dir
-        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.json"
+        / f"{article_stem}__{pass_cfg.name}__{sequence_id}__{model_name_encode(model_name)}__{stamp}.json"
     )
     err_log_path = (
         log_dir
-        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.log"
+        / f"{article_stem}__{pass_cfg.name}__{sequence_id}__{model_name_encode(model_name)}__{stamp}.log"
     )
 
     logger.info(f"[{pass_cfg.name}:{model_name}] generating …")
@@ -484,19 +484,35 @@ def run_construct_single_experiment_pass(
             response = model.chat(
                 messages=[
                     {
-                        "role": "system", "content": prompt
+                        "role": "system",
+                        "content": prompt
                         + "\n"
                         + "And here is the article text you must base your answer on:\n\n<article>\n"
                         + article_text
-                        + "\n<\\article>\n"
+                        + "\n<\\article>\n",
                     },
                     {
                         "role": "user",
                         "content": "Let's describe a single nucleotide sequence!",
                     },
-                    {'role': 'assistant', 'content': "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?"},
-                    {'role': 'user', 'content': "Great question! I would like your answer to satisfy the following JSON schema:\n```json" + json.dumps(js) + "\n```\n\nIs it OK?"},
-                    {'role': 'assistant', 'content': "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!"},
+                    {
+                        "role": "assistant",
+                        "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
+                        + json.dumps(js)
+                        + "\n```\n\nIs it OK?",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
+                    },
+                    {
+                        'role': 'user',
+                        'content': sequence,
+                    }
                 ],
                 output_type=js,
                 options=ollama_parameters,
@@ -507,19 +523,35 @@ def run_construct_single_experiment_pass(
             response = model.chat(
                 messages=[
                     {
-                        "role": "system", "content": prompt
+                        "role": "system",
+                        "content": prompt
                         + "\n"
                         + "And here is the article text you must base your answer on:\n\n<article>\n"
                         + article_text
-                        + "\n<\\article>\n"
+                        + "\n<\\article>\n",
                     },
                     {
                         "role": "user",
                         "content": "Let's describe a single nucleotide sequence!",
                     },
-                    {'role': 'assistant', 'content': "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?"},
-                    {'role': 'user', 'content': "Great question! I would like your answer to satisfy the following JSON schema:\n```json" + json.dumps(js) + "\n```\n\nIs it OK?"},
-                    {'role': 'assistant', 'content': "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!"},
+                    {
+                        "role": "assistant",
+                        "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
+                        + json.dumps(js)
+                        + "\n```\n\nIs it OK?",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
+                    },
+                    {
+                        'role': 'user',
+                        'content': sequence,
+                    }
                 ],
                 output_type=js,
                 options=ollama_parameters,
@@ -980,13 +1012,26 @@ def run_project(project_dir: str | Path) -> None:
             all_found_sequences = ", ".join(outputs["SeqPrompt_strict"])
             logger.info("Pre-passes done, found sequences: " + all_found_sequences)
 
-            for seq in tqdm(
-                set(outputs["SeqPrompt_strict"]).union(outputs["SeqPrompt"]),
-                desc=f"{article_name}: sequences construction",
-                leave=False,
+            for i, seq in enumerate(
+                tqdm(
+                    set(outputs["SeqPrompt_strict"]).union(outputs["SeqPrompt"]),
+                    desc=f"{article_name}: sequences construction",
+                    leave=False,
+                )
             ):
-
-                pass
+                run_construct_single_experiment_pass(
+                    model=model,
+                    article_text=article_text,
+                    sequence=seq,
+                    seq_id=i,
+                    pass_cfg=p,
+                    out_base=out_base,
+                    article_stem=article_name,
+                    tools=tools,
+                    logger=logger,
+                    ollama_parameters=cfg.ollama_parameters,
+                    model_name=model_name,
+                )
 
             # for p in tqdm(cfg.passes, desc=f"{article_name} passes", leave=False):
             #     try:
