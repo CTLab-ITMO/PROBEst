@@ -15,7 +15,7 @@
         "seed": 52
     },
     "ollama_base_url": "http://127.0.0.1:11434",
-    "timeout_s": 600,
+    "timeout_s": 20,
     "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
     "out_dir": "outlines_output_pre",
     "full_schema_path": "schema/json/article.json",
@@ -35,12 +35,32 @@
             "timeout": 60
         }
     ],
-    "construct_single_experiment_pass": {
+    "construct_single_experiment_passes": [
+        {
             "name": "ConstructSingleExperiment",
             "schema": "passes/_3_ConstructSingleExperiment/schema.json",
             "prompt": "passes/_3_ConstructSingleExperiment/prompt.txt",
             "timeout": 600
         },
+        {
+            "name": "ConstructSingleSmallExperiment",
+            "schema": "passes/_4_ConstructSingleSmallExperiment/schema.json",
+            "prompt": "passes/_4_ConstructSingleSmallExperiment/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "ConstructSingleSequenceExperiment",
+            "schema": "passes/_5_ConstructSingleSequenceExperiment/schema.json",
+            "prompt": "passes/_5_ConstructSingleSequenceExperiment/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "ConstructSingleSequenceExperimentAndOutcome",
+            "schema": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/schema.json",
+            "prompt": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/prompt.txt",
+            "timeout": 600
+        }
+    ],
     "passes": [
         {
             "name": "A_core",

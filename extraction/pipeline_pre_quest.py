@@ -67,7 +67,7 @@ class PipelineConfig:
     input_dir: Path
     out_dir: Path
     full_schema_path: Optional[Path]
-    construct_single_experiment_pass: Optional[PassConfig]
+    construct_single_experiment_passes: List[PassConfig]
     db_path: Optional[Path]
     article_glob: str
     pre_passes: List[PassConfig]
@@ -119,13 +119,16 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
             )
         )
 
-    p = data["construct_single_experiment_pass"]
-    construct_single_experiment_pass = PassConfig(
-        name=p["name"],
-        schema_path=project_dir / p["schema"],
-        prompt_path=project_dir / p["prompt"],
-        timeout=p.get("timeout", None),
-    )
+    construct_single_experiment_passes = []
+    for p in data["construct_single_experiment_passes"]:
+        construct_single_experiment_passes.append(
+            PassConfig(
+                name=p["name"],
+                schema_path=project_dir / p["schema"],
+                prompt_path=project_dir / p["prompt"],
+                timeout=p.get("timeout", None),
+            )
+        )
 
     passes: List[PassConfig] = []
     for p in data["passes"]:
@@ -146,7 +149,7 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
         input_dir=project_dir / data.get("input_dir", "inputs"),
         out_dir=project_dir / data.get("out_dir", "out"),
         full_schema_path=_opt_path(data.get("full_schema_path")),
-        construct_single_experiment_pass=construct_single_experiment_pass,
+        construct_single_experiment_passes=construct_single_experiment_passes,
         db_path=_opt_path(data.get("db_path")),
         article_glob=data.get("article_glob", "*.txt"),
         pre_passes=pre_passes,
@@ -1028,19 +1031,25 @@ def run_project(project_dir: str | Path) -> None:
                     leave=False,
                 )
             ):
-                run_construct_single_experiment_pass(
-                    model=model,
-                    article_text=article_text,
-                    sequence=seq,
-                    sequence_id=i,
-                    pass_cfg=cfg.construct_single_experiment_pass,
-                    out_base=out_base,
-                    article_stem=article_name,
-                    tools=tools,
-                    logger=logger,
-                    ollama_parameters=cfg.ollama_parameters,
-                    model_name=model_name,
-                )
+                for construct_pass in tqdm(cfg.construct_single_experiment_passes, desc="Construction schemas", leave=False):
+                    try:
+                        run_construct_single_experiment_pass(
+                            model=model,
+                            article_text=article_text,
+                            sequence=seq,
+                            sequence_id=i,
+                            pass_cfg=cfg.construct_single_experiment_pass,
+                            out_base=out_base,
+                            article_stem=article_name,
+                            tools=tools,
+                            logger=logger,
+                            ollama_parameters=cfg.ollama_parameters,
+                            model_name=model_name,
+                        )
+                    except Exception:
+                        logger.exception(
+                            f"Pass failed: {p.name} : {article_name} : {model_name}"
+                        )
 
             # for p in tqdm(cfg.passes, desc=f"{article_name} passes", leave=False):
             #     try:

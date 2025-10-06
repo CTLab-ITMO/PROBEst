@@ -16,6 +16,8 @@ STRICT RULES of how do you work and response:
 
 Perform the following task:
 * Extract all the DNA or RNA sequences provided in this article and provide them in a JSON format.
+* Be sure to extract real nucleotidic sequences in IUPAC form (only the part without modification, as format does not allow dashes).
+* But be careful and cautions and remove letter sequences unrelated to the nucleotide sequences. Articles may have other letter sequences such as an abbreviations or so. You are inly interested in nucleotidic sequences, such as the probe sequences, primers, target sequences etc.
 
 Here is the JSON schema you have to follow:
 ```json

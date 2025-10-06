@@ -100,9 +100,9 @@
       "additionalProperties": false,
       "required": ["raw", "value", "unit"],
       "properties": {
-        "raw": { "type": "string", "minLength": 1, "maxLength": 200 },
-        "value": { "type": ["number", "null"] },
-        "unit": { "type": ["string", "null"], "maxLength": 50 }
+        "raw": { "type": "string", "minLength": 1, "maxLength": 200, "description": "Textual value representation." },
+        "value": { "type": ["number", "null"], "description": "Numeric value representation." },
+        "unit": { "type": ["string", "null"], "maxLength": 50, "description": "Measurement unit for the numeric value representation." }
       }
     }
   }
