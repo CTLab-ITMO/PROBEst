@@ -1,9 +1,9 @@
 {
     "model_names": [
         "deepseek-r1:7b-qwen-distill-q4_K_M",
-        "qwen2.5-coder:3b",      
+        "qwen2.5-coder:3b",
         "llama3.1:latest",
-        "qwen3:4b"        
+        "qwen3:4b"
     ],
     "ollama_parameters": {
         "num_ctx": 131072,
@@ -13,11 +13,38 @@
     },
     "ollama_base_url": "http://127.0.0.1:11434",
     "timeout_s": 300,
-    "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
-    "out_dir": "outlines_output",
+    "input_dir": "input/md",
+    "out_dir": "outlines_output_pre",
     "full_schema_path": "schema/json/article.json",
+    "single_experiment_schema_path": "schema/json/single_experiment.json",
     "db_path": "outlines_output/massive.sqlite",
     "article_glob": "**/*.md",
+    "pre_passes": [
+        {
+            "name": "SeqPrompt",
+            "schema": "passes/_1_SeqPrompt/schema.json",
+            "prompt": "passes/_1_SeqPrompt/prompt.txt",
+            "timeout": 60
+        },
+        {
+            "name": "SeqPrompt_strict",
+            "schema": "passes/_1_SeqPrompt/schema_strict.json",
+            "prompt": "passes/_1_SeqPrompt/prompt.txt",
+            "timeout": 60
+        },
+        {
+            "name": "Experiments",
+            "schema": "passes/_2_Experiments/schema.json",
+            "prompt": "passes/_2_Experiments/prompt.txt",
+            "timeout": 60
+        },
+        {
+            "name": "Experiments-strict",
+            "schema": "passes/_2_Experiments/schema_strict.json",
+            "prompt": "passes/_2_Experiments/prompt.txt",
+            "timeout": 60
+        }
+    ],
     "passes": [
         {
             "name": "A_core",
@@ -48,7 +75,7 @@
             "schema": "passes/C_sequences/schema.json",
             "prompt": "passes/C_sequences/prompt.txt",
             "timeout": 900
-        }, 
+        },
         {
             "name": "C1_probe_core",
             "schema": "passes/C1_probe_core/schema.json",
@@ -63,12 +90,12 @@
             "name": "C3_related",
             "schema": "passes/C3_related/schema.json",
             "prompt": "passes/C3_related/prompt.txt"
-        },       
+        },
         {
             "name": "D_parameters",
             "schema": "passes/D_parameters/schema.json",
             "prompt": "passes/D_parameters/prompt.txt"
-        }, 
+        },
         {
             "name": "E_outcomes",
             "schema": "passes/E_outcomes/schema.json",
