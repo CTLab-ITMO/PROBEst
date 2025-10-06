@@ -45,17 +45,21 @@ API_TOKEN = os.getenv("OPEN_BUTTON_TOKEN", None)
 # Config models
 # ──────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class PassConfig:
     """Single extraction pass config loaded from pipeline.json."""
-    name: str               # e.g., "A_core"
-    schema_path: Path       # path to JSON Schema file
-    prompt_path: Path       # path to the prompt .txt file
+
+    name: str  # e.g., "A_core"
+    schema_path: Path  # path to JSON Schema file
+    prompt_path: Path  # path to the prompt .txt file
     timeout: Optional[int]
+
 
 @dataclass
 class PipelineConfig:
     """Pipeline config loaded from config/pipeline.json."""
+
     model_names: List[str]
     ollama_parameters: Dict[str, Any]
     ollama_base_url: str
@@ -63,7 +67,7 @@ class PipelineConfig:
     input_dir: Path
     out_dir: Path
     full_schema_path: Optional[Path]
-    single_experiment_schema_path: Optional[Path]
+    construct_single_experiment_pass: Optional[PassConfig]
     db_path: Optional[Path]
     article_glob: str
     pre_passes: List[PassConfig]
@@ -72,6 +76,7 @@ class PipelineConfig:
 
 def model_name_encode(model_name: str) -> str:
     return model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+
 
 def load_pipeline_config(project_dir: Path) -> PipelineConfig:
     """Load pipeline.json and construct a PipelineConfig.
@@ -104,15 +109,13 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
         return (project_dir / p) if p else None
 
     pre_passes: List[PassConfig] = []
-    for p in data["pre_passes"]:
-        pre_passes.append(
-            PassConfig(
-                name=p["name"],
-                schema_path=project_dir / p["schema"],
-                prompt_path=project_dir / p["prompt"],
-                timeout=p.get("timeout", None)
-            )
-        )
+    p = data["construct_single_experiment_pass"]
+    construct_single_experiment_pass = PassConfig(
+        name=p["name"],
+        schema_path=project_dir / p["schema"],
+        prompt_path=project_dir / p["prompt"],
+        timeout=p.get("timeout", None),
+    )
 
     passes: List[PassConfig] = []
     for p in data["passes"]:
@@ -121,7 +124,7 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
                 name=p["name"],
                 schema_path=project_dir / p["schema"],
                 prompt_path=project_dir / p["prompt"],
-                timeout=p.get("timeout", None)
+                timeout=p.get("timeout", None),
             )
         )
 
@@ -133,7 +136,7 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
         input_dir=project_dir / data.get("input_dir", "inputs"),
         out_dir=project_dir / data.get("out_dir", "out"),
         full_schema_path=_opt_path(data.get("full_schema_path")),
-        single_experiment_schema_path=_opt_path(data.get("single_experiment_schema_path")),
+        construct_single_experiment_pass=construct_single_experiment_pass,
         db_path=_opt_path(data.get("db_path")),
         article_glob=data.get("article_glob", "*.txt"),
         pre_passes=pre_passes,
@@ -144,6 +147,7 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
 # ──────────────────────────────────────────────────────────────────────
 # Logging
 # ──────────────────────────────────────────────────────────────────────
+
 
 def _make_logger(log_dir: Path) -> logging.Logger:
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -167,7 +171,10 @@ def _make_logger(log_dir: Path) -> logging.Logger:
 # Tools (Ollama helpers) — Google-style docstrings
 # ──────────────────────────────────────────────────────────────────────
 
-def to_si(value: Optional[float], unit: Optional[str]) -> Tuple[Optional[float], Optional[str]]:
+
+def to_si(
+    value: Optional[float], unit: Optional[str]
+) -> Tuple[Optional[float], Optional[str]]:
     """Convert a numeric value and unit to SI.
 
     Supports temperature and common concentrations.
@@ -205,6 +212,7 @@ OLIGO_RE = re.compile(
     r"(?:\s*\(\s*(?P<len>\d+)\s*(?:b|bp)\s*\)\s*)?\s*$",
     re.X,
 )
+
 
 def parse_oligo(raw: Optional[str]) -> Dict[str, Any]:
     """Parse a decorated oligo string into structured parts.
@@ -251,7 +259,9 @@ def parse_oligo(raw: Optional[str]) -> Dict[str, Any]:
     return result
 
 
-def make_measurement(raw: Optional[str], value: Optional[float] = None, unit: Optional[str] = None) -> Dict[str, Any]:
+def make_measurement(
+    raw: Optional[str], value: Optional[float] = None, unit: Optional[str] = None
+) -> Dict[str, Any]:
     """Build a 'measurement' object with SI conversion.
 
     Args:
@@ -262,7 +272,9 @@ def make_measurement(raw: Optional[str], value: Optional[float] = None, unit: Op
     Returns:
       A dict with keys: raw, value, unit, si_value, si_unit, assumptions (None).
     """
-    si_value, si_unit = to_si(value, unit) if (value is not None and unit is not None) else (None, None)
+    si_value, si_unit = (
+        to_si(value, unit) if (value is not None and unit is not None) else (None, None)
+    )
     return {
         "raw": raw or "",
         "value": value,
@@ -276,6 +288,7 @@ def make_measurement(raw: Optional[str], value: Optional[float] = None, unit: Op
 # ──────────────────────────────────────────────────────────────────────
 # JSON helpers
 # ──────────────────────────────────────────────────────────────────────
+
 
 def repair_json(text: str) -> str:
     """Best-effort JSON repair for streamed outputs."""
@@ -296,6 +309,7 @@ def repair_json(text: str) -> str:
 # ──────────────────────────────────────────────────────────────────────
 # Outlines runner
 # ──────────────────────────────────────────────────────────────────────
+
 
 def _now_stamp() -> str:
     return datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
@@ -324,9 +338,18 @@ def run_single_pass(
     prompt = pass_cfg.prompt_path.read_text(encoding="utf-8")
 
     stamp = _now_stamp()
-    raw_txt_path = txt_dir / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.txt"
-    json_out_path = json_dir / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.json"
-    err_log_path = log_dir / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.log"
+    raw_txt_path = (
+        txt_dir
+        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.txt"
+    )
+    json_out_path = (
+        json_dir
+        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.json"
+    )
+    err_log_path = (
+        log_dir
+        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.log"
+    )
 
     logger.info(f"[{pass_cfg.name}:{model_name}] generating …")
     response = ""
@@ -339,10 +362,16 @@ def run_single_pass(
         # ):
         #     response += chunk
         response = model.generate(
-            prompt + "\n" + "And here is the article text you must base your answer on:\n\n<article>\n" + article_text + "\n<\\article>\n",
+            prompt
+            + "\n"
+            + "And here is the article text you must base your answer on:\n\n<article>\n"
+            + article_text
+            + "\n<\\article>\n",
             output_type=js,
             options=ollama_parameters,
-            #tools=tools, # TODO: Temporarily switch tools off
+            # tools=tools, # TODO: Temporarily switch tools off
+            think=True,
+            keep_alive="30s",
         )
     except Exception as e:
         logger.exception(f"[{pass_cfg.name}:{model_name}] stream error")
@@ -356,25 +385,137 @@ def run_single_pass(
         obj = json.loads(fixed)
     except Exception as e:
         logger.exception(f"[{pass_cfg.name}:{model_name}] JSON parse error")
-        err_log_path.write_text(f"JSON ERROR:\n{e}\nRAW:\n{response}\n", encoding="utf-8")
+        err_log_path.write_text(
+            f"JSON ERROR:\n{e}\nRAW:\n{response}\n", encoding="utf-8"
+        )
         raise
 
     errors = sorted(validator.iter_errors(obj), key=lambda er: er.path)
     if errors:
         msg = "\n".join(str(e) for e in errors)
         logger.error(f"[{pass_cfg.name}:{model_name}] validation errors:\n{msg}")
-        err_log_path.write_text(f"VALIDATION ERRORS:\n{msg}\nJSON:\n{json.dumps(obj, indent=2)}", encoding="utf-8")
+        err_log_path.write_text(
+            f"VALIDATION ERRORS:\n{msg}\nJSON:\n{json.dumps(obj, indent=2)}",
+            encoding="utf-8",
+        )
     else:
         logger.info(f"[{pass_cfg.name}:{model_name}] validation OK")
         logger.info(f"[{pass_cfg.name}] validation OK [{model_name}]")
 
-    json_out_path.write_text(json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8")
+    json_out_path.write_text(
+        json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return obj
+
+
+def run_construct_single_experiment_pass(
+    model: Any,
+    article_text: str,
+    sequence: str,
+    pass_cfg: PassConfig,
+    out_base: Path,
+    article_stem: str,
+    tools: List[Any],
+    logger: logging.Logger,
+    ollama_parameters: Dict[str, Any],
+    model_name: str,
+) -> Dict[str, Any]:
+    """Run one pass (schema+prompt from files), save raw+json+log, return object."""
+    txt_dir = out_base / "txt"
+    json_dir = out_base / "json"
+    log_dir = out_base / "logs"
+    for d in (txt_dir, json_dir, log_dir):
+        d.mkdir(parents=True, exist_ok=True)
+
+    js = JsonSchema(pass_cfg.schema_path.read_text(encoding="utf-8"))
+    validator = Draft202012Validator(json.loads(js.schema))
+    prompt = pass_cfg.prompt_path.read_text(encoding="utf-8")
+
+    stamp = _now_stamp()
+    raw_txt_path = (
+        txt_dir
+        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.txt"
+    )
+    json_out_path = (
+        json_dir
+        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.json"
+    )
+    err_log_path = (
+        log_dir
+        / f"{article_stem}__{pass_cfg.name}__{model_name_encode(model_name)}__{stamp}.log"
+    )
+
+    logger.info(f"[{pass_cfg.name}:{model_name}] generating …")
+    response = ""
+    try:
+        # for chunk in model.stream(
+        #     prompt + "\n\n" + article_text,
+        #     output_type=js,
+        #     options=ollama_parameters,
+        #     tools=tools,
+        # ):
+        #     response += chunk
+        response = model.chat(
+            messages=[
+                {
+                    "role": "system", "content": prompt
+                    + "\n"
+                    + "And here is the article text you must base your answer on:\n\n<article>\n"
+                    + article_text
+                    + "\n<\\article>\n"
+                },
+                {
+                    "role": "user",
+                    "content": "Let's describe a single nucleotide sequence!",
+                },
+                {'role': 'assistant', 'content': "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?"},
+                {'role': 'user', 'content': "Great question! I would like your answer to satisfy the following JSON schema:\n```json" + json.dumps(js) + "\n```\n\nIs it OK?"},
+                {'role': 'assistant', 'content': "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!"},
+            ],
+            output_type=js,
+            options=ollama_parameters,
+            think=True,
+            keep_alive="30s",
+        )
+    except Exception as e:
+        logger.exception(f"[{pass_cfg.name}:{model_name}] stream error")
+        err_log_path.write_text(f"STREAM ERROR:\n{e}\n", encoding="utf-8")
+        raise
+
+    raw_txt_path.write_text(response, encoding="utf-8")
+
+    try:
+        fixed = repair_json(response)
+        obj = json.loads(fixed)
+    except Exception as e:
+        logger.exception(f"[{pass_cfg.name}:{model_name}] JSON parse error")
+        err_log_path.write_text(
+            f"JSON ERROR:\n{e}\nRAW:\n{response}\n", encoding="utf-8"
+        )
+        raise
+
+    errors = sorted(validator.iter_errors(obj), key=lambda er: er.path)
+    if errors:
+        msg = "\n".join(str(e) for e in errors)
+        logger.error(f"[{pass_cfg.name}:{model_name}] validation errors:\n{msg}")
+        err_log_path.write_text(
+            f"VALIDATION ERRORS:\n{msg}\nJSON:\n{json.dumps(obj, indent=2)}",
+            encoding="utf-8",
+        )
+    else:
+        logger.info(f"[{pass_cfg.name}:{model_name}] validation OK")
+        logger.info(f"[{pass_cfg.name}] validation OK [{model_name}]")
+
+    json_out_path.write_text(
+        json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     return obj
 
 
 # ──────────────────────────────────────────────────────────────────────
 # Stitcher (to your full object)
 # ──────────────────────────────────────────────────────────────────────
+
 
 def _merge_reports(*reports: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     out = {"missing": [], "uncertain": [], "notes": None}
@@ -392,7 +533,9 @@ def _merge_reports(*reports: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return out
 
 
-def _to_si(value: Optional[float], unit: Optional[str]) -> Tuple[Optional[float], Optional[str]]:
+def _to_si(
+    value: Optional[float], unit: Optional[str]
+) -> Tuple[Optional[float], Optional[str]]:
     return to_si(value, unit)
 
 
@@ -402,7 +545,11 @@ def _to_measurement_full(m_lite: Optional[Dict[str, Any]]) -> Optional[Dict[str,
     raw = m_lite.get("raw") or ""
     value = m_lite.get("value")
     unit = m_lite.get("unit")
-    si_value, si_unit = _to_si(value, unit) if (value is not None and unit is not None) else (None, None)
+    si_value, si_unit = (
+        _to_si(value, unit)
+        if (value is not None and unit is not None)
+        else (None, None)
+    )
     return {
         "raw": raw,
         "value": value,
@@ -432,7 +579,14 @@ def _detect_sa_from_name(name: Optional[str]) -> Optional[str]:
 
 
 def _coerce_sa(value: Optional[str], name: Optional[str]) -> Optional[str]:
-    m = {"s": "sense", "as": "antisense", "sense": "sense", "antisense": "antisense", "+": "sense", "-": "antisense"}
+    m = {
+        "s": "sense",
+        "as": "antisense",
+        "sense": "sense",
+        "antisense": "antisense",
+        "+": "sense",
+        "-": "antisense",
+    }
     if value is None or (isinstance(value, str) and not value.strip()):
         return _detect_sa_from_name(name)
     return m.get(str(value).strip().lower(), _detect_sa_from_name(name))
@@ -468,9 +622,13 @@ def stitch_full(
     E_outcomes: Dict[str, Any],
     F_pairings: Dict[str, Any],
 ) -> Dict[str, Any]:
-    core = {"doi": A_core.get("doi"), "abstract": A_core.get("abstract"), "topic": A_core.get("topic")}
+    core = {
+        "doi": A_core.get("doi"),
+        "abstract": A_core.get("abstract"),
+        "topic": A_core.get("topic"),
+    }
     E: Dict[str, Dict[str, Any]] = {}
-    for e in (B_index.get("experiments") or []):
+    for e in B_index.get("experiments") or []:
         E[e["id_exp"]] = {
             "id_exp": e["id_exp"],
             "raw_description": e.get("raw_description"),
@@ -484,7 +642,7 @@ def stitch_full(
             "extraction_report": {"missing": [], "uncertain": [], "notes": None},
         }
 
-    for item in (C_sequences.get("items") or []):
+    for item in C_sequences.get("items") or []:
         ie = item["id_exp"]
         if ie not in E:
             continue
@@ -503,16 +661,24 @@ def stitch_full(
         seqs["target_sequence"] = _to_oligo_full(tgt) if tgt is not None else None
         pr = item.get("primer_sequences")
         if isinstance(pr, dict):
-            seqs["primer_sequences"] = {"forward": _to_oligo_full(pr.get("forward")), "reverse": _to_oligo_full(pr.get("reverse"))}
+            seqs["primer_sequences"] = {
+                "forward": _to_oligo_full(pr.get("forward")),
+                "reverse": _to_oligo_full(pr.get("reverse")),
+            }
         else:
             seqs["primer_sequences"] = None
         rels = []
-        for rs in (item.get("related_sequences") or []):
-            rels.append({"related_sequence": _to_oligo_full(rs.get("related_sequence")), "description": rs.get("description")})
+        for rs in item.get("related_sequences") or []:
+            rels.append(
+                {
+                    "related_sequence": _to_oligo_full(rs.get("related_sequence")),
+                    "description": rs.get("description"),
+                }
+            )
         seqs["related_sequences"] = rels
         E[ie]["sequences"] = seqs
 
-    for item in (D_parameters.get("items") or []):
+    for item in D_parameters.get("items") or []:
         ie = item["id_exp"]
         if ie not in E:
             continue
@@ -545,7 +711,9 @@ def stitch_full(
         EP: Dict[str, Any] = {}
         concs = (item.get("experiment_properties") or {}).get("concentrations") or {}
         EP["concentrations"] = {
-            "dna_rna_concentration": _to_measurement_full(concs.get("dna_rna_concentration")),
+            "dna_rna_concentration": _to_measurement_full(
+                concs.get("dna_rna_concentration")
+            ),
             "concentration_SI": _to_measurement_full(concs.get("concentration_SI")),
         }
         pars = (item.get("experiment_properties") or {}).get("parameters_SI") or {}
@@ -560,7 +728,7 @@ def stitch_full(
         E[ie]["metadata"] = MD
         E[ie]["experiment_properties"] = EP
 
-    for item in (E_outcomes.get("items") or []):
+    for item in E_outcomes.get("items") or []:
         ie = item["id_exp"]
         if ie not in E:
             continue
@@ -570,7 +738,7 @@ def stitch_full(
             "comparative_notes": item.get("comparative_notes"),
         }
 
-    for item in (F_pairings.get("items") or []):
+    for item in F_pairings.get("items") or []:
         ie = item["id_exp"]
         if ie not in E:
             continue
@@ -595,6 +763,7 @@ def stitch_full(
         "experiments": list(E.values()),
         "extraction_report": full_report,
     }
+
 
 def _deep_merge_keep_left(a, b):
     """Shallow-friendly deep merge: keep a's non-null scalars; use b if a is None.
@@ -621,7 +790,10 @@ def _deep_merge_keep_left(a, b):
 def aggregate_c_outputs(outputs: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     """Build a consolidated C_sequences object from any of: C_sequences, C1_probe_core, C2_target_primers, C3_related."""
     # Start with single-pass C if present
-    base = outputs.get("C_sequences") or {"items": [], "extraction_report": {"missing": [], "uncertain": [], "notes": None}}
+    base = outputs.get("C_sequences") or {
+        "items": [],
+        "extraction_report": {"missing": [], "uncertain": [], "notes": None},
+    }
 
     # Build item index by id_exp from base
     items_map: Dict[str, Dict[str, Any]] = {}
@@ -644,10 +816,20 @@ def aggregate_c_outputs(outputs: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
                     tgt[f] = _deep_merge_keep_left(tgt.get(f), it[f])
 
         # merge extraction report
-        br = base.get("extraction_report") or {"missing": [], "uncertain": [], "notes": None}
-        er = obj.get("extraction_report") or {"missing": [], "uncertain": [], "notes": None}
+        br = base.get("extraction_report") or {
+            "missing": [],
+            "uncertain": [],
+            "notes": None,
+        }
+        er = obj.get("extraction_report") or {
+            "missing": [],
+            "uncertain": [],
+            "notes": None,
+        }
         br["missing"] = list((br.get("missing") or []) + (er.get("missing") or []))
-        br["uncertain"] = list((br.get("uncertain") or []) + (er.get("uncertain") or []))
+        br["uncertain"] = list(
+            (br.get("uncertain") or []) + (er.get("uncertain") or [])
+        )
         br_notes = [n for n in [br.get("notes"), er.get("notes")] if n]
         br["notes"] = " | ".join(br_notes) if br_notes else None
         base["extraction_report"] = br
@@ -666,12 +848,17 @@ def aggregate_c_outputs(outputs: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
         it.setdefault("primer_sequences", None)
         it.setdefault("related_sequences", [])
 
-    return {"items": merged_items, "extraction_report": base.get("extraction_report") or {"missing": [], "uncertain": [], "notes": None}}
+    return {
+        "items": merged_items,
+        "extraction_report": base.get("extraction_report")
+        or {"missing": [], "uncertain": [], "notes": None},
+    }
 
 
 # ──────────────────────────────────────────────────────────────────────
 # Project runner
 # ──────────────────────────────────────────────────────────────────────
+
 
 def run_project(project_dir: str | Path) -> None:
     """Run the pipeline as configured by files under project_dir."""
@@ -684,10 +871,12 @@ def run_project(project_dir: str | Path) -> None:
 
     headers = dict()
     if API_TOKEN is not None:
-        headers['Authorization'] = f'Bearer {API_TOKEN}'
-    
+        headers["Authorization"] = f"Bearer {API_TOKEN}"
+
     # Ollama client + Outlines model
-    client = ollama.Client(host=cfg.ollama_base_url, timeout=cfg.timeout_s, headers=headers)
+    client = ollama.Client(
+        host=cfg.ollama_base_url, timeout=cfg.timeout_s, headers=headers
+    )
 
     for model_name in cfg.model_names:
         model = outlines.from_ollama(client, model_name)
@@ -701,7 +890,9 @@ def run_project(project_dir: str | Path) -> None:
                 full_validator = Draft202012Validator(json.loads(full_schema_text))
                 logger.info("Loaded full schema for final validation.")
             except Exception:
-                logger.exception("Failed to load/parse full schema; proceeding without final validation.")
+                logger.exception(
+                    "Failed to load/parse full schema; proceeding without final validation."
+                )
 
         logger.info(f"Article glob: {cfg.article_glob}")
 
@@ -716,7 +907,9 @@ def run_project(project_dir: str | Path) -> None:
 
             # Run configured pre-passes
             outputs: Dict[str, Dict[str, Any]] = {}
-            for p in tqdm(cfg.pre_passes, desc=f"{article_name} pre-passes", leave=False):
+            for p in tqdm(
+                cfg.pre_passes, desc=f"{article_name} pre-passes", leave=False
+            ):
                 try:
                     outputs[p.name] = run_single_pass(
                         model=model,
@@ -730,10 +923,20 @@ def run_project(project_dir: str | Path) -> None:
                         model_name=model_name,
                     )
                 except Exception:
-                    logger.exception(f"Pass failed: {p.name} : {article_name} : {model_name}")
+                    logger.exception(
+                        f"Pass failed: {p.name} : {article_name} : {model_name}"
+                    )
 
             all_found_sequences = ", ".join(outputs["SeqPrompt_strict"])
             logger.info("Pre-passes done, found sequences: " + all_found_sequences)
+
+            for seq in tqdm(
+                set(outputs["SeqPrompt_strict"]).union(outputs["SeqPrompt"]),
+                desc=f"{article_name}: sequences construction",
+                leave=False,
+            ):
+
+                pass
 
             # for p in tqdm(cfg.passes, desc=f"{article_name} passes", leave=False):
             #     try:
