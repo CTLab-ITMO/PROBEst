@@ -1,9 +1,11 @@
 {
     "model_names": [
         "deepseek-r1:7b-qwen-distill-q4_K_M",
+        "myaniu/qwen2.5-1m:7b",
         "qwen2.5-coder:3b",
         "llama3.1:latest",
-        "qwen3:4b"
+        "qwen3:4b",
+        "myaniu/qwen2.5-1m:14b"
     ],
     "ollama_parameters": {
         "num_ctx": 131072,
