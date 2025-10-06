@@ -1,21 +1,22 @@
 {
     "model_names": [
         "myaniu/qwen2.5-1m:7b",
-        "deepseek-r1:7b-qwen-distill-q4_K_M",        
+        "deepseek-r1:1.5b",
         "qwen2.5-coder:3b",
+        "deepseek-r1:7b-qwen-distill-q4_K_M",
         "llama3.1:latest",
         "qwen3:4b",
         "myaniu/qwen2.5-1m:14b"
     ],
     "ollama_parameters": {
-        "num_ctx": 131072,
+        "num_ctx": 65536,
         "num_predict": 131072,
-        "temperature": 0.35,
+        "temperature": 0.15,
         "seed": 42
     },
     "ollama_base_url": "http://127.0.0.1:11434",
     "timeout_s": 300,
-    "input_dir": "input/md",
+    "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
     "out_dir": "outlines_output_pre",
     "full_schema_path": "schema/json/article.json",
     "db_path": "outlines_output/massive.sqlite",
@@ -32,25 +33,13 @@
             "schema": "passes/_1_SeqPrompt/schema_strict.json",
             "prompt": "passes/_1_SeqPrompt/prompt_strict.txt",
             "timeout": 60
-        },
-        {
-            "name": "Experiments",
-            "schema": "passes/_2_Experiments/schema.json",
-            "prompt": "passes/_2_Experiments/prompt.txt",
-            "timeout": 60
-        },
-        {
-            "name": "Experiments-strict",
-            "schema": "passes/_2_Experiments/schema_strict.json",
-            "prompt": "passes/_2_Experiments/prompt_strict.txt",
-            "timeout": 60
         }
     ],
     "construct_single_experiment_pass": {
             "name": "ConstructSingleExperiment",
             "schema": "passes/_3_ConstructSingleExperiment/schema.json",
             "prompt": "passes/_3_ConstructSingleExperiment/prompt.txt",
-            "timeout": 60
+            "timeout": 600
         },
     "passes": [
         {
