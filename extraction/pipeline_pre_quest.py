@@ -1018,7 +1018,7 @@ def run_project(project_dir: str | Path) -> None:
 
             all_found_sequences = list(
                 sorted(
-                    set(set(outputs["SeqPrompt_strict"]).union(outputs["SeqPrompt"]))
+                    set(set(outputs.get("SeqPrompt_strict", [])).union(outputs.get("SeqPrompt", [])))
                 )
             )
             all_found_sequences_str = ", ".join(all_found_sequences)
@@ -1038,7 +1038,7 @@ def run_project(project_dir: str | Path) -> None:
                             article_text=article_text,
                             sequence=seq,
                             sequence_id=i,
-                            pass_cfg=cfg.construct_single_experiment_pass,
+                            pass_cfg=construct_pass,
                             out_base=out_base,
                             article_stem=article_name,
                             tools=tools,
