@@ -1420,7 +1420,7 @@ def run_project(project_dir: str | Path) -> None:
                 ollama_parameters=cfg.ollama_parameters,
                 logger=logger,
                 model_name=model_name,
-                tqdm_position=3,
+                tqdm_position=2,
             )
 
             stamp = _now_stamp()
@@ -1440,7 +1440,7 @@ def run_project(project_dir: str | Path) -> None:
                     all_found_sequences,
                     desc=f"{article_name}: sequences construction",
                     leave=False,
-                    position=3,
+                    position=2,
                 )
             ):
                 for construct_pass in tqdm(
