@@ -623,7 +623,9 @@ def run_query_model(
             raise
 
         with open(raw_txt_path, mode="at", encoding="utf-8") as f:
+            f.write(f"> {chat_messages.messages[-1]}\n<")
             f.write(response)
+            f.write("\n\n")
 
         try:
             fixed = repair_json(response)
