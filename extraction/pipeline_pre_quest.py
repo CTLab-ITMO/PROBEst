@@ -655,7 +655,20 @@ def run_query_model(
         def parse_sequence(seq: str, base_chat: outlines.inputs.Chat):
             chat = outlines.inputs.Chat(base_chat.messages)
             questions_to_schema: List[Tuple[str, str, Dict[str, Any]]] = [
-                ("is_seq", "Check the whole article text. Is your picked sequence really a probe sequence or a part of probe sequence in this article text?", {"type": "boolean"}),
+                (
+                    "is_seq",
+                    "Check the whole article text. Is your picked sequence really a probe sequence or a part of probe sequence in this article text?",
+                    {"type": "boolean"},
+                ),
+                (
+                    "sequence_full",
+                    "Provide this sequence fully as a probe sequence in IUPAC-normalized format: from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 5,
+                        "maxLength": 150,
+                    },
+                ),
                 (
                     "sequence_normalized",
                     "Provide this probe sequence in IUPAC-normalized format: from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
@@ -663,7 +676,7 @@ def run_query_model(
                         "type": ["string", "null"],
                         "minLength": 5,
                         "maxLength": 150,
-                        "pattern": r"^(5')?([A-Z0-9_()'-]*)[-]?([ACGUTRYSWKMBDHVN0-9()]{5,})[-]?([A-Z0-9_()-]*)(3')?$",
+                        "pattern": r"^5'-(([A-Z0-9_()-]*)-)?([ACGUTRYSWKMBDHVN0-9()]{5,})(-([A-Z0-9_()-]*))?-(3')?$",
                     },
                 ),
                 (
@@ -673,7 +686,7 @@ def run_query_model(
                         "type": ["string", "null"],
                         "minLength": 5,
                         "maxLength": 150,
-                        "pattern": r"^5'([A-Z0-9_()-]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9_()-]*)3'$",
+                        "pattern": r"^5'-(([A-Z0-9_()-]*)-)?([ACGUTRYSWKMBDHVN0]{5,})(-([A-Z0-9_()-]*))?-(3')?$",
                     },
                 ),
                 (
@@ -684,6 +697,41 @@ def run_query_model(
                         "minLength": 5,
                         "maxLength": 150,
                         "pattern": r"^5'-([ACGUTRYSWKMBDHVN0-9()]{5,})-3'$",
+                    },
+                ),
+                (
+                    "fluorophore",
+                    "Provide the fluorophore of this probe. Use capital Latin letters, digits and dashes, you may also use an apostrophy. Put null here if not applicable or not present in the text of the article.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 3,
+                        "maxLength": 150,
+                        "pattern": r"^[A-Z0-9']{3,}$",
+                    },
+                ),
+                (
+                    "quencher",
+                    "Provide the quencher of this probe. Use capital Latin letters, digits and dashes, you may also use an apostrophy. Put null here if not applicable or not present in the text of the article.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 3,
+                        "maxLength": 150,
+                        "pattern": r"^[A-Z0-9']{3,}$",
+                    },
+                ),
+                (
+                    "modifications",
+                    "Now provide the modifications of the probe sequence as an array, where each element is a modification and its position in 5'-3' direction. Use Latin letters, digits and dashes, you may also use parentheses and apostrophy. Provide an empty array if not present in the article text.",
+                    {
+                        "type": "array",
+                        "minItems": 0,
+                        "maxItems": 150,
+                        "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 30,
+                            "pattern": r"^[a-zA-Z0-9()'-]$",
+                        },
                     },
                 ),
                 (
@@ -836,11 +884,17 @@ def run_query_model(
         described_sequences: Dict[str, Dict[str, Any]] = dict()
         for seq in tqdm(sequences, desc="Found sequences", leave=False):
             base_chat_with_sequence = outlines.inputs.Chat(base_chat.messages)
-            base_chat_with_sequence.add_user_message("Let's pick and analyze a single probe sequence from the article text. Provide the probe sequence which we will describe in all the following messages.")
+            base_chat_with_sequence.add_user_message(
+                "Let's pick and analyze a single probe sequence from the article text. Provide the probe sequence which we will describe in all the following messages."
+            )
             base_chat_with_sequence.add_assistant_message(seq)
-            base_chat_with_sequence.add_user_message(f"Great choice! Let's analyze nucleotidic sequence {seq} for the rest of this chat!")
+            base_chat_with_sequence.add_user_message(
+                f"Great choice! Let's analyze nucleotidic sequence {seq} for the rest of this chat!"
+            )
             try:
-                sequence_descriptor = parse_sequence(seq, base_chat=base_chat_with_sequence)
+                sequence_descriptor = parse_sequence(
+                    seq, base_chat=base_chat_with_sequence
+                )
                 described_sequences[seq] = sequence_descriptor
                 answers.append(
                     {"sequence": seq, "sequence_descriptor": sequence_descriptor}
