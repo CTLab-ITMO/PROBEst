@@ -707,7 +707,7 @@ def run_query_model(
                     "Describe the primer sequences in IUPAC-normalized format, each from 5' to 3' end. Use capital Latin letters, digits and dashes, parentheses and apostrophy. Put null to the primer if it is not present in the article text.",
                     {
                         "type": "object",
-                        "additionalProperties": False,
+                        "additionalProperties": "false",
                         "required": ["forward", "reverse"],
                         "properties": {
                             "forward": {
@@ -740,7 +740,7 @@ def run_query_model(
                     "Describe the melting temperature in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": False,
+                        "additionalProperties": "false",
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -753,7 +753,7 @@ def run_query_model(
                     "Describe the amounit of Tris in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": False,
+                        "additionalProperties": "false",
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -766,7 +766,7 @@ def run_query_model(
                     "Describe the amounit of Na (Sodium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": False,
+                        "additionalProperties": "false",
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -779,7 +779,7 @@ def run_query_model(
                     "Describe the amounit of K (Potassium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": False,
+                        "additionalProperties": "false",
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -792,7 +792,7 @@ def run_query_model(
                     "Describe the amounit of Mg (Magnesium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": False,
+                        "additionalProperties": "false",
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -805,7 +805,7 @@ def run_query_model(
                     "Describe the amounit of DMSO in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": False,
+                        "additionalProperties": "false",
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
