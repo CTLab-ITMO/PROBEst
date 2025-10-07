@@ -406,6 +406,7 @@ def run_single_pass(
             + "\n<\\article>\n",
             output_type=js,
             options=ollama_parameters,
+            logger=logger,
             keep_alive="30s",
         )
     except Exception as e:
