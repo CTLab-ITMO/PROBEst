@@ -606,9 +606,6 @@ def run_query_model(
     def ask_with_schema(chat_messages: outlines.inputs.Chat, schema: JsonSchema):
         response = ""
         try:
-            chat_messages.add_user_message(
-                "Identify nucleotide sequences of all hybridization probes present in the whole article text, please. Provide your answer as a JSON array. Use only capital Latin letters, dash, parentheses, apostrophy and digits. Each item of the array must only be the nucleotide hybridization probe sequence."
-            )
             response = think_generate(
                 model=model,
                 model_input=chat_messages,
@@ -623,7 +620,7 @@ def run_query_model(
             raise
 
         with open(raw_txt_path, mode="at", encoding="utf-8") as f:
-            f.write(f"> {chat_messages.messages[-1]}\n<")
+            f.write(f"> {chat_messages.messages[-1]}\n< ")
             f.write(response)
             f.write("\n\n")
 
