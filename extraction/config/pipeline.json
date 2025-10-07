@@ -30,14 +30,7 @@
             "timeout": 60
         }
     ],
-    "construct_single_experiment_passes": [
-        {
-            "name": "ConstructSingleSequenceExperimentAndOutcome",
-            "schema": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/schema.json",
-            "prompt": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/prompt.txt",
-            "timeout": 600
-        }
-    ],
+    "construct_single_experiment_passes": [],
     "passes": [
         {
             "name": "A_core",

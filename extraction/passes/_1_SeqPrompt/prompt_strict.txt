@@ -32,7 +32,7 @@ Here is the JSON schema you have to follow:
     "type": "string",
     "minLength": 5,
     "maxLength": 150,
-    "pattern": "^(5')?([A-Z0-9_()'-]*)[-]?([ACGUTRYSWKMBDHVN0-9()]{5,})[-]?([A-Z0-9_()-]*)(3')?$",
+    "pattern": "^[A-Z0-9()'-]*[ACGUTRYSWKMBDHVN]{5,}[A-Z0-9()'-]*$",
     "description": "A single sequence out of all the DNA, RNA and other sequences from the article."
   }
 }
