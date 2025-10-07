@@ -657,7 +657,7 @@ def run_query_model(
             questions_to_schema: List[Tuple[str, str, Dict[str, Any]]] = [
                 (
                     "is_seq",
-                    "Check the whole article text. Is your picked sequence really a probe sequence or a part of probe sequence in this article text?",
+                    "Check the whole article text. Is your picked sequence really a probe sequence or a part of probe sequence in this article text? Put true here if and only if this sequence is being described and presented as a hybridization probe. If that's a random abbreviation or nucleotide-looking string which is not a hybridization probe or otherwise not a hybridization probe, put false here.",
                     {"type": "boolean"},
                 ),
                 (
@@ -902,7 +902,7 @@ def run_query_model(
                 questions_to_schema, desc="Questions to the sequence", leave=False
             ):
                 try:
-                    chat.add_user_message(query)
+                    chat.add_user_message(query + "\nAnd here is the schema yout answer has to follow:\n```json\n" + json.dumps(schema) + "```\n")
                     response, raw = ask_with_schema(
                         chat_messages=chat, schema=JsonSchema(schema)
                     )
