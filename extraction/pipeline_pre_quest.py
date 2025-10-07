@@ -655,7 +655,7 @@ def run_query_model(
         def parse_sequence(seq: str, base_chat: outlines.inputs.Chat):
             chat = outlines.inputs.Chat(base_chat.messages)
             questions_to_schema: List[Tuple[str, str, Dict[str, Any]]] = [
-                ("is_seq", "Is it a probe sequence or a part of probe sequence in this article text?", {"type": "boolean"}),
+                ("is_seq", "Check the whole article text. Is your picked sequence really a probe sequence or a part of probe sequence in this article text?", {"type": "boolean"}),
                 (
                     "sequence_normalized",
                     "Provide this probe sequence in IUPAC-normalized format: from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
@@ -835,8 +835,12 @@ def run_query_model(
 
         described_sequences: Dict[str, Dict[str, Any]] = dict()
         for seq in tqdm(sequences, desc="Found sequences", leave=False):
+            base_chat_with_sequence = outlines.inputs.Chat(base_chat.messages)
+            base_chat_with_sequence.add_user_message("Let's pick and analyze a single probe sequence from the article text. Provide the probe sequence which we will describe in all the following messages.")
+            base_chat_with_sequence.add_assistant_message(seq)
+            base_chat_with_sequence.add_user_message(f"Great choice! Let's analyze nucleotidic sequence {seq} for the rest of this chat!")
             try:
-                sequence_descriptor = parse_sequence(seq, base_chat=base_chat)
+                sequence_descriptor = parse_sequence(seq, base_chat=base_chat_with_sequence)
                 described_sequences[seq] = sequence_descriptor
                 answers.append(
                     {"sequence": seq, "sequence_descriptor": sequence_descriptor}
