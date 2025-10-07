@@ -164,13 +164,27 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
 # ──────────────────────────────────────────────────────────────────────
 
 
+class TqdmLoggingHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            tqdm.write(msg)
+            self.flush()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)
+
+
 def _make_logger(log_dir: Path) -> logging.Logger:
     log_dir.mkdir(parents=True, exist_ok=True)
     logger = logging.getLogger("pipeline_filedriven")
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
+     
 
-    ch = logging.StreamHandler(sys.stdout)
+    #ch = logging.StreamHandler(sys.stdout)
+    ch = TqdmLoggingHandler()
     ch.setLevel(logging.INFO)
     ch.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(message)s"))
     logger.addHandler(ch)
@@ -900,10 +914,18 @@ def run_query_model(
             seq_desc: Dict[str, Any] = dict()
 
             for param, query, schema in tqdm(
-                questions_to_schema, desc="Questions to the sequence", position=tqdm_position+1, leave=False
+                questions_to_schema,
+                desc="Questions to the sequence",
+                position=tqdm_position + 1,
+                leave=False,
             ):
                 try:
-                    chat.add_user_message(query + "\nAnd here is the schema yout answer has to follow:\n```json\n" + json.dumps(schema) + "```\n")
+                    chat.add_user_message(
+                        query
+                        + "\nAnd here is the schema yout answer has to follow:\n```json\n"
+                        + json.dumps(schema)
+                        + "```\n"
+                    )
                     response, raw = ask_with_schema(
                         chat_messages=chat, schema=JsonSchema(schema)
                     )
@@ -917,7 +939,9 @@ def run_query_model(
             return seq_desc
 
         described_sequences: Dict[str, Dict[str, Any]] = dict()
-        for seq in tqdm(sequences, desc="Found sequences", position=tqdm_position, leave=False):
+        for seq in tqdm(
+            sequences, desc="Found sequences", position=tqdm_position, leave=False
+        ):
             base_chat_with_sequence = outlines.inputs.Chat(base_chat.messages)
             base_chat_with_sequence.add_user_message(
                 "Let's pick and analyze a single probe sequence from the article text. Provide the probe sequence which we will describe in all the following messages."
@@ -1339,7 +1363,9 @@ def run_project(project_dir: str | Path) -> None:
         logger.info(f"Article glob: {cfg.article_glob}")
 
         # Iterate input articles
-        files = sorted(cfg.input_dir.glob(cfg.article_glob), key=lambda s: str(s).upper())
+        files = sorted(
+            cfg.input_dir.glob(cfg.article_glob), key=lambda s: str(s).upper()
+        )
         logger.info(f"Files: {files}")
 
         for art_path in tqdm(files, desc="Articles", position=1, leave=False):
@@ -1350,7 +1376,10 @@ def run_project(project_dir: str | Path) -> None:
             # Run configured pre-passes
             outputs: Dict[str, Dict[str, Any]] = {}
             for p in tqdm(
-                cfg.pre_passes, desc=f"{article_name} pre-passes", position=2, leave=False
+                cfg.pre_passes,
+                desc=f"{article_name} pre-passes",
+                position=2,
+                leave=False,
             ):
                 try:
                     outputs[p.name] = run_single_pass(
@@ -1410,8 +1439,9 @@ def run_project(project_dir: str | Path) -> None:
                 tqdm(
                     all_found_sequences,
                     desc=f"{article_name}: sequences construction",
-                    leave=False,position=3
-                )                
+                    leave=False,
+                    position=3,
+                )
             ):
                 for construct_pass in tqdm(
                     cfg.construct_single_experiment_passes,
