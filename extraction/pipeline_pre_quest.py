@@ -672,7 +672,7 @@ def run_query_model(
                         "type": ["string", "null"],
                         "minLength": 5,
                         "maxLength": 150,
-                        "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                        "pattern": r"^5'([A-Z0-9_()-]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9_()-]*)3'$",
                     },
                 ),
                 (
@@ -697,7 +697,7 @@ def run_query_model(
                         "type": ["string", "null"],
                         "minLength": 5,
                         "maxLength": 150,
-                        "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                        "pattern": r"^5'([A-Z0-9_()-]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9_()-]*)3'$",
                     },
                 ),
                 (
@@ -712,13 +712,13 @@ def run_query_model(
                                 "type": ["string", "null"],
                                 "minLength": 5,
                                 "maxLength": 150,
-                                "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                                "pattern": r"^5'([A-Z0-9_()-]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9_()-]*)3'$",
                             },
                             "reverse": {
                                 "type": ["string", "null"],
                                 "minLength": 5,
                                 "maxLength": 150,
-                                "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                                "pattern": r"^5'([A-Z0-9_()-]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9_()-]*)3'$",
                             },
                         },
                     },
