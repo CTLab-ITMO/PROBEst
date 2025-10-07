@@ -915,7 +915,7 @@ def run_query_model(
 
             for param, query, schema in tqdm(
                 questions_to_schema,
-                desc="Questions to the sequence",
+                desc=f"Questions to the sequence {seq} in {article_stem}",
                 position=tqdm_position + 1,
                 leave=False,
             ):
@@ -940,7 +940,7 @@ def run_query_model(
 
         described_sequences: Dict[str, Dict[str, Any]] = dict()
         for seq in tqdm(
-            sequences, desc="Found sequences", position=tqdm_position, leave=False
+            sequences, desc=f"Found sequences in {article_stem}", position=tqdm_position, leave=False
         ):
             base_chat_with_sequence = outlines.inputs.Chat(base_chat.messages)
             base_chat_with_sequence.add_user_message(
@@ -1368,7 +1368,7 @@ def run_project(project_dir: str | Path) -> None:
         )
         logger.info(f"Files: {files}")
 
-        for art_path in tqdm(files, desc="Articles", position=1, leave=False):
+        for art_path in tqdm(files, desc=f"Articles for model {model_name}", position=1, leave=False):
             article_name = art_path.stem
             logger.info(f"=== {article_name} : {model_name} ===")
             article_text = art_path.read_text(encoding="utf-8")
