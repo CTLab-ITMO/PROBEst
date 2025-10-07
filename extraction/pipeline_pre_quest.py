@@ -900,7 +900,7 @@ def run_query_model(
             seq_desc: Dict[str, Any] = dict()
 
             for param, query, schema in tqdm(
-                questions_to_schema, desc="Questions to the sequence", position=tqdm_position+1
+                questions_to_schema, desc="Questions to the sequence", position=tqdm_position+1, leave=False
             ):
                 try:
                     chat.add_user_message(query + "\nAnd here is the schema yout answer has to follow:\n```json\n" + json.dumps(schema) + "```\n")
@@ -917,7 +917,7 @@ def run_query_model(
             return seq_desc
 
         described_sequences: Dict[str, Dict[str, Any]] = dict()
-        for seq in tqdm(sequences, desc="Found sequences", position=tqdm_position):
+        for seq in tqdm(sequences, desc="Found sequences", position=tqdm_position, leave=False):
             base_chat_with_sequence = outlines.inputs.Chat(base_chat.messages)
             base_chat_with_sequence.add_user_message(
                 "Let's pick and analyze a single probe sequence from the article text. Provide the probe sequence which we will describe in all the following messages."
@@ -1320,7 +1320,7 @@ def run_project(project_dir: str | Path) -> None:
     )
 
     ollama_models = client.list()
-    for model_name in tqdm(cfg.model_names, desc="LLM Models", position=0):
+    for model_name in tqdm(cfg.model_names, desc="LLM Models", position=0, leave=False):
         model = outlines.from_ollama(client, model_name)
         tools = [to_si, parse_oligo, make_measurement]
 
@@ -1342,7 +1342,7 @@ def run_project(project_dir: str | Path) -> None:
         files = sorted(cfg.input_dir.glob(cfg.article_glob), key=lambda s: str(s).upper())
         logger.info(f"Files: {files}")
 
-        for art_path in tqdm(files, desc="Articles", position=1):
+        for art_path in tqdm(files, desc="Articles", position=1, leave=False):
             article_name = art_path.stem
             logger.info(f"=== {article_name} : {model_name} ===")
             article_text = art_path.read_text(encoding="utf-8")
@@ -1350,7 +1350,7 @@ def run_project(project_dir: str | Path) -> None:
             # Run configured pre-passes
             outputs: Dict[str, Dict[str, Any]] = {}
             for p in tqdm(
-                cfg.pre_passes, desc=f"{article_name} pre-passes", position=2
+                cfg.pre_passes, desc=f"{article_name} pre-passes", position=2, leave=False
             ):
                 try:
                     outputs[p.name] = run_single_pass(
@@ -1410,9 +1410,8 @@ def run_project(project_dir: str | Path) -> None:
                 tqdm(
                     all_found_sequences,
                     desc=f"{article_name}: sequences construction",
-                    leave=False,
-                ),
-                position=3
+                    leave=False,position=3
+                )                
             ):
                 for construct_pass in tqdm(
                     cfg.construct_single_experiment_passes,
