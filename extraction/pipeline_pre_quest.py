@@ -67,6 +67,7 @@ class PipelineConfig:
     input_dir: Path
     out_dir: Path
     full_schema_path: Optional[Path]
+    common_prompt_path: Optional[Path]
     construct_single_experiment_passes: List[PassConfig]
     db_path: Optional[Path]
     article_glob: str
@@ -149,6 +150,7 @@ def load_pipeline_config(project_dir: Path) -> PipelineConfig:
         input_dir=project_dir / data.get("input_dir", "inputs"),
         out_dir=project_dir / data.get("out_dir", "out"),
         full_schema_path=_opt_path(data.get("full_schema_path")),
+        common_prompt_path=_opt_path(data.get("common_prompt_path")),
         construct_single_experiment_passes=construct_single_experiment_passes,
         db_path=_opt_path(data.get("db_path")),
         article_glob=data.get("article_glob", "*.txt"),
@@ -328,6 +330,34 @@ def _now_stamp() -> str:
     return datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
 
 
+def think_generate(
+    model: outlines.models.ollama.Ollama,
+    model_input: outlines.inputs.Chat | str | list,
+    logger: logging.Logger,
+    output_type: Optional[Any] = None,
+    think: bool = True,
+    **kwargs: Any,
+) -> str:
+    if think:
+        try:
+            logger.debug("Trying thinking mode")
+            response = model.generate(
+                model_input=model_input, output_type=output_type, think=True, **kwargs
+            )
+            return response
+        except ollama.ResponseError as e:
+            logger.exception(
+                f"Seems that model {model.model_name} does not support thinking.", e
+            )
+
+    logger.debug("Trying non-thinking mode")
+    response = model.generate(
+        model_input=model_input, output_type=output_type, think=False, **kwargs
+    )
+
+    return response
+
+
 def run_single_pass(
     model: Any,
     article_text: str,
@@ -367,39 +397,17 @@ def run_single_pass(
     logger.info(f"[{pass_cfg.name}:{model_name}] generating …")
     response = ""
     try:
-        # for chunk in model.stream(
-        #     prompt + "\n\n" + article_text,
-        #     output_type=js,
-        #     options=ollama_parameters,
-        #     tools=tools,
-        # ):
-        #     response += chunk
-        try:
-            response = model.generate(
-                prompt
-                + "\n"
-                + "And here is the article text you must base your answer on:\n\n<article>\n"
-                + article_text
-                + "\n<\\article>\n",
-                output_type=js,
-                options=ollama_parameters,
-                # tools=tools, # TODO: Temporarily switch tools off
-                think=True,
-                keep_alive="30s",
-            )
-        except ollama.ResponseError:
-            response = model.generate(
-                prompt
-                + "\n"
-                + "And here is the article text you must base your answer on:\n\n<article>\n"
-                + article_text
-                + "\n<\\article>\n",
-                output_type=js,
-                options=ollama_parameters,
-                # tools=tools, # TODO: Temporarily switch tools off
-                think=False,
-                keep_alive="30s",
-            )
+        response = think_generate(
+            model=model,
+            model_input=prompt
+            + "\n"
+            + "And here is the article text you must base your answer on:\n\n<article>\n"
+            + article_text
+            + "\n<\\article>\n",
+            output_type=js,
+            options=ollama_parameters,
+            keep_alive="30s",
+        )
     except Exception as e:
         logger.exception(f"[{pass_cfg.name}:{model_name}] stream error")
         err_log_path.write_text(f"STREAM ERROR:\n{e}\n", encoding="utf-8")
@@ -476,95 +484,47 @@ def run_construct_single_experiment_pass(
     logger.info(f"[{pass_cfg.name}:{model_name}] generating …")
     response = ""
     try:
-        # for chunk in model.stream(
-        #     prompt + "\n\n" + article_text,
-        #     output_type=js,
-        #     options=ollama_parameters,
-        #     tools=tools,
-        # ):
-        #     response += chunk
-        try:
-            response = model.generate(
-                model_input=outlines.inputs.Chat(
-                    [
-                        {
-                            "role": "system",
-                            "content": prompt
-                            + "\n"
-                            + "And here is the article text you must base your answer on:\n\n<article>\n"
-                            + article_text
-                            + "\n<\\article>\n",
-                        },
-                        {
-                            "role": "user",
-                            "content": "Let's describe a single nucleotide sequence!",
-                        },
-                        {
-                            "role": "assistant",
-                            "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
-                        },
-                        {
-                            "role": "user",
-                            "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
-                            + js.schema
-                            + "\n```\n\nIs it OK?",
-                        },
-                        {
-                            "role": "assistant",
-                            "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
-                        },
-                        {
-                            "role": "user",
-                            "content": sequence,
-                        },
-                    ]
-                ),
-                output_type=js,
-                options=ollama_parameters,
-                think=True,
-                keep_alive="30s",
-            )
-        except ollama.ResponseError:
-            response = model.generate(
-                model_input=outlines.inputs.Chat(
-                    [
-                        {
-                            "role": "system",
-                            "content": prompt
-                            + "\n"
-                            + "And here is the article text you must base your answer on:\n\n<article>\n"
-                            + article_text
-                            + "\n<\\article>\n",
-                        },
-                        {
-                            "role": "user",
-                            "content": "Let's describe a single nucleotide sequence!",
-                        },
-                        {
-                            "role": "assistant",
-                            "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
-                        },
-                        {
-                            "role": "user",
-                            "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
-                            + js.schema
-                            + "\n```\n\nIs it OK?",
-                        },
-                        {
-                            "role": "assistant",
-                            "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
-                        },
-                        {
-                            "role": "user",
-                            "content": sequence,
-                        },
-                    ]
-                ),
-                output_type=js,
-                options=ollama_parameters,
-                think=False,
-                keep_alive="30s",
-            )
+        response = think_generate(
+            model=model,
+            model_input=outlines.inputs.Chat(
+                [
+                    {
+                        "role": "system",
+                        "content": prompt
+                        + "\n"
+                        + "And here is the article text you must base your answer on:\n\n<article>\n"
+                        + article_text
+                        + "\n<\\article>\n",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Let's describe a single nucleotide sequence!",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "Sure! Let's describe one! But before we start, could you please tell me in which format you would like me to provide you an answer?",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Great question! I would like your answer to satisfy the following JSON schema:\n```json"
+                        + js.schema
+                        + "\n```\n\nIs it OK?",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "Absolutely! Now please provide the nucleotide sequence you want me to describe in terms of tthe hybridization experiment design and I will provide you its description strictly following your provided JSON schema!",
+                    },
+                    {
+                        "role": "user",
+                        "content": sequence,
+                    },
+                ]
+            ),
+            output_type=js,
+            options=ollama_parameters,
+            keep_alive="30s",
+        )
+
     except Exception as e:
         logger.exception(f"[{pass_cfg.name}:{model_name}] stream error")
         err_log_path.write_text(f"STREAM ERROR:\n{e}\n", encoding="utf-8")
@@ -598,6 +558,304 @@ def run_construct_single_experiment_pass(
         json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     return obj
+
+
+def run_query_model(
+    model: Any,
+    article_text: str,
+    sequences: List[str],
+    out_base: Path,
+    article_stem: str,
+    common_prompt_path: Path,
+    logger: logging.Logger,
+    ollama_parameters: Dict[str, Any],
+    model_name: str,
+) -> Dict[str, Any]:
+    """Run one pass (schema+prompt from files), save raw+json+log, return object."""
+    pass_name = "query_chat"
+    txt_dir = out_base / "txt"
+    json_dir = out_base / "json"
+    log_dir = out_base / "logs"
+    for d in (txt_dir, json_dir, log_dir):
+        d.mkdir(parents=True, exist_ok=True)
+
+    prompt = common_prompt_path.read_text(encoding="utf-8")
+
+    stamp = _now_stamp()
+    raw_txt_path = (
+        txt_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.txt"
+    )
+    json_log_path = (
+        json_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.log.json"
+    )
+    json_out_path = (
+        json_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.json"
+    )
+    err_log_path = (
+        log_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.log"
+    )
+
+    logger.info(f"[{pass_name}:{model_name}] generating …")
+
+    def ask_with_schema(chat_messages: outlines.inputs.Chat, schema: JsonSchema):
+        response = ""
+        try:
+            chat_messages.add_user_message(
+                "Identify nucleotide sequences of all hybridization probes present in the whole article text, please. Provide your answer as a JSON array. Use only capital Latin letters, dash, parentheses, apostrophy and digits. Each item of the array must only be the nucleotide hybridization probe sequence."
+            )
+            response = think_generate(
+                model=model,
+                model_input=chat_messages,
+                output_type=schema,
+                options=ollama_parameters,
+                keep_alive="30s",
+            )
+        except Exception as e:
+            logger.exception(f"[{pass_name}:{model_name}] stream error")
+            err_log_path.write_text(f"STREAM ERROR:\n{e}\n", encoding="utf-8")
+            raise
+
+        with open(raw_txt_path, mode="at", encoding="utf-8") as f:
+            f.write(response)
+
+        try:
+            fixed = repair_json(response)
+            obj = json.loads(fixed)
+        except Exception as e:
+            logger.exception(f"[{pass_name}:{model_name}] JSON parse error")
+            err_log_path.write_text(
+                f"JSON ERROR:\n{e}\nRAW:\n{response}\n", encoding="utf-8"
+            )
+            raise
+
+        return obj
+
+    base_chat = outlines.inputs.Chat(
+        [
+            {
+                "role": "system",
+                "content": prompt
+                + "\n"
+                + "And here is the article text you must base your answer on:\n\n<article>\n"
+                + article_text
+                + "\n<\\article>\n",
+            }
+        ]
+    )
+    answers = []
+
+    try:
+
+        def parse_sequence(seq: str, base_chat: outlines.inputs.Chat):
+            chat = outlines.inputs.Chat(base_chat.messages)
+            questions_to_schema: List[Tuple[str, str, Dict[str, Any]]] = [
+                ("is_seq", "Is it a probe sequence?", {"type": "boolean"}),
+                (
+                    "sequence_normalized",
+                    "Provide this probe sequence in IUPAC-normalized format: from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 5,
+                        "maxLength": 150,
+                        "pattern": r"^5'([A-Z0-9\-_()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_()]*)3'$",
+                    },
+                ),
+                (
+                    "sequence_expanded",
+                    "Provide this probe sequence in expanded IUPAC format (with all repeats expanded): from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 5,
+                        "maxLength": 150,
+                        "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                    },
+                ),
+                (
+                    "sequence_backbone",
+                    "Now provide only the probe sequence body from 5' to 3', without any fluorophores, modifications and quenchers. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 5,
+                        "maxLength": 150,
+                        "pattern": r"^5'-([ACGUTRYSWKMBDHVN]{5,})-3'$",
+                    },
+                ),
+                (
+                    "target_raw",
+                    "Describe the target to which this probe was designed to hybridize.",
+                    {"type": "string", "minLength": 5, "maxLength": 250},
+                ),
+                (
+                    "target_normalized",
+                    "Now provide the target sequence to which this probe should hybridize, from 5' to 3'. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable or if the exact sequence is not present in the article text.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 5,
+                        "maxLength": 150,
+                        "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                    },
+                ),
+                (
+                    "primers",
+                    "Describe the primer sequences in IUPAC-normalized format, each from 5' to 3' end. Use capital Latin letters, digits and dashes, parentheses and apostrophy. Put null to the primer if it is not present in the article text.",
+                    {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": ["forward", "reverse"],
+                        "properties": {
+                            "forward": {
+                                "type": ["string", "null"],
+                                "minLength": 5,
+                                "maxLength": 150,
+                                "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                            },
+                            "reverse": {
+                                "type": ["string", "null"],
+                                "minLength": 5,
+                                "maxLength": 150,
+                                "pattern": r"^5'([A-Z0-9\-_'()]*)-([ACGUTRYSWKMBDHVN]{5,})-([A-Z0-9\-_'()]*)3'$",
+                            },
+                        },
+                    },
+                ),
+                (
+                    "pH",
+                    "Describe the pH in this experiment. Provide the number or null, if this information is not present in the article text.",
+                    {"type": ["number", "null"]},
+                ),
+                (
+                    "annealing_raw",
+                    "Describe the annealing in this experiment. Provide the raw description string or null, if this information is not present in the article text.",
+                    {"type": ["string", "null"], "minLength": 10, "maxLength": 250},
+                ),
+                (
+                    "T",
+                    "Describe the melting temperature in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    {
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "required": ["value", "unit"],
+                        "properties": {
+                            "value": {"type": "number"},
+                            "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                        },
+                    },
+                ),
+                (
+                    "Tris",
+                    "Describe the amounit of Tris in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    {
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "required": ["value", "unit"],
+                        "properties": {
+                            "value": {"type": "number"},
+                            "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                        },
+                    },
+                ),
+                (
+                    "Na",
+                    "Describe the amounit of Na (Sodium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    {
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "required": ["value", "unit"],
+                        "properties": {
+                            "value": {"type": "number"},
+                            "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                        },
+                    },
+                ),
+                (
+                    "K",
+                    "Describe the amounit of K (Potassium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    {
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "required": ["value", "unit"],
+                        "properties": {
+                            "value": {"type": "number"},
+                            "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                        },
+                    },
+                ),
+                (
+                    "Mg",
+                    "Describe the amounit of Mg (Magnesium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    {
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "required": ["value", "unit"],
+                        "properties": {
+                            "value": {"type": "number"},
+                            "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                        },
+                    },
+                ),
+                (
+                    "DMSO",
+                    "Describe the amounit of DMSO in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    {
+                        "type": ["object", "null"],
+                        "additionalProperties": False,
+                        "required": ["value", "unit"],
+                        "properties": {
+                            "value": {"type": "number"},
+                            "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                        },
+                    },
+                ),
+                (
+                    "outcome",
+                    "Describe the outcome of this hybridization experiment based on the article text. Put true in case of successful hybridization of this probe to target, put false in case of unsuccessful and put null if this information is not present in the article.",
+                    {"type": ["boolean", "null"]},
+                ),
+            ]
+
+            seq_desc: Dict[str, Any] = dict()
+
+            for param, query, schema in tqdm(
+                questions_to_schema, desc="Questions to the sequence", leave=False
+            ):
+                chat.add_user_message(query)
+                response = ask_with_schema(
+                    chat_messages=chat, schema=JsonSchema(schema)
+                )
+                answers.append({"seq": seq, "param": param, "response": response})
+                seq_desc[param] = response
+                chat.add_assistant_message(response)
+            return seq_desc
+
+        described_sequences: Dict[str, Dict[str, Any]] = dict()
+        for seq in tqdm(sequences, desc="Found sequences", leave=False):
+            try:
+                sequence_descriptor = parse_sequence(seq, base_chat=base_chat)
+                described_sequences[seq] = sequence_descriptor
+                answers.append(
+                    {"sequence": seq, "sequence_descriptor": sequence_descriptor}
+                )
+            except Exception as e:
+                logger.exception(
+                    f'[{pass_name}:{model_name}] Sequence "{seq}" error computing descriptor'
+                )
+                err_log_path.write_text(
+                    f'[{pass_name}:{model_name}] Sequence "{seq}" error computing descriptor',
+                    encoding="utf-8",
+                )
+    finally:
+        json_log_path.write_text(
+            json.dumps(answers, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        json_out_path.write_text(
+            json.dumps(described_sequences, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    return described_sequences
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -1018,11 +1276,39 @@ def run_project(project_dir: str | Path) -> None:
 
             all_found_sequences = list(
                 sorted(
-                    set(set(outputs.get("SeqPrompt_strict", [])).union(outputs.get("SeqPrompt", [])))
+                    set(
+                        set(outputs.get("SeqPrompt_strict", [])).union(
+                            outputs.get("SeqPrompt", [])
+                        )
+                    )
                 )
             )
             all_found_sequences_str = ", ".join(all_found_sequences)
             logger.info("Pre-passes done, found sequences: " + all_found_sequences_str)
+
+            sequence_descriptors = run_query_model(
+                model=model,
+                article_text=article_text,
+                sequences=all_found_sequences,
+                out_base=out_base,
+                article_stem=article_name,
+                common_prompt_path=cfg.common_prompt_path,
+                tools=tools,
+                ollama_parameters=cfg.ollama_parameters,
+                model_name=model_name,
+            )
+
+            stamp = _now_stamp()
+            full_dir = out_base / "json_full"
+            full_dir.mkdir(parents=True, exist_ok=True)
+            full_seq_desc_path = (
+                full_dir
+                / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-FULL__{stamp}.json"
+            )
+            full_seq_desc_path.write_text(
+                json.dumps(sequence_descriptors, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
 
             for i, seq in enumerate(
                 tqdm(
@@ -1031,7 +1317,11 @@ def run_project(project_dir: str | Path) -> None:
                     leave=False,
                 )
             ):
-                for construct_pass in tqdm(cfg.construct_single_experiment_passes, desc="Construction schemas", leave=False):
+                for construct_pass in tqdm(
+                    cfg.construct_single_experiment_passes,
+                    desc="Construction schemas",
+                    leave=False,
+                ):
                     try:
                         run_construct_single_experiment_pass(
                             model=model,
