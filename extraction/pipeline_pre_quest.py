@@ -1293,7 +1293,6 @@ def run_project(project_dir: str | Path) -> None:
                 out_base=out_base,
                 article_stem=article_name,
                 common_prompt_path=cfg.common_prompt_path,
-                tools=tools,
                 ollama_parameters=cfg.ollama_parameters,
                 model_name=model_name,
             )
