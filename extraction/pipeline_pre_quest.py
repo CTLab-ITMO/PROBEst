@@ -1294,6 +1294,7 @@ def run_project(project_dir: str | Path) -> None:
                 article_stem=article_name,
                 common_prompt_path=cfg.common_prompt_path,
                 ollama_parameters=cfg.ollama_parameters,
+                logger=logger,
                 model_name=model_name,
             )
 
