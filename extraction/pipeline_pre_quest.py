@@ -635,7 +635,7 @@ def run_query_model(
             )
             raise
 
-        return obj
+        return obj, response
 
     base_chat = outlines.inputs.Chat(
         [
@@ -656,7 +656,7 @@ def run_query_model(
         def parse_sequence(seq: str, base_chat: outlines.inputs.Chat):
             chat = outlines.inputs.Chat(base_chat.messages)
             questions_to_schema: List[Tuple[str, str, Dict[str, Any]]] = [
-                ("is_seq", "Is it a probe sequence?", {"type": "boolean"}),
+                ("is_seq", "Is it a probe sequence or a part of probe sequence in this article text?", {"type": "boolean"}),
                 (
                     "sequence_normalized",
                     "Provide this probe sequence in IUPAC-normalized format: from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
@@ -826,12 +826,12 @@ def run_query_model(
                 questions_to_schema, desc="Questions to the sequence", leave=False
             ):
                 chat.add_user_message(query)
-                response = ask_with_schema(
+                response, raw = ask_with_schema(
                     chat_messages=chat, schema=JsonSchema(schema)
                 )
                 answers.append({"seq": seq, "param": param, "response": response})
                 seq_desc[param] = response
-                chat.add_assistant_message(response)
+                chat.add_assistant_message(raw)
             return seq_desc
 
         described_sequences: Dict[str, Dict[str, Any]] = dict()
