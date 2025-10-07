@@ -9,8 +9,8 @@
         "myaniu/qwen2.5-1m:14b"
     ],
     "ollama_parameters": {
-        "num_ctx": 131072,
-        "num_predict": 131072,
+        "num_ctx": 40960,
+        "num_predict": 8192,
         "temperature": 0.2,
         "seed": 52
     },
