@@ -15,7 +15,7 @@
         "seed": 52
     },
     "ollama_base_url": "http://127.0.0.1:11434",
-    "timeout_s": 600,
+    "timeout_s": 60,
     "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
     "out_dir": "outlines_output_pre",
     "full_schema_path": "schema/json/article.json",

@@ -676,17 +676,17 @@ def run_query_model(
                         "type": ["string", "null"],
                         "minLength": 5,
                         "maxLength": 150,
-                        "pattern": r"^5'-(([A-Z0-9_()-]*)-)?([ACGUTRYSWKMBDHVN0-9()]{5,})(-([A-Z0-9_()-]*))?-(3')?$",
+                        "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                     },
                 ),
                 (
                     "sequence_expanded",
-                    "Provide this probe sequence in expanded IUPAC format (with all repeats expanded): from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                    "Provide this probe sequence in expanded IUPAC format (with all repeats expanded and no parentheses in the probe sequence backbone body): from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
                     {
                         "type": ["string", "null"],
                         "minLength": 5,
                         "maxLength": 150,
-                        "pattern": r"^5'-(([A-Z0-9_()-]*)-)?([ACGUTRYSWKMBDHVN0]{5,})(-([A-Z0-9_()-]*))?-(3')?$",
+                        "pattern": r"^5'-([a-zA-Z0-9_'-]*-)?([a-zA-Z0-9']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9']*?)(-[a-zA-Z0-9_'-]*)?-3'$",
                     },
                 ),
                 (
@@ -697,6 +697,16 @@ def run_query_model(
                         "minLength": 5,
                         "maxLength": 150,
                         "pattern": r"^5'-([ACGUTRYSWKMBDHVN0-9()]{5,})-3'$",
+                    },
+                ),
+                (
+                    "sequence_backbone_expanded",
+                    "Now provide only the expanded probe sequence body from 5' to 3' with all repeats expanded, without any fluorophores, modifications and quenchers. Use capital Latin letters, digits, dashes and apostrophy. Only the expanded backbone of probe sequence body. Put null here if not applicable.",
+                    {
+                        "type": ["string", "null"],
+                        "minLength": 5,
+                        "maxLength": 150,
+                        "pattern": r"^5'-([ACGUTRYSWKMBDHVN0-9]{5,})-3'$",
                     },
                 ),
                 (
@@ -727,10 +737,29 @@ def run_query_model(
                         "minItems": 0,
                         "maxItems": 150,
                         "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 30,
-                            "pattern": r"^[a-zA-Z0-9()'-]$",
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": [
+                                "modification_position",
+                                "modification_type",
+                                "modification_description",
+                            ],
+                            "properties": {
+                                "modification_position": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                },
+                                "modification_type": {
+                                    "type": "string",
+                                    "maxLength": 100,
+                                    "minLength": 1,
+                                },
+                                "modification_description": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 150,
+                                },
+                            },
                         },
                     },
                 ),
@@ -754,7 +783,7 @@ def run_query_model(
                     "Describe the primer sequences in IUPAC-normalized format, each from 5' to 3' end. Use capital Latin letters, digits and dashes, parentheses and apostrophy. Put null to the primer if it is not present in the article text.",
                     {
                         "type": "object",
-                        "additionalProperties": "false",
+                        "additionalProperties": False,
                         "required": ["forward", "reverse"],
                         "properties": {
                             "forward": {
@@ -774,20 +803,20 @@ def run_query_model(
                 ),
                 (
                     "pH",
-                    "Describe the pH in this experiment. Provide the number or null, if this information is not present in the article text.",
+                    "Describe the pH in this experiment. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
                     {"type": ["number", "null"]},
                 ),
                 (
                     "annealing_raw",
-                    "Describe the annealing in this experiment. Provide the raw description string or null, if this information is not present in the article text.",
-                    {"type": ["string", "null"], "minLength": 10, "maxLength": 250},
+                    "Describe the annealing in this experiment. Provide the raw description string. If that's can't be inferred from the whole article text, explain why.",
+                    {"type": ["string"], "minLength": 10, "maxLength": 250},
                 ),
                 (
                     "T",
-                    "Describe the melting temperature in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    "Describe the melting temperature in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": "false",
+                        "additionalProperties": False,
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -797,10 +826,10 @@ def run_query_model(
                 ),
                 (
                     "Tris",
-                    "Describe the amounit of Tris in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    "Describe the amount of Tris in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": "false",
+                        "additionalProperties": False,
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -810,10 +839,10 @@ def run_query_model(
                 ),
                 (
                     "Na",
-                    "Describe the amounit of Na (Sodium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    "Describe the amount of Na (Sodium) in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": "false",
+                        "additionalProperties": False,
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -823,10 +852,10 @@ def run_query_model(
                 ),
                 (
                     "K",
-                    "Describe the amounit of K (Potassium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    "Describe the amount of K (Potassium) in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": "false",
+                        "additionalProperties": False,
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -836,10 +865,10 @@ def run_query_model(
                 ),
                 (
                     "Mg",
-                    "Describe the amounit of Mg (Magnesium) in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    "Describe the amount of Mg (Magnesium) in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": "false",
+                        "additionalProperties": False,
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -849,10 +878,10 @@ def run_query_model(
                 ),
                 (
                     "DMSO",
-                    "Describe the amounit of DMSO in this experiment and provide the measurement unit. Provide the number or null, if this information is not present in the article text.",
+                    "Describe the amount of DMSO in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
                     {
                         "type": ["object", "null"],
-                        "additionalProperties": "false",
+                        "additionalProperties": False,
                         "required": ["value", "unit"],
                         "properties": {
                             "value": {"type": "number"},
@@ -872,13 +901,18 @@ def run_query_model(
             for param, query, schema in tqdm(
                 questions_to_schema, desc="Questions to the sequence", leave=False
             ):
-                chat.add_user_message(query)
-                response, raw = ask_with_schema(
-                    chat_messages=chat, schema=JsonSchema(schema)
-                )
-                answers.append({"seq": seq, "param": param, "response": response})
-                seq_desc[param] = response
-                chat.add_assistant_message(raw)
+                try:
+                    chat.add_user_message(query)
+                    response, raw = ask_with_schema(
+                        chat_messages=chat, schema=JsonSchema(schema)
+                    )
+                    answers.append({"seq": seq, "param": param, "response": response})
+                    seq_desc[param] = response
+                    chat.add_assistant_message(raw)
+                except Exception as e:
+                    logger.exception(
+                        f"Exception on sequence {seq} during query: {query}", e
+                    )
             return seq_desc
 
         described_sequences: Dict[str, Dict[str, Any]] = dict()
