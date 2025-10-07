@@ -614,6 +614,7 @@ def run_query_model(
                 model_input=chat_messages,
                 output_type=schema,
                 options=ollama_parameters,
+                logger=logger,
                 keep_alive="30s",
             )
         except Exception as e:
