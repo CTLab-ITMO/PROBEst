@@ -345,9 +345,9 @@ def think_generate(
                 model_input=model_input, output_type=output_type, think=True, **kwargs
             )
             return response
-        except ollama.ResponseError as e:
-            logger.exception(
-                f"Seems that model {model.model_name} does not support thinking.", e
+        except ollama.ResponseError:
+            logger.warning(
+                f"Seems that model {model.model_name} does not support thinking."
             )
 
     logger.debug("Trying non-thinking mode")
@@ -521,6 +521,7 @@ def run_construct_single_experiment_pass(
                     },
                 ]
             ),
+            logger=logger,
             output_type=js,
             options=ollama_parameters,
             keep_alive="30s",
