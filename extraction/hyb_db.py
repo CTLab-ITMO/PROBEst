@@ -9,7 +9,7 @@ from pathlib import Path
 from tqdm import tqdm
 #from __future__ import annotations
 import sqlite3
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from datetime import datetime, timezone
 from loguru import logger
 from ollama import chat, ChatResponse 
@@ -873,3 +873,277 @@ def _to_int_bool(val: Optional[bool]) -> Optional[int]:
     if val is None:
         return None
     return 1 if bool(val) else 0
+
+# ──────────────────────────────────────────────────────────────────────
+# Sequence-descriptors DB (no collision; separate "seqdesc_*" namespace)
+# ──────────────────────────────────────────────────────────────────────
+
+def _extract_doi_from_text(text: str) -> Optional[str]:
+    """Heuristic DOI extractor from article text (fallback)."""
+    if not text:
+        return None
+    m = re.search(r"\b10\.\d{4,9}/[^\s\"'<>]+", text, flags=re.I)
+    return m.group(0).rstrip(".,);]") if m else None
+
+def _ensure_seqdesc_schema(conn: sqlite3.Connection) -> None:
+    """Create the seqdesc_* schema if it does not exist."""
+    conn.execute("PRAGMA foreign_keys = ON;")
+    # Runs table
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS seqdesc_runs (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_at    TEXT NOT NULL,
+            model_name    TEXT NOT NULL,
+            article_name  TEXT NOT NULL,
+            doi           TEXT,
+            source_path   TEXT,
+            raw_json      TEXT NOT NULL
+        );
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_seqdesc_runs_article ON seqdesc_runs(article_name);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_seqdesc_runs_doi     ON seqdesc_runs(doi);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_seqdesc_runs_model   ON seqdesc_runs(model_name);")
+
+    # Sequences table (one row per sequence key in the run)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS seqdesc_sequences (
+            id                              INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id                          INTEGER NOT NULL REFERENCES seqdesc_runs(id) ON DELETE CASCADE,
+            sequence_key                    TEXT NOT NULL,   -- the dict key (probe string as found)
+            is_seq                          INTEGER,         -- NULL/0/1
+            sequence_full                   TEXT,
+            sequence_normalized             TEXT,
+            sequence_expanded               TEXT,
+            sequence_backbone               TEXT,
+            sequence_backbone_expanded      TEXT,
+            fluorophore                     TEXT,
+            quencher                        TEXT,
+            target_raw                      TEXT,
+            target_normalized               TEXT,
+            primers_forward                 TEXT,
+            primers_reverse                 TEXT,
+            pH                              REAL,
+            annealing_raw                   TEXT,
+            T_value                         REAL,
+            T_unit                          TEXT,
+            Tris_value                      REAL,
+            Tris_unit                       TEXT,
+            Na_value                        REAL,
+            Na_unit                         TEXT,
+            K_value                         REAL,
+            K_unit                          TEXT,
+            Mg_value                        REAL,
+            Mg_unit                         TEXT,
+            DMSO_value                      REAL,
+            DMSO_unit                       TEXT,
+            outcome                         INTEGER,         -- NULL/0/1
+            raw_json                        TEXT NOT NULL
+        );
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_seqdesc_sequences_run ON seqdesc_sequences(run_id);")
+
+    # Modifications table (0..N per sequence)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS seqdesc_modifications (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            sequence_id         INTEGER NOT NULL REFERENCES seqdesc_sequences(id) ON DELETE CASCADE,
+            modification_position INTEGER,
+            modification_type   TEXT,
+            modification_description TEXT
+        );
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_seqdesc_mods_seq ON seqdesc_modifications(sequence_id);")
+
+    # Helpful views (namespaced)
+    conn.execute("""
+        CREATE VIEW IF NOT EXISTS seqdesc_v_sequences AS
+        SELECT
+            r.id           AS run_id,
+            r.created_at   AS run_created_at,
+            r.model_name   AS model_name,
+            r.article_name AS article_name,
+            r.doi          AS doi,
+            s.*
+        FROM seqdesc_sequences s
+        JOIN seqdesc_runs r ON r.id = s.run_id;
+    """)
+    conn.execute("""
+        CREATE VIEW IF NOT EXISTS seqdesc_v_modifications AS
+        SELECT
+            s.run_id,
+            s.id          AS sequence_id,
+            s.sequence_key,
+            m.modification_position,
+            m.modification_type,
+            m.modification_description
+        FROM seqdesc_modifications m
+        JOIN seqdesc_sequences s ON s.id = m.sequence_id;
+    """)
+
+def _coerce_bool_to_int(x: Any) -> Optional[int]:
+    if x is None:
+        return None
+    if isinstance(x, bool):
+        return 1 if x else 0
+    # sometimes LLMs send "true"/"false"
+    xs = str(x).strip().lower()
+    if xs in {"true", "1", "yes"}:
+        return 1
+    if xs in {"false", "0", "no"}:
+        return 0
+    return None
+
+def _coerce_float(x: Any) -> Optional[float]:
+    try:
+        return float(x) if x is not None else None
+    except Exception:
+        return None
+
+def _extract_measure(obj: Any) -> Tuple[Optional[float], Optional[str]]:
+    """obj like {"value": 50, "unit": "mM"} or None -> (50.0, 'mM')"""
+    if isinstance(obj, dict):
+        return _coerce_float(obj.get("value")), (obj.get("unit") if obj.get("unit") is not None else None)
+    return None, None
+
+def insert_seqdesc_object(
+    db_path: Path | str,
+    *,
+    article_name: str,
+    doi: Optional[str],
+    model_name: str,
+    sequence_descriptors: Dict[str, Any],
+    source_path: Optional[Path] = None,
+) -> int:
+    """Insert one 'run' of sequence descriptors and return run_id.
+
+    The payload shape:
+      {
+        "<sequence_key>": {
+          "is_seq": bool|None,
+          "sequence_full": str|None,
+          ...
+          "modifications": [{"modification_position": int, "modification_type": str, "modification_description": str}, ...],
+          "primers": {"forward": str|None, "reverse": str|None},
+          "T": {"value": float, "unit": str}|None,
+          ...
+        },
+        ...
+      }
+    """
+    created_at = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    raw_json = json.dumps(sequence_descriptors, ensure_ascii=False)
+
+    db_path = Path(db_path)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with closing(sqlite3.connect(str(db_path))) as conn:
+        conn.execute("PRAGMA journal_mode = WAL;")
+        _ensure_seqdesc_schema(conn)
+
+        with conn:  # transaction
+            cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT INTO seqdesc_runs(created_at, model_name, article_name, doi, source_path, raw_json)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    created_at,
+                    model_name,
+                    article_name,
+                    doi,
+                    str(source_path) if source_path else None,
+                    raw_json,
+                ),
+            )
+            run_id = cur.lastrowid
+
+            for seq_key, payload in (sequence_descriptors or {}).items():
+                # For very sparse entries, payload can be {} — guard everything
+                payload = payload or {}
+
+                is_seq = _coerce_bool_to_int(payload.get("is_seq"))
+                seq_full = payload.get("sequence_full")
+                seq_norm = payload.get("sequence_normalized")
+                seq_exp = payload.get("sequence_expanded")
+                seq_bb = payload.get("sequence_backbone")
+                seq_bb_exp = payload.get("sequence_backbone_expanded")
+                fluor = payload.get("fluorophore")
+                quen = payload.get("quencher")
+                target_raw = payload.get("target_raw")
+                target_norm = payload.get("target_normalized")
+
+                primers = payload.get("primers") or {}
+                primers_forward = primers.get("forward")
+                primers_reverse = primers.get("reverse")
+
+                pH_val = _coerce_float(payload.get("pH"))
+                anneal_raw = payload.get("annealing_raw")
+
+                T_val, T_unit = _extract_measure(payload.get("T"))
+                Tris_val, Tris_unit = _extract_measure(payload.get("Tris"))
+                Na_val, Na_unit = _extract_measure(payload.get("Na"))
+                K_val, K_unit = _extract_measure(payload.get("K"))
+                Mg_val, Mg_unit = _extract_measure(payload.get("Mg"))
+                DMSO_val, DMSO_unit = _extract_measure(payload.get("DMSO"))
+
+                outcome = _coerce_bool_to_int(payload.get("outcome"))
+
+                cur.execute(
+                    """
+                    INSERT INTO seqdesc_sequences(
+                        run_id, sequence_key, is_seq,
+                        sequence_full, sequence_normalized, sequence_expanded,
+                        sequence_backbone, sequence_backbone_expanded,
+                        fluorophore, quencher,
+                        target_raw, target_normalized,
+                        primers_forward, primers_reverse,
+                        pH, annealing_raw,
+                        T_value, T_unit,
+                        Tris_value, Tris_unit,
+                        Na_value, Na_unit,
+                        K_value, K_unit,
+                        Mg_value, Mg_unit,
+                        DMSO_value, DMSO_unit,
+                        outcome, raw_json
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        run_id, seq_key, is_seq,
+                        seq_full, seq_norm, seq_exp,
+                        seq_bb, seq_bb_exp,
+                        fluor, quen,
+                        target_raw, target_norm,
+                        primers_forward, primers_reverse,
+                        pH_val, anneal_raw,
+                        T_val, T_unit,
+                        Tris_val, Tris_unit,
+                        Na_val, Na_unit,
+                        K_val, K_unit,
+                        Mg_val, Mg_unit,
+                        DMSO_val, DMSO_unit,
+                        outcome, json.dumps(payload, ensure_ascii=False),
+                    ),
+                )
+                sequence_id = cur.lastrowid
+
+                # Modifications (array of objects)
+                for m in payload.get("modifications") or []:
+                    if not isinstance(m, dict):
+                        continue
+                    cur.execute(
+                        """
+                        INSERT INTO seqdesc_modifications(
+                            sequence_id, modification_position, modification_type, modification_description
+                        ) VALUES (?,?,?,?)
+                        """,
+                        (
+                            sequence_id,
+                            m.get("modification_position"),
+                            m.get("modification_type"),
+                            m.get("modification_description"),
+                        ),
+                    )
+
+        return run_id

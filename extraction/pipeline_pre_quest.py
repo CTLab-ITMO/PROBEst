@@ -1467,64 +1467,86 @@ def run_project(project_dir: str | Path) -> None:
                             f"Pass failed: {p.name} : {article_name} : {model_name}"
                         )
 
-            # for p in tqdm(cfg.passes, desc=f"{article_name} passes", leave=False):
-            #     try:
-            #         outputs[p.name] = run_single_pass(
-            #             model=model,
-            #             article_text=article_text,
-            #             pass_cfg=p,
-            #             out_base=out_base,
-            #             article_stem=article_name,
-            #             tools=tools,
-            #             logger=logger,
-            #             ollama_parameters=cfg.ollama_parameters,
-            #             model_name=model_name,
-            #         )
-            #     except Exception:
-            #         logger.exception(f"Pass failed: {p.name} : {article_name} : {model_name}")
+            for p in tqdm(cfg.passes, desc=f"{article_name} passes", leave=False, position=2):
+                try:
+                    outputs[p.name] = run_single_pass(
+                        model=model,
+                        article_text=article_text,
+                        pass_cfg=p,
+                        out_base=out_base,
+                        article_stem=article_name,
+                        tools=tools,
+                        logger=logger,
+                        ollama_parameters=cfg.ollama_parameters,
+                        model_name=model_name,
+                    )
+                except Exception:
+                    logger.exception(f"Pass failed: {p.name} : {article_name} : {model_name}")
 
-            # # Stitch only if the expected pass names are present
-            # try:
-            #     A = outputs.get("A_core", {})
-            #     B = outputs.get("B_index", {})
-            #     # C = outputs.get("C_sequences", {})
-            #     C = aggregate_c_outputs(outputs)
-            #     D = outputs.get("D_parameters", {})
-            #     E = outputs.get("E_outcomes", {})
-            #     F = outputs.get("F_pairings", {})
-            #     full_obj = stitch_full(A, B, C, D, E, F)
+            # Stitch only if the expected pass names are present
+            try:
+                A = outputs.get("A_core", {})
+                B = outputs.get("B_index", {})
+                # C = outputs.get("C_sequences", {})
+                C = aggregate_c_outputs(outputs)
+                D = outputs.get("D_parameters", {})
+                E = outputs.get("E_outcomes", {})
+                F = outputs.get("F_pairings", {})
+                full_obj = stitch_full(A, B, C, D, E, F)
 
-            #     # Final validation
-            #     if full_validator:
-            #         errs = sorted(full_validator.iter_errors(full_obj), key=lambda e: e.path)
-            #         if errs:
-            #             logger.error(f"[FULL] validation errors for {article_name} : {model_name}:\n" + "\n".join(str(e) for e in errs))
-            #         else:
-            #             logger.info(f"[FULL] validation OK for {article_name} : {model_name}")
+                # Final validation
+                if full_validator:
+                    errs = sorted(full_validator.iter_errors(full_obj), key=lambda e: e.path)
+                    if errs:
+                        logger.error(f"[FULL] validation errors for {article_name} : {model_name}:\n" + "\n".join(str(e) for e in errs))
+                    else:
+                        logger.info(f"[FULL] validation OK for {article_name} : {model_name}")
 
-            #     # Save full object (timestamped)
-            #     stamp = _now_stamp()
-            #     full_dir = out_base / "json_full"
-            #     full_dir.mkdir(parents=True, exist_ok=True)
-            #     full_path = full_dir / f"{article_name}_{model_name_encode(model_name)}__FULL__{stamp}.json"
-            #     full_path.write_text(json.dumps(full_obj, indent=2, ensure_ascii=False), encoding="utf-8")
-            #     logger.info(f"[FULL] wrote {full_path.name} {article_name} : {model_name}")
+                # Save full object (timestamped)
+                stamp = _now_stamp()
+                full_dir = out_base / "json_full"
+                full_dir.mkdir(parents=True, exist_ok=True)
+                full_path = full_dir / f"{article_name}_{model_name_encode(model_name)}__FULL__{stamp}.json"
+                full_path.write_text(json.dumps(full_obj, indent=2, ensure_ascii=False), encoding="utf-8")
+                logger.info(f"[FULL] wrote {full_path.name} {article_name} : {model_name}")
+            except Exception:
+                logger.exception(f"[FULL] stitching failed for {article_name} : {model_name}")
 
-            #     # Optional DB insert
-            #     if cfg.db_path:
-            #         try:
-            #             from hyb_db import insert_article_object  # your earlier module
-            #             run_id = insert_article_object(
-            #                 db_path=str(cfg.db_path),
-            #                 article_obj=full_obj,
-            #                 model_name=model_name,
-            #                 article_name=article_name,
-            #             )
-            #             logger.info(f"[DB] inserted run_id={run_id} for {article_name} : {model_name}")
-            #         except Exception:
-            #             logger.exception("[DB] insertion failed")
-            # except Exception:
-            #     logger.exception(f"[FULL] stitching failed for {article_name} : {model_name}")
+            try:
+                # Optional DB insert
+                if cfg.db_path:
+                    try:
+                        from hyb_db import insert_article_object  # your earlier module
+                        run_id = insert_article_object(
+                            db_path=str(cfg.db_path),
+                            article_obj=full_obj,
+                            model_name=model_name,
+                            article_name=article_name,
+                        )
+                        logger.info(f"[DB] inserted run_id={run_id} for {article_name} : {model_name}")
+                    except Exception:
+                        logger.exception("[DB] insertion failed")
+            except Exception:
+                logger.exception(f"[DB INSERT FULL] stitching failed for {article_name} : {model_name}")
+
+            try:
+                # Optional DB insert
+                if cfg.db_path:
+                    try:
+                        from hyb_db import insert_seqdesc_object  # your earlier module
+                        run_id = insert_seqdesc_object(
+                            db_path=str(cfg.db_path),
+                            article_name=article_name,
+                            doi=outputs.get("A_core", {}).get("doi", None),
+                            model_name=model_name,
+                            sequence_descriptors=sequence_descriptors
+                            source_path=art_path,
+                        )
+                        logger.info(f"[DB] inserted run_id={run_id} for {article_name} : {model_name}")
+                    except Exception:
+                        logger.exception("[DB] insertion failed")
+            except Exception:
+                logger.exception(f"[DB INSERT SEQDESC] stitching failed for {article_name} : {model_name}")
 
 
 # Optional CLI hook (project_dir arg)

@@ -1,12 +1,7 @@
 {
     "model_names": [
         "myaniu/qwen2.5-1m:7b",
-        "deepseek-r1:1.5b",
-        "qwen2.5-coder:3b",
-        "deepseek-r1:7b-qwen-distill-q4_K_M",
-        "llama3.1:latest",
-        "qwen3:4b",
-        "myaniu/qwen2.5-1m:14b"
+        "deepseek-r1:1.5b"
     ],
     "ollama_parameters": {
         "num_ctx": 40960,
@@ -15,9 +10,10 @@
         "seed": 52
     },
     "ollama_base_url": "http://127.0.0.1:11434",
-    "timeout_s": 60,
-    "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
-    "out_dir": "outlines_output_pre",
+    "timeout_s": 120,
+    "_input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
+    "input_dir": "input/md",
+    "out_dir": "outlines_output_db",
     "full_schema_path": "schema/json/article.json",
     "common_prompt_path": "passes/common.txt",
     "db_path": "outlines_output/massive.sqlite",
@@ -43,7 +39,9 @@
             "schema": "passes/A_core/schema.json",
             "prompt": "passes/A_core/prompt.txt",
             "timeout": 60
-        },
+        }
+    ],
+    "ignored_passes": [
         {
             "name": "B_index",
             "schema": "passes/B_index/schema.json",
