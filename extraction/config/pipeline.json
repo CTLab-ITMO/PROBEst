@@ -1,7 +1,8 @@
 {
     "model_names": [
+        "myaniu/qwen2.5-1m:7b",
         "phi4:14b",
-        "myaniu/qwen2.5-1m:7b"        
+        "phi3:latest"
     ],
     "ollama_parameters": {
         "num_ctx": 65536,
