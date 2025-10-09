@@ -1011,7 +1011,7 @@ def insert_seqdesc_object(
     article_name: str,
     doi: Optional[str],
     model_name: str,
-    sequence_descriptors: Dict[str, Any],
+    sequence_descriptors: List[Tuple[str, Dict[str, Any]]],
     source_path: Optional[Path] = None,
 ) -> int:
     """Insert one 'run' of sequence descriptors and return run_id.
@@ -1058,7 +1058,7 @@ def insert_seqdesc_object(
             )
             run_id = cur.lastrowid
 
-            for seq_key, payload in (sequence_descriptors or {}).items():
+            for seq_key, payload in (sequence_descriptors or []):
                 # For very sparse entries, payload can be {} — guard everything
                 payload = payload or {}
 

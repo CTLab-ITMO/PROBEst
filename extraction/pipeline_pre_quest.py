@@ -30,7 +30,7 @@ import os, sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Set, Tuple
 
 import ollama
 import outlines
@@ -181,9 +181,8 @@ def _make_logger(log_dir: Path) -> logging.Logger:
     logger = logging.getLogger("pipeline_filedriven")
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
-     
 
-    #ch = logging.StreamHandler(sys.stdout)
+    # ch = logging.StreamHandler(sys.stdout)
     ch = TqdmLoggingHandler()
     ch.setLevel(logging.INFO)
     ch.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(message)s"))
@@ -333,6 +332,746 @@ def repair_json(text: str) -> str:
         candidate = re.sub(r",\s*([}\]])", r"\1", candidate)
         json.loads(candidate)
         return candidate
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Chat helpers
+# ──────────────────────────────────────────────────────────────────────
+
+# ──────────────────────────────────────────────────────────────────────
+# Fast stateful chat for structured JSON answers (Ollama context reuse)
+# ──────────────────────────────────────────────────────────────────────
+from typing import Callable
+
+
+class OllamaJSONChat:
+    """
+    Keeps a persistent Ollama 'context' using the generate() API.
+    We seed once with a system prompt (includes article snippet & sequence),
+    then for each question we call generate() with only the new instruction
+    and pass the returned `context` back in.
+    """
+
+    def __init__(
+        self,
+        client: ollama.Client,
+        model_name: str,
+        system_prompt: str,
+        *,
+        options: Optional[Dict[str, Any]] = None,
+        keep_alive: str = "2m",
+        logger: Optional[logging.Logger] = None,
+        use_schema_format: bool = True,
+    ) -> None:
+        self.client = client
+        self.model_name = model_name
+        self.options = options or {}
+        self.keep_alive = keep_alive
+        self.logger = logger or logging.getLogger("OllamaJSONChat")
+        self.context: Optional[List[int]] = None
+
+        # Bootstrap the KV cache with the system prompt once.
+        # We don't care about the text reply here; we only keep the returned context.
+        boot = self.client.generate(
+            model=self.model_name,
+            prompt=system_prompt,
+            options=self.options,
+            keep_alive=self.keep_alive,
+        )
+        self.context = boot.get("context")
+
+        # Detect JSON schema support (best effort: try once without touching our context).
+        self._schema_supported = False
+        if use_schema_format:
+            try:
+                _ = self.client.generate(
+                    model=self.model_name,
+                    prompt="Return {}",
+                    options=self.options,
+                    keep_alive=self.keep_alive,
+                    # IMPORTANT: do not pass our current context here, so we don't pollute it
+                    format={"type": "json", "schema": {"type": "object"}},
+                )
+                self._schema_supported = True
+            except Exception:
+                self._schema_supported = False
+
+    def ask_json(
+        self,
+        user_prompt: str,
+        *,
+        schema: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """
+        Ask a single question. Only the new instruction is sent; the previous
+        state is carried via `context`.
+        Returns the raw text from `response`.
+        """
+        kwargs = dict(
+            model=self.model_name,
+            prompt=user_prompt,
+            options=self.options,
+            keep_alive=self.keep_alive,
+            context=self.context,  # ← this is supported by generate(), not chat()
+        )
+        if schema is not None and self._schema_supported:
+            kwargs["format"] = {"type": "json", "schema": schema}
+        else:
+            kwargs["format"] = "json"
+
+        res = self.client.generate(**kwargs)
+        # Persist updated KV context
+        self.context = res.get("context", self.context)
+        return res.get("response", "")  # generate() returns 'response'
+
+
+
+def extract_relevant_snippet(article_text: str, seq: str, *, window: int = 1200) -> str:
+    """
+    Find a case-insensitive hit of 'seq' in article_text and return a small window
+    around it. If not found, return the first ~window*2 characters as a fallback.
+    This dramatically reduces re-tokenization cost per turn.
+    """
+    if not article_text:
+        return ""
+    # normalize simple whitespace + case-insensitive search
+    text = article_text
+    seq_norm = re.sub(r"\s+", "", seq, flags=re.S).lower()
+    text_compact = re.sub(r"\s+", "", text, flags=re.S).lower()
+
+    idx = text_compact.find(seq_norm) if seq_norm else -1
+    if idx == -1:
+        # fallback: just take a chunk from the start
+        return text[: window * 2]
+
+    # Map back to original indices approximately
+    # We walk original text accumulating compact length until we cross idx
+    comp_len = 0
+    start_raw = 0
+    for i, ch in enumerate(text):
+        if not ch.isspace():
+            comp_len += 1
+        if comp_len >= max(0, idx - 5):  # a little headroom
+            start_raw = i
+            break
+    # Now center a window around start_raw
+    lo = max(0, start_raw - window)
+    hi = min(len(text), start_raw + window)
+    return text[lo:hi]
+
+
+def run_query_model_speed_up(
+    model: Any,  # kept for signature compatibility; not used here
+    article_text: str,
+    sequences: List[str],
+    out_base: Path,
+    article_stem: str,
+    common_prompt_path: Path,
+    logger: logging.Logger,
+    ollama_parameters: Dict[str, Any],
+    model_name: str,
+    tqdm_position: int = 0,
+    client: Optional[ollama.Client] = None,  # NEW: pass the ollama client here
+    chat_prompts: Literal["my", "optimized"] = "my",
+) -> List[Tuple[str, Any]]:
+    """
+    Faster version: use Ollama chat 'context' to avoid re-sending the whole chat every turn,
+    and seed each sequence with a small snippet instead of the full article.
+    """
+    if client is None:
+        raise ValueError(
+            "run_query_model requires an ollama.Client via the 'client' argument."
+        )
+
+    pass_name = "query_chat"
+    txt_dir = out_base / "txt"
+    json_dir = out_base / "json"
+    log_dir = out_base / "logs"
+    for d in (txt_dir, json_dir, log_dir):
+        d.mkdir(parents=True, exist_ok=True)
+
+    prompt = common_prompt_path.read_text(encoding="utf-8")
+
+    stamp = _now_stamp()
+    raw_txt_path = (
+        txt_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.txt"
+    )
+    json_log_path = (
+        json_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.log.json"
+    )
+    json_out_path = (
+        json_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.json"
+    )
+    err_log_path = (
+        log_dir
+        / f"{article_stem}__{pass_name}__{model_name_encode(model_name)}__{stamp}.log"
+    )
+
+    logger.info(f"[{pass_name}:{model_name}] generating (fast chat mode)…")
+
+    # Define your Q&A list once (same as your original) but as Python dicts for direct JSON schema passing.
+    # NOTE: We’ll construct outlines.JsonSchema only if you still want stricter client-side validation.
+    questions_to_schema: List[Tuple[str, str, Dict[str, Any]]]
+    if chat_prompts == "optimized":
+        questions_to_schema = [
+            (
+                "is_seq",
+                "Check the entire snippet. Is the provided sequence (or that exact string) presented as a hybridization probe in this article snippet? Return true only if it's a probe (or its explicit part).",
+                {"type": "boolean"},
+            ),
+            (
+                "sequence_full",
+                "Return the full probe string in IUPAC-normalized format, including 5'/3' and labels if present (fluorophore first, quencher last). Return null if not applicable.",
+                {"type": ["string", "null"], "minLength": 5, "maxLength": 150},
+            ),
+            (
+                "sequence_normalized",
+                "Return the same probe with explicit 5' and 3' bounds, e.g., 5'-FAM-ACGT...-BHQ1-3'. Return null if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                },
+            ),
+            (
+                "sequence_expanded",
+                "Return the expanded IUPAC probe (no parentheses in backbone), with 5'/3' bounds and labels if present. Return null if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([A-Za-z0-9_'\-]*-)?([A-Za-z0-9']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9']*?)(-[A-Za-z0-9_'\-]*)?-3'$",
+                },
+            ),
+            (
+                "sequence_backbone",
+                "Return backbone only (no labels/mods), 5'…3'. Return null if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([ACGUTRYSWKMBDHVN0-9()]{5,})-3'$",
+                },
+            ),
+            (
+                "sequence_backbone_expanded",
+                "Return backbone expanded only (no labels/mods), 5'…3'. Return null if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([ACGUTRYSWKMBDHVN0-9]{5,})-3'$",
+                },
+            ),
+            (
+                "fluorophore",
+                "Return fluorophore (uppercase, alnum, apostrophe ok), or null.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 3,
+                    "maxLength": 150,
+                    "pattern": r"^[A-Z0-9']{3,}$",
+                },
+            ),
+            (
+                "quencher",
+                "Return quencher (uppercase, alnum, apostrophe ok), or null.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 3,
+                    "maxLength": 150,
+                    "pattern": r"^[A-Z0-9']{3,}$",
+                },
+            ),
+            (
+                "modifications",
+                "Return array of modifications with 5'→3' positions; [] if none.",
+                {
+                    "type": "array",
+                    "minItems": 0,
+                    "maxItems": 150,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": [
+                            "modification_position",
+                            "modification_type",
+                            "modification_description",
+                        ],
+                        "properties": {
+                            "modification_position": {"type": "integer", "minimum": 1},
+                            "modification_type": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100,
+                            },
+                            "modification_description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 150,
+                            },
+                        },
+                    },
+                },
+            ),
+            (
+                "target_raw",
+                "Describe the intended target for this probe (gene/region/context).",
+                {"type": "string", "minLength": 5, "maxLength": 250},
+            ),
+            (
+                "target_normalized",
+                "If article prints the exact target sequence, return it in 5'…3' bounds; else null.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                },
+            ),
+            (
+                "primers",
+                "Return primer sequences in IUPAC normalized 5'…3' bounds; use null for missing.",
+                {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["forward", "reverse"],
+                    "properties": {
+                        "forward": {
+                            "type": ["string", "null"],
+                            "minLength": 5,
+                            "maxLength": 150,
+                            "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                        },
+                        "reverse": {
+                            "type": ["string", "null"],
+                            "minLength": 5,
+                            "maxLength": 150,
+                            "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                        },
+                    },
+                },
+            ),
+            ("pH", "Return pH if stated; else null.", {"type": ["number", "null"]}),
+            (
+                "annealing_raw",
+                "Return the raw annealing description string found; if absent, explain why in one sentence.",
+                {"type": "string", "minLength": 10, "maxLength": 250},
+            ),
+            (
+                "T",
+                "Return melting temperature as {value, unit} (e.g., 58 °C), or null.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "Tris",
+                "Return Tris as {value, unit}, or null.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "Na",
+                "Return Na as {value, unit}, or null.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "K",
+                "Return K as {value, unit}, or null.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "Mg",
+                "Return Mg as {value, unit}, or null.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "DMSO",
+                "Return DMSO as {value, unit}, or null.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "outcome",
+                "Return true if article explicitly says this probe successfully hybridized, false if explicitly failed, or null if not stated.",
+                {"type": ["boolean", "null"]},
+            ),
+        ]
+    elif chat_prompts == "my":
+        questions_to_schema = [
+            (
+                "is_seq",
+                "Check the whole article text. Is your picked sequence really a probe sequence or a part of probe sequence in this article text? Put true here if and only if this sequence is being described and presented as a hybridization probe. If that's a random abbreviation or nucleotide-looking string which is not a hybridization probe or otherwise not a hybridization probe, put false here.",
+                {"type": "boolean"},
+            ),
+            (
+                "sequence_full",
+                "Provide this sequence fully as a probe sequence in IUPAC-normalized format: from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                },
+            ),
+            (
+                "sequence_normalized",
+                "Provide this probe sequence in IUPAC-normalized format: from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
+                },
+            ),
+            (
+                "sequence_expanded",
+                "Provide this probe sequence in expanded IUPAC format (with all repeats expanded and no parentheses in the probe sequence backbone body): from 5' to 3' end, with fluorophore and quencher. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([a-zA-Z0-9_'-]*-)?([a-zA-Z0-9']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9']*?)(-[a-zA-Z0-9_'-]*)?-3'$",
+                },
+            ),
+            (
+                "sequence_backbone",
+                "Now provide only the probe sequence body from 5' to 3', without any fluorophores, modifications and quenchers. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([ACGUTRYSWKMBDHVN0-9()]{5,})-3'$",
+                },
+            ),
+            (
+                "sequence_backbone_expanded",
+                "Now provide only the expanded probe sequence body from 5' to 3' with all repeats expanded, without any fluorophores, modifications and quenchers. Use capital Latin letters, digits, dashes and apostrophy. Only the expanded backbone of probe sequence body. Put null here if not applicable.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([ACGUTRYSWKMBDHVN0-9]{5,})-3'$",
+                },
+            ),
+            (
+                "fluorophore",
+                "Provide the fluorophore of this probe. Use capital Latin letters, digits and dashes, you may also use an apostrophy. Put null here if not applicable or not present in the text of the article.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 3,
+                    "maxLength": 150,
+                    "pattern": r"^[A-Z0-9']{3,}$",
+                },
+            ),
+            (
+                "quencher",
+                "Provide the quencher of this probe. Use capital Latin letters, digits and dashes, you may also use an apostrophy. Put null here if not applicable or not present in the text of the article.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 3,
+                    "maxLength": 150,
+                    "pattern": r"^[A-Z0-9']{3,}$",
+                },
+            ),
+            (
+                "modifications",
+                "Now provide the modifications of the probe sequence as an array, where each element is a modification and its position in 5'-3' direction. Use Latin letters, digits and dashes, you may also use parentheses and apostrophy. Provide an empty array if not present in the article text.",
+                {
+                    "type": "array",
+                    "minItems": 0,
+                    "maxItems": 150,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": [
+                            "modification_position",
+                            "modification_type",
+                            "modification_description",
+                        ],
+                        "properties": {
+                            "modification_position": {
+                                "type": "integer",
+                                "minimum": 1,
+                            },
+                            "modification_type": {
+                                "type": "string",
+                                "maxLength": 100,
+                                "minLength": 1,
+                            },
+                            "modification_description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 150,
+                            },
+                        },
+                    },
+                },
+            ),
+            (
+                "target_raw",
+                "Describe the target to which this probe was designed to hybridize.",
+                {"type": "string", "minLength": 5, "maxLength": 250},
+            ),
+            (
+                "target_normalized",
+                "Now provide the target sequence to which this probe should hybridize, from 5' to 3'. Use capital Latin letters, digits and dashes, you may also use parentheses and apostrophy. Put null here if not applicable or if the exact sequence is not present in the article text.",
+                {
+                    "type": ["string", "null"],
+                    "minLength": 5,
+                    "maxLength": 150,
+                    "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
+                },
+            ),
+            (
+                "primers",
+                "Describe the primer sequences in IUPAC-normalized format, each from 5' to 3' end. Use capital Latin letters, digits and dashes, parentheses and apostrophy. Put null to the primer if it is not present in the article text.",
+                {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["forward", "reverse"],
+                    "properties": {
+                        "forward": {
+                            "type": ["string", "null"],
+                            "minLength": 5,
+                            "maxLength": 150,
+                            "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
+                        },
+                        "reverse": {
+                            "type": ["string", "null"],
+                            "minLength": 5,
+                            "maxLength": 150,
+                            "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
+                        },
+                    },
+                },
+            ),
+            (
+                "pH",
+                "Describe the pH in this experiment. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
+                {"type": ["number", "null"]},
+            ),
+            (
+                "annealing_raw",
+                "Describe the annealing in this experiment. Provide the raw description string. If that's can't be inferred from the whole article text, explain why.",
+                {"type": ["string"], "minLength": 10, "maxLength": 250},
+            ),
+            (
+                "T",
+                "Describe the melting temperature in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "Tris",
+                "Describe the amount of Tris in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "Na",
+                "Describe the amount of Na (Sodium) in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "K",
+                "Describe the amount of K (Potassium) in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "Mg",
+                "Describe the amount of Mg (Magnesium) in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "DMSO",
+                "Describe the amount of DMSO in this experiment and provide the measurement unit. Only put null here if this information is not present in the article text and can't be inferred from the whole article text.",
+                {
+                    "type": ["object", "null"],
+                    "additionalProperties": False,
+                    "required": ["value", "unit"],
+                    "properties": {
+                        "value": {"type": "number"},
+                        "unit": {"type": "string", "minLength": 1, "maxLength": 10},
+                    },
+                },
+            ),
+            (
+                "outcome",
+                "Describe the outcome of this hybridization experiment based on the article text. Put true in case of successful hybridization of this probe to target, put false in case of unsuccessful and put null if this information is not present in the article.",
+                {"type": ["boolean", "null"]},
+            ),
+        ]
+    else:
+        raise ValueError("Chat prompts must either be 'my' or 'optimized'")
+
+    answers_log: List[Dict[str, Any]] = []
+    described_sequences: List[Tuple[str, Dict[str, Any]]] = []
+
+    try:
+        for seq in tqdm(
+            sequences,
+            desc=f"Found sequences in {article_stem}",
+            position=tqdm_position,
+            leave=False,
+        ):
+            # Slice a small, relevant article window for this sequence
+            snippet = extract_relevant_snippet(article_text, seq, window=1400)
+
+            # Build a short system prompt (article is only injected ONCE here)
+            sys_prompt = (
+                prompt
+                + "\n\nYou will answer a series of short JSON-only questions about a SINGLE candidate probe sequence.\n"
+                + "You MUST base answers ONLY on this article snippet:\n<article_snippet>\n"
+                + snippet
+                + "\n</article_snippet>\n"
+                + "Candidate probe:\n<sequence>\n"
+                + seq
+                + "\n</sequence>\n"
+                + "Return strictly JSON for each question — no extra commentary."
+            )
+
+            # Create a fresh stateful session for THIS sequence (keeps context across questions)
+            chat = OllamaJSONChat(
+                client=client,
+                model_name=model_name,
+                system_prompt=sys_prompt,
+                options=ollama_parameters,
+                keep_alive="2m",
+                logger=logger,
+                use_schema_format=True,  # will auto-downgrade if not supported
+            )
+
+            seq_desc: Dict[str, Any] = {}
+            for param, query, schema in tqdm(
+                questions_to_schema,
+                desc=f"Questions for {seq[:24]}…",
+                position=tqdm_position + 1,
+                leave=False,
+            ):
+                try:
+                    user_msg = (
+                        query
+                        + "\nReturn ONLY valid JSON matching this schema:\n"
+                        + json.dumps(schema, ensure_ascii=False)
+                    )
+                    raw_json = chat.ask_json(user_msg, schema=schema)
+                    # Best-effort repair + parse
+                    fixed = repair_json(raw_json)
+                    obj = json.loads(fixed)
+
+                    # Persist logs
+                    with open(raw_txt_path, mode="at", encoding="utf-8") as f:
+                        f.write(f"> {query}\n< {raw_json}\n\n")
+
+                    answers_log.append(
+                        {"sequence": seq, "param": param, "response": obj}
+                    )
+                    seq_desc[param] = obj
+                except Exception as e:
+                    logger.exception(
+                        f"Exception on sequence {seq} during question '{param}'"
+                    )
+                    with open(err_log_path, mode="at", encoding="utf-8") as ef:
+                        ef.write(f"[{seq}] {param} error: {repr(e)}\n")
+
+            described_sequences.append((seq, seq_desc))
+
+    finally:
+        json_log_path.write_text(
+            json.dumps(answers_log, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        json_out_path.write_text(
+            json.dumps({s: d for (s, d) in described_sequences}, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        return described_sequences
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -587,7 +1326,7 @@ def run_query_model(
     ollama_parameters: Dict[str, Any],
     model_name: str,
     tqdm_position: int = 0,
-) -> Dict[str, Any]:
+) -> List[Tuple[str, Any]]:
     """Run one pass (schema+prompt from files), save raw+json+log, return object."""
     pass_name = "query_chat"
     txt_dir = out_base / "txt"
@@ -938,9 +1677,12 @@ def run_query_model(
                     )
             return seq_desc
 
-        described_sequences: Dict[str, Dict[str, Any]] = dict()
+        described_sequences: List[Tuple[str, Dict[str, Any]]] = []
         for seq in tqdm(
-            sequences, desc=f"Found sequences in {article_stem}", position=tqdm_position, leave=False
+            sequences,
+            desc=f"Found sequences in {article_stem}",
+            position=tqdm_position,
+            leave=False,
         ):
             base_chat_with_sequence = outlines.inputs.Chat(base_chat.messages)
             base_chat_with_sequence.add_user_message(
@@ -954,7 +1696,7 @@ def run_query_model(
                 sequence_descriptor = parse_sequence(
                     seq, base_chat=base_chat_with_sequence
                 )
-                described_sequences[seq] = sequence_descriptor
+                described_sequences.append(seq, sequence_descriptor)
                 answers.append(
                     {"sequence": seq, "sequence_descriptor": sequence_descriptor}
                 )
@@ -974,7 +1716,7 @@ def run_query_model(
             json.dumps(described_sequences, indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
-    return described_sequences
+        return described_sequences
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -1368,7 +2110,9 @@ def run_project(project_dir: str | Path) -> None:
         )
         logger.info(f"Files: {files}")
 
-        for art_path in tqdm(files, desc=f"Articles for model {model_name}", position=1, leave=False):
+        for art_path in tqdm(
+            files, desc=f"Articles for model {model_name}", position=1, leave=False
+        ):
             article_name = art_path.stem
             logger.info(f"=== {article_name} : {model_name} ===")
             article_text = art_path.read_text(encoding="utf-8")
@@ -1398,19 +2142,146 @@ def run_project(project_dir: str | Path) -> None:
                         f"Pass failed: {p.name} : {article_name} : {model_name}"
                     )
 
+            strict_sequences: Set[str] = set(map(lambda s: s.upper(), outputs.get("SeqPrompt_strict", [])))
+            nonstrict_sequences: Set[str] = set(map(lambda s: s.upper(), outputs.get("SeqPrompt", [])))
+
+
             all_found_sequences = list(
                 sorted(
-                    set(
-                        set(outputs.get("SeqPrompt_strict", [])).union(
-                            outputs.get("SeqPrompt", [])
-                        )
-                    )
+                    strict_sequences.union(nonstrict_sequences),
+                    key=lambda s: (0 if s in strict_sequences else 1),
                 )
             )
             all_found_sequences_str = ", ".join(all_found_sequences)
             logger.info("Pre-passes done, found sequences: " + all_found_sequences_str)
 
-            sequence_descriptors = run_query_model(
+            for p in tqdm(
+                cfg.passes, desc=f"{article_name} passes", leave=False, position=2
+            ):
+                try:
+                    outputs[p.name] = run_single_pass(
+                        model=model,
+                        article_text=article_text,
+                        pass_cfg=p,
+                        out_base=out_base,
+                        article_stem=article_name,
+                        tools=tools,
+                        logger=logger,
+                        ollama_parameters=cfg.ollama_parameters,
+                        model_name=model_name,
+                    )
+                except Exception:
+                    logger.exception(
+                        f"Pass failed: {p.name} : {article_name} : {model_name}"
+                    )
+
+
+            optimized_sequence_descriptors = run_query_model_speed_up(
+                model=model,  # not used in the fast version but kept for signature compatibility
+                article_text=article_text,
+                sequences=all_found_sequences,
+                out_base=out_base,
+                article_stem=article_name,
+                common_prompt_path=cfg.common_prompt_path,
+                ollama_parameters=cfg.ollama_parameters,
+                logger=logger,
+                model_name=model_name,
+                tqdm_position=2,
+                client=client,  # <-- important: pass the raw ollama.Client
+                chat_prompts="optimized"
+            )
+
+
+            stamp = _now_stamp()
+            full_dir = out_base / "json_full"
+            full_dir.mkdir(parents=True, exist_ok=True)
+            full_seq_desc_path = (
+                full_dir
+                / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-OPTIM__{stamp}.json"
+            )
+            full_seq_desc_path.write_text(
+                json.dumps(optimized_sequence_descriptors, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            try:
+                # Optional DB insert
+                if cfg.db_path:
+                    try:
+                        from hyb_db import insert_seqdesc_object  # your earlier module
+
+                        run_id = insert_seqdesc_object(
+                            db_path=str(cfg.db_path),
+                            article_name=article_name,
+                            doi=outputs.get("A_core", {}).get("doi", None),
+                            model_name=model_name,
+                            sequence_descriptors=optimized_sequence_descriptors,
+                            source_path=art_path,
+                        )
+                        logger.info(
+                            f"[DB INSERT SEQDESC OPTIM] inserted run_id={run_id} for {article_name} : {model_name}"
+                        )
+                    except Exception:
+                        logger.exception("[DB INSERT SEQDESC OPTIM] insertion failed")
+            except Exception:
+                logger.exception(
+                    f"[DB INSERT SEQDESC OPTIM] stitching failed for {article_name} : {model_name}"
+                )
+
+
+            my_sequence_descriptors = run_query_model_speed_up(
+                model=model,  # not used in the fast version but kept for signature compatibility
+                article_text=article_text,
+                sequences=all_found_sequences,
+                out_base=out_base,
+                article_stem=article_name,
+                common_prompt_path=cfg.common_prompt_path,
+                ollama_parameters=cfg.ollama_parameters,
+                logger=logger,
+                model_name=model_name,
+                tqdm_position=2,
+                client=client,  # <-- important: pass the raw ollama.Client
+                chat_prompts="my"
+            )
+
+            stamp = _now_stamp()
+            full_dir = out_base / "json_full"
+            full_dir.mkdir(parents=True, exist_ok=True)
+            full_seq_desc_path = (
+                full_dir
+                / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-MY__{stamp}.json"
+            )
+            full_seq_desc_path.write_text(
+                json.dumps(my_sequence_descriptors, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+
+            try:
+                # Optional DB insert
+                if cfg.db_path:
+                    try:
+                        from hyb_db import insert_seqdesc_object  # your earlier module
+
+                        run_id = insert_seqdesc_object(
+                            db_path=str(cfg.db_path),
+                            article_name=article_name,
+                            doi=outputs.get("A_core", {}).get("doi", None),
+                            model_name=model_name,
+                            sequence_descriptors=my_sequence_descriptors,
+                            source_path=art_path,
+                        )
+                        logger.info(
+                            f"[DB INSERT SEQDESC MY] inserted run_id={run_id} for {article_name} : {model_name}"
+                        )
+                    except Exception:
+                        logger.exception("[DB INSERT SEQDESC MY] insertion failed")
+            except Exception:
+                logger.exception(
+                    f"[DB INSERT SEQDESC MY] stitching failed for {article_name} : {model_name}"
+                )
+
+            old_sequence_descriptors = run_query_model(
                 model=model,
                 article_text=article_text,
                 sequences=all_found_sequences,
@@ -1423,6 +2294,49 @@ def run_project(project_dir: str | Path) -> None:
                 tqdm_position=2,
             )
 
+
+            stamp = _now_stamp()
+            full_dir = out_base / "json_full"
+            full_dir.mkdir(parents=True, exist_ok=True)
+            full_seq_desc_path = (
+                full_dir
+                / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-OLD__{stamp}.json"
+            )
+            full_seq_desc_path.write_text(
+                json.dumps(old_sequence_descriptors, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            try:
+                # Optional DB insert
+                if cfg.db_path:
+                    try:
+                        from hyb_db import insert_seqdesc_object  # your earlier module
+
+                        run_id = insert_seqdesc_object(
+                            db_path=str(cfg.db_path),
+                            article_name=article_name,
+                            doi=outputs.get("A_core", {}).get("doi", None),
+                            model_name=model_name,
+                            sequence_descriptors=old_sequence_descriptors,
+                            source_path=art_path,
+                        )
+                        logger.info(
+                            f"[DB INSERT SEQDESC OLD] inserted run_id={run_id} for {article_name} : {model_name}"
+                        )
+                    except Exception:
+                        logger.exception("[DB INSERT SEQDESC OLD] insertion failed")
+            except Exception:
+                logger.exception(
+                    f"[DB INSERT SEQDESC OLD] stitching failed for {article_name} : {model_name}"
+                )
+
+
+            sequence_descriptors: List[Tuple[str, Dict[str, Any]]] = []
+            sequence_descriptors.extend(optimized_sequence_descriptors)
+            sequence_descriptors.extend(my_sequence_descriptors)
+            sequence_descriptors.extend(old_sequence_descriptors)
+
             stamp = _now_stamp()
             full_dir = out_base / "json_full"
             full_dir.mkdir(parents=True, exist_ok=True)
@@ -1434,6 +2348,7 @@ def run_project(project_dir: str | Path) -> None:
                 json.dumps(sequence_descriptors, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
+
 
             for i, seq in enumerate(
                 tqdm(
@@ -1467,21 +2382,7 @@ def run_project(project_dir: str | Path) -> None:
                             f"Pass failed: {p.name} : {article_name} : {model_name}"
                         )
 
-            for p in tqdm(cfg.passes, desc=f"{article_name} passes", leave=False, position=2):
-                try:
-                    outputs[p.name] = run_single_pass(
-                        model=model,
-                        article_text=article_text,
-                        pass_cfg=p,
-                        out_base=out_base,
-                        article_stem=article_name,
-                        tools=tools,
-                        logger=logger,
-                        ollama_parameters=cfg.ollama_parameters,
-                        model_name=model_name,
-                    )
-                except Exception:
-                    logger.exception(f"Pass failed: {p.name} : {article_name} : {model_name}")
+            
 
             # Stitch only if the expected pass names are present
             try:
@@ -1496,57 +2397,83 @@ def run_project(project_dir: str | Path) -> None:
 
                 # Final validation
                 if full_validator:
-                    errs = sorted(full_validator.iter_errors(full_obj), key=lambda e: e.path)
+                    errs = sorted(
+                        full_validator.iter_errors(full_obj), key=lambda e: e.path
+                    )
                     if errs:
-                        logger.error(f"[FULL] validation errors for {article_name} : {model_name}:\n" + "\n".join(str(e) for e in errs))
+                        logger.error(
+                            f"[FULL] validation errors for {article_name} : {model_name}:\n"
+                            + "\n".join(str(e) for e in errs)
+                        )
                     else:
-                        logger.info(f"[FULL] validation OK for {article_name} : {model_name}")
+                        logger.info(
+                            f"[FULL] validation OK for {article_name} : {model_name}"
+                        )
 
                 # Save full object (timestamped)
                 stamp = _now_stamp()
                 full_dir = out_base / "json_full"
                 full_dir.mkdir(parents=True, exist_ok=True)
-                full_path = full_dir / f"{article_name}_{model_name_encode(model_name)}__FULL__{stamp}.json"
-                full_path.write_text(json.dumps(full_obj, indent=2, ensure_ascii=False), encoding="utf-8")
-                logger.info(f"[FULL] wrote {full_path.name} {article_name} : {model_name}")
+                full_path = (
+                    full_dir
+                    / f"{article_name}_{model_name_encode(model_name)}__FULL__{stamp}.json"
+                )
+                full_path.write_text(
+                    json.dumps(full_obj, indent=2, ensure_ascii=False), encoding="utf-8"
+                )
+                logger.info(
+                    f"[FULL] wrote {full_path.name} {article_name} : {model_name}"
+                )
             except Exception:
-                logger.exception(f"[FULL] stitching failed for {article_name} : {model_name}")
+                logger.exception(
+                    f"[FULL] stitching failed for {article_name} : {model_name}"
+                )
 
             try:
                 # Optional DB insert
                 if cfg.db_path:
                     try:
                         from hyb_db import insert_article_object  # your earlier module
+
                         run_id = insert_article_object(
                             db_path=str(cfg.db_path),
                             article_obj=full_obj,
                             model_name=model_name,
                             article_name=article_name,
                         )
-                        logger.info(f"[DB] inserted run_id={run_id} for {article_name} : {model_name}")
+                        logger.info(
+                            f"[DB INSERT FULL] inserted run_id={run_id} for {article_name} : {model_name}"
+                        )
                     except Exception:
-                        logger.exception("[DB] insertion failed")
+                        logger.exception("[DB INSERT FULL] insertion failed")
             except Exception:
-                logger.exception(f"[DB INSERT FULL] stitching failed for {article_name} : {model_name}")
+                logger.exception(
+                    f"[DB INSERT FULL] stitching failed for {article_name} : {model_name}"
+                )
 
             try:
                 # Optional DB insert
                 if cfg.db_path:
                     try:
                         from hyb_db import insert_seqdesc_object  # your earlier module
+
                         run_id = insert_seqdesc_object(
                             db_path=str(cfg.db_path),
                             article_name=article_name,
                             doi=outputs.get("A_core", {}).get("doi", None),
                             model_name=model_name,
-                            sequence_descriptors=sequence_descriptors
+                            sequence_descriptors=sequence_descriptors,
                             source_path=art_path,
                         )
-                        logger.info(f"[DB] inserted run_id={run_id} for {article_name} : {model_name}")
+                        logger.info(
+                            f"[DB INSERT SEQDESC] inserted run_id={run_id} for {article_name} : {model_name}"
+                        )
                     except Exception:
-                        logger.exception("[DB] insertion failed")
+                        logger.exception("[DB INSERT SEQDESC] insertion failed")
             except Exception:
-                logger.exception(f"[DB INSERT SEQDESC] stitching failed for {article_name} : {model_name}")
+                logger.exception(
+                    f"[DB INSERT SEQDESC] stitching failed for {article_name} : {model_name}"
+                )
 
 
 # Optional CLI hook (project_dir arg)

@@ -1,22 +1,22 @@
 {
     "model_names": [
-        "myaniu/qwen2.5-1m:7b",
-        "deepseek-r1:1.5b"
+        "phi4:14b",
+        "myaniu/qwen2.5-1m:7b"        
     ],
     "ollama_parameters": {
-        "num_ctx": 40960,
-        "num_predict": 8192,
-        "temperature": 0.2,
-        "seed": 52
+        "num_ctx": 65536,
+        "num_predict": 65536,
+        "temperature": 0.1,
+        "seed": 42
     },
     "ollama_base_url": "http://127.0.0.1:11434",
     "timeout_s": 120,
-    "_input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
-    "input_dir": "input/md",
+    "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
+    "_input_dir": "input/md",
     "out_dir": "outlines_output_db",
     "full_schema_path": "schema/json/article.json",
     "common_prompt_path": "passes/common.txt",
-    "db_path": "outlines_output/massive.sqlite",
+    "db_path": "outlines_output_db/massive.sqlite",
     "article_glob": "**/*.md",
     "pre_passes": [
         {
