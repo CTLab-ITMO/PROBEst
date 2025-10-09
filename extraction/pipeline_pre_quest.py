@@ -1053,7 +1053,7 @@ def run_query_model_speed_up(
                         {"sequence": seq, "param": param, "response": obj}
                     )
 
-                    fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\n```.",
+                    fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\n```."
                     format_fixed_raw_json = think_generate(
                         model=model,
                         model_input=fix_query,
