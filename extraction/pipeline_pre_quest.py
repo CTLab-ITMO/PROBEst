@@ -1058,11 +1058,15 @@ def run_query_model_speed_up(
                         {"sequence": seq, "param": param, "response": obj}
                     )
 
-                    fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\nReturn null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
+                    #fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\nReturn null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
+                    #fix_query = f"Rewrite the object {raw_json} in the new schema. Return null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
+                    fix_chat = outlines.inputs.Chat()
+                    fix_chat.add_system_message(prompt + f"\nIn this chat you have to transform the user-provided JSON object to match the following schema:\n```json\n{json.dumps(schema)}\n```\n.If user provided-data is not enough to fill-in some fields, put null value in them, but try harder to transform as much data to the new schema as possible.")
+                    fix_chat.add_user_message(raw_json)
                     try:
                         format_fixed_raw_json = think_generate(
                             model=model,
-                            model_input=fix_query,
+                            model_input=fix_chat,
                             logger=logger,
                             output_type=JsonSchema(schema=schema),
                             think=True,
@@ -1073,7 +1077,7 @@ def run_query_model_speed_up(
 
                     # Persist logs
                     with open(raw_txt_path, mode="at", encoding="utf-8") as f:
-                        f.write(f"> {fix_query}\n< {format_fixed_raw_json}\n\n")
+                        f.write(f"> {'\n'.join(fix_chat.messages)}\n< {format_fixed_raw_json}\n\n")
 
                     format_fixed = repair_json(format_fixed_raw_json)
                     fixed_obj = json.loads(format_fixed)
@@ -1727,7 +1731,7 @@ def run_query_model(
                 sequence_descriptor = parse_sequence(
                     seq, base_chat=base_chat_with_sequence
                 )
-                described_sequences.append(seq, sequence_descriptor)
+                described_sequences.append((seq, sequence_descriptor))
                 answers.append(
                     {"sequence": seq, "sequence_descriptor": sequence_descriptor}
                 )
