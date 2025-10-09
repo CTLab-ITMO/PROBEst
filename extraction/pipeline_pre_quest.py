@@ -533,7 +533,8 @@ def run_query_model_speed_up(
                     "type": ["string", "null"],
                     "minLength": 5,
                     "maxLength": 150,
-                    "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                    #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                    "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                 },
             ),
             (
@@ -543,7 +544,8 @@ def run_query_model_speed_up(
                     "type": ["string", "null"],
                     "minLength": 5,
                     "maxLength": 150,
-                    "pattern": r"^5'-([A-Za-z0-9_'\-]*-)?([A-Za-z0-9']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9']*?)(-[A-Za-z0-9_'\-]*)?-3'$",
+                    #"pattern": r"^5'-([A-Za-z0-9_'\-]*-)?([A-Za-z0-9']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9']*?)(-[A-Za-z0-9_'\-]*)?-3'$",
+                    "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                 },
             ),
             (
@@ -629,7 +631,8 @@ def run_query_model_speed_up(
                     "type": ["string", "null"],
                     "minLength": 5,
                     "maxLength": 150,
-                    "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                    #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                    "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                 },
             ),
             (
@@ -644,13 +647,15 @@ def run_query_model_speed_up(
                             "type": ["string", "null"],
                             "minLength": 5,
                             "maxLength": 150,
-                            "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                            #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                            "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                         },
                         "reverse": {
                             "type": ["string", "null"],
                             "minLength": 5,
                             "maxLength": 150,
-                            "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                            #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                            "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                         },
                     },
                 },
@@ -1054,13 +1059,17 @@ def run_query_model_speed_up(
                     )
 
                     fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\n```."
-                    format_fixed_raw_json = think_generate(
-                        model=model,
-                        model_input=fix_query,
-                        logger=logger,
-                        output_type=JsonSchema(schema=schema),
-                        think=True,
-                    )
+                    try:
+                        format_fixed_raw_json = think_generate(
+                            model=model,
+                            model_input=fix_query,
+                            logger=logger,
+                            output_type=JsonSchema(schema=schema),
+                            think=True,
+                        )
+                    except ollama.ResponseError:
+                        logger.exception(f"Error on model {model.model_name}, sequence {seq}, query {query} and prompts {chat_prompts}")
+                        print("", flush=True)
 
                     # Persist logs
                     with open(raw_txt_path, mode="at", encoding="utf-8") as f:

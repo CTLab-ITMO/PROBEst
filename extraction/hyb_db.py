@@ -314,7 +314,7 @@ def insert_article_object(db_path: str, article_obj: Dict[str, Any],
         _ensure_schema(conn)
         cur = conn.cursor()
 
-        doi = article_obj.get("doi")
+        doi = article_obj.get("doi", "unknown")
         if not doi:
             raise ValueError("Input must contain a top-level 'doi' string.")
 
