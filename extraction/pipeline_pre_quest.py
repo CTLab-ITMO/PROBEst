@@ -1076,8 +1076,9 @@ def run_query_model_speed_up(
                         print("", flush=True)
 
                     # Persist logs
+                    msgs = '\n'.join(fix_chat.messages)
                     with open(raw_txt_path, mode="at", encoding="utf-8") as f:
-                        f.write(f"> {'\n'.join(fix_chat.messages)}\n< {format_fixed_raw_json}\n\n")
+                        f.write(f"> {msgs}\n< {format_fixed_raw_json}\n\n")
 
                     format_fixed = repair_json(format_fixed_raw_json)
                     fixed_obj = json.loads(format_fixed)
