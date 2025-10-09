@@ -425,7 +425,6 @@ class OllamaJSONChat:
         return res.get("response", "")  # generate() returns 'response'
 
 
-
 def extract_relevant_snippet(article_text: str, seq: str, *, window: int = 1200) -> str:
     """
     Find a case-insensitive hit of 'seq' in article_text and return a small window
@@ -1053,7 +1052,28 @@ def run_query_model_speed_up(
                     answers_log.append(
                         {"sequence": seq, "param": param, "response": obj}
                     )
-                    seq_desc[param] = obj
+
+                    fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\n```.",
+                    format_fixed_raw_json = think_generate(
+                        model=model,
+                        model_input=fix_query,
+                        logger=logger,
+                        output_type=JsonSchema(schema=schema),
+                        think=True,
+                    )
+
+                    # Persist logs
+                    with open(raw_txt_path, mode="at", encoding="utf-8") as f:
+                        f.write(f"> {fix_query}\n< {format_fixed_raw_json}\n\n")
+
+                    format_fixed = repair_json(format_fixed_raw_json)
+                    fixed_obj = json.loads(format_fixed)
+
+                    answers_log.append(
+                        {"sequence": seq, "param": param, "response": fixed_obj}
+                    )
+
+                    seq_desc[param] = fixed_obj
                 except Exception as e:
                     logger.exception(
                         f"Exception on sequence {seq} during question '{param}'"
@@ -1068,7 +1088,9 @@ def run_query_model_speed_up(
             json.dumps(answers_log, indent=2, ensure_ascii=False), encoding="utf-8"
         )
         json_out_path.write_text(
-            json.dumps({s: d for (s, d) in described_sequences}, indent=2, ensure_ascii=False),
+            json.dumps(
+                {s: d for (s, d) in described_sequences}, indent=2, ensure_ascii=False
+            ),
             encoding="utf-8",
         )
         return described_sequences
@@ -2142,9 +2164,12 @@ def run_project(project_dir: str | Path) -> None:
                         f"Pass failed: {p.name} : {article_name} : {model_name}"
                     )
 
-            strict_sequences: Set[str] = set(map(lambda s: s.upper(), outputs.get("SeqPrompt_strict", [])))
-            nonstrict_sequences: Set[str] = set(map(lambda s: s.upper(), outputs.get("SeqPrompt", [])))
-
+            strict_sequences: Set[str] = set(
+                map(lambda s: s.upper(), outputs.get("SeqPrompt_strict", []))
+            )
+            nonstrict_sequences: Set[str] = set(
+                map(lambda s: s.upper(), outputs.get("SeqPrompt", []))
+            )
 
             all_found_sequences = list(
                 sorted(
@@ -2175,7 +2200,6 @@ def run_project(project_dir: str | Path) -> None:
                         f"Pass failed: {p.name} : {article_name} : {model_name}"
                     )
 
-
             optimized_sequence_descriptors = run_query_model_speed_up(
                 model=model,  # not used in the fast version but kept for signature compatibility
                 article_text=article_text,
@@ -2188,9 +2212,8 @@ def run_project(project_dir: str | Path) -> None:
                 model_name=model_name,
                 tqdm_position=2,
                 client=client,  # <-- important: pass the raw ollama.Client
-                chat_prompts="optimized"
+                chat_prompts="optimized",
             )
-
 
             stamp = _now_stamp()
             full_dir = out_base / "json_full"
@@ -2200,7 +2223,9 @@ def run_project(project_dir: str | Path) -> None:
                 / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-OPTIM__{stamp}.json"
             )
             full_seq_desc_path.write_text(
-                json.dumps(optimized_sequence_descriptors, indent=2, ensure_ascii=False),
+                json.dumps(
+                    optimized_sequence_descriptors, indent=2, ensure_ascii=False
+                ),
                 encoding="utf-8",
             )
 
@@ -2228,7 +2253,6 @@ def run_project(project_dir: str | Path) -> None:
                     f"[DB INSERT SEQDESC OPTIM] stitching failed for {article_name} : {model_name}"
                 )
 
-
             my_sequence_descriptors = run_query_model_speed_up(
                 model=model,  # not used in the fast version but kept for signature compatibility
                 article_text=article_text,
@@ -2241,7 +2265,7 @@ def run_project(project_dir: str | Path) -> None:
                 model_name=model_name,
                 tqdm_position=2,
                 client=client,  # <-- important: pass the raw ollama.Client
-                chat_prompts="my"
+                chat_prompts="my",
             )
 
             stamp = _now_stamp()
@@ -2255,7 +2279,6 @@ def run_project(project_dir: str | Path) -> None:
                 json.dumps(my_sequence_descriptors, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
-
 
             try:
                 # Optional DB insert
@@ -2294,7 +2317,6 @@ def run_project(project_dir: str | Path) -> None:
                 tqdm_position=2,
             )
 
-
             stamp = _now_stamp()
             full_dir = out_base / "json_full"
             full_dir.mkdir(parents=True, exist_ok=True)
@@ -2331,7 +2353,6 @@ def run_project(project_dir: str | Path) -> None:
                     f"[DB INSERT SEQDESC OLD] stitching failed for {article_name} : {model_name}"
                 )
 
-
             sequence_descriptors: List[Tuple[str, Dict[str, Any]]] = []
             sequence_descriptors.extend(optimized_sequence_descriptors)
             sequence_descriptors.extend(my_sequence_descriptors)
@@ -2348,7 +2369,6 @@ def run_project(project_dir: str | Path) -> None:
                 json.dumps(sequence_descriptors, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
-
 
             for i, seq in enumerate(
                 tqdm(
@@ -2381,8 +2401,6 @@ def run_project(project_dir: str | Path) -> None:
                         logger.exception(
                             f"Pass failed: {p.name} : {article_name} : {model_name}"
                         )
-
-            
 
             # Stitch only if the expected pass names are present
             try:
