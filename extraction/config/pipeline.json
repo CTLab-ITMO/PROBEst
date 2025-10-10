@@ -1,8 +1,7 @@
 {
     "model_names": [
         "myaniu/qwen2.5-1m:7b",
-        "phi4:14b",
-        "phi3:latest"
+        "phi4:14b"
     ],
     "ollama_parameters": {
         "num_ctx": 65536,
@@ -12,7 +11,8 @@
     },
     "ollama_base_url": "http://127.0.0.1:11434",
     "timeout_s": 120,
-    "input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
+    "__input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
+    "input_dir": "/mnt/Models/articles2_marker/no_llm/markdown/",
     "_input_dir": "input/md",
     "out_dir": "outlines_output_db",
     "full_schema_path": "schema/json/article.json",
