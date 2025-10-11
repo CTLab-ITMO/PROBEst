@@ -1066,8 +1066,10 @@ def run_query_model_speed_up(
                                 probable_value = str(obj.get("value", obj.get("type")))
                                 if probable_value is not None:
                                     validator_easy = Draft202012Validator(schema)
-                                    errors_easy = sorted(validator.iter_errors(probable_value), key=lambda er: er.path)
+                                    errors_easy = sorted(validator_easy.iter_errors(probable_value), key=lambda er: er.path)
                                     if not errors_easy:
+                                        with open(raw_txt_path, mode="at", encoding="utf-8") as f:
+                                            f.write(f"> FIX_EASY\n< {probable_value}\n\n")
                                         answers_log.append(
                                             {
                                                 "sequence": seq,
