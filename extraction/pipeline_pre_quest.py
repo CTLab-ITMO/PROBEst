@@ -1066,7 +1066,7 @@ def run_query_model_speed_up(
                                 probable_value = str(obj.get("value", obj.get("type")))
                                 try:
                                     keys = obj.keys()
-                                    probable_value = obj[keys[-1]]
+                                    probable_value = obj[keys[0]]
                                 except:
                                     pass
                                 if probable_value is not None:
