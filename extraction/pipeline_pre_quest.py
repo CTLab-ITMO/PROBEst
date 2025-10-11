@@ -1013,10 +1013,11 @@ def run_query_model_speed_up(
             sys_prompt = (
                 prompt
                 + "\n\nYou will answer a series of short JSON-only questions about a SINGLE candidate probe sequence.\n"
-                + "You MUST base answers ONLY on this article text:\n<article>\n"
-                + article_text
-                + "\n</article>\n"
-                + f"And the most relevant snippet seems to be <snippet>\nsnippet\n</snippet>\n\n"
+                #+ "You MUST base answers ONLY on this article text:\n<article>\n"
+                #+ article_text
+                #+ "\n</article>\n"
+                #+ f"And the most relevant snippet seems to be <snippet>\nsnippet\n</snippet>\n\n"
+                + f"You MUST base answers ONLY on this article snipet: <snippet>\nsnippet\n</snippet>\n\n"
                 + "The candidate for being a probe sequence is:\n<sequence>\n"
                 + seq
                 + "\n</sequence>\nAnd you must bow work with only this sequence and all relevant context for it. You will be asked a series of questions about this sequence.\n"
