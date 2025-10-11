@@ -1056,8 +1056,7 @@ def run_query_model_speed_up(
                     with open(raw_txt_path, mode="at", encoding="utf-8") as f:
                         f.write(f"> {query}\n< {raw_json}\n\n")
 
-                    validator = Draft202012Validator(json.loads(schema))
-
+                    validator = Draft202012Validator(schema)
                     errors = sorted(validator.iter_errors(obj), key=lambda er: er.path)
                     if errors:
                         # fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\nReturn null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
