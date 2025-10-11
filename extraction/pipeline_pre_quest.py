@@ -1060,6 +1060,26 @@ def run_query_model_speed_up(
                     validator = Draft202012Validator(schema)
                     errors = sorted(validator.iter_errors(obj), key=lambda er: er.path)
                     if errors:
+                        try:
+                            expected_type = schema.get("type")
+                            if expected_type is not None and (expected_type == "string" or "string" in set(expected_type)):
+                                probable_value = str(obj.get("value", obj.get("type")))
+                                if probable_value is not None:
+                                    validator_easy = Draft202012Validator(schema)
+                                    errors_easy = sorted(validator.iter_errors(probable_value), key=lambda er: er.path)
+                                    if not errors_easy:
+                                        answers_log.append(
+                                            {
+                                                "sequence": seq,
+                                                "param": param,
+                                                "response": obj,
+                                                "fixed_response": probable_value,
+                                            }
+                                        )
+                                        seq_desc[param] = probable_value
+                                        continue
+                        except Exception as e:
+                            logger.exception("Failed to easily-fix an object")
                         # fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\nReturn null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
                         # fix_query = f"Rewrite the object {raw_json} in the new schema. Return null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
                         fix_chat = outlines.inputs.Chat()
