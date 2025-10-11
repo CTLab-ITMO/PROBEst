@@ -1062,7 +1062,7 @@ def run_query_model_speed_up(
                     if errors:
                         try:
                             expected_type = schema.get("type")
-                            if expected_type is not None and (expected_type == "string" or "string" in set(expected_type)):
+                            if expected_type is not None and (expected_type != "object"):
                                 probable_value = str(obj.get("value", obj.get("type")))
                                 if probable_value is not None:
                                     validator_easy = Draft202012Validator(schema)
