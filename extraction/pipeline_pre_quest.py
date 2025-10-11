@@ -1064,6 +1064,11 @@ def run_query_model_speed_up(
                             expected_type = schema.get("type")
                             if expected_type is not None and (expected_type != "object"):
                                 probable_value = str(obj.get("value", obj.get("type")))
+                                try:
+                                    keys = obj.keys()
+                                    probable_value = obj[keys[-1]]
+                                except:
+                                    pass
                                 if probable_value is not None:
                                     validator_easy = Draft202012Validator(schema)
                                     errors_easy = sorted(validator_easy.iter_errors(probable_value), key=lambda er: er.path)
