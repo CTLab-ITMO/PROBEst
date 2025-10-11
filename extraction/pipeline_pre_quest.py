@@ -37,6 +37,7 @@ import outlines
 from jsonschema import Draft202012Validator
 from outlines.types import JsonSchema
 from tqdm import tqdm
+from json_repair import repair_json as rep_json
 
 API_TOKEN = os.getenv("OPEN_BUTTON_TOKEN", None)
 
@@ -324,7 +325,7 @@ def repair_json(text: str) -> str:
     end = text.rfind("}")
     if start == -1 or end == -1 or end <= start:
         return text
-    candidate = text[start : end + 1]
+    candidate = rep_json(text[start : end + 1])
     try:
         json.loads(candidate)
         return candidate
@@ -533,7 +534,7 @@ def run_query_model_speed_up(
                     "type": ["string", "null"],
                     "minLength": 5,
                     "maxLength": 150,
-                    #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                    # "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
                     "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                 },
             ),
@@ -544,7 +545,7 @@ def run_query_model_speed_up(
                     "type": ["string", "null"],
                     "minLength": 5,
                     "maxLength": 150,
-                    #"pattern": r"^5'-([A-Za-z0-9_'\-]*-)?([A-Za-z0-9']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9']*?)(-[A-Za-z0-9_'\-]*)?-3'$",
+                    # "pattern": r"^5'-([A-Za-z0-9_'\-]*-)?([A-Za-z0-9']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9']*?)(-[A-Za-z0-9_'\-]*)?-3'$",
                     "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                 },
             ),
@@ -631,7 +632,7 @@ def run_query_model_speed_up(
                     "type": ["string", "null"],
                     "minLength": 5,
                     "maxLength": 150,
-                    #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                    # "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
                     "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                 },
             ),
@@ -647,14 +648,14 @@ def run_query_model_speed_up(
                             "type": ["string", "null"],
                             "minLength": 5,
                             "maxLength": 150,
-                            #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                            # "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
                             "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                         },
                         "reverse": {
                             "type": ["string", "null"],
                             "minLength": 5,
                             "maxLength": 150,
-                            #"pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
+                            # "pattern": r"^5'-([A-Za-z0-9()_'\-]*-)?([A-Za-z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[A-Za-z0-9()']*?)(-[A-Za-z0-9()_'\-]*)?-3'$",
                             "pattern": r"^5'-([a-zA-Z0-9(_)'-]*-)?([a-zA-Z0-9()']*?[ACGUTRYSWKMBDHVN]{5,}[a-zA-Z0-9()']*?)(-[a-zA-Z0-9(_)'-]*)?-3'$",
                         },
                     },
@@ -1012,13 +1013,14 @@ def run_query_model_speed_up(
             sys_prompt = (
                 prompt
                 + "\n\nYou will answer a series of short JSON-only questions about a SINGLE candidate probe sequence.\n"
-                + "You MUST base answers ONLY on this article snippet:\n<article_snippet>\n"
-                + snippet
-                + "\n</article_snippet>\n"
-                + "Candidate probe:\n<sequence>\n"
+                + "You MUST base answers ONLY on this article text:\n<article>\n"
+                + article_text
+                + "\n</article>\n"
+                + f"And the most relevant snippet seems to be <snippet>\nsnippet\n</snippet>\n\n"
+                + "The candidate for being a probe sequence is:\n<sequence>\n"
                 + seq
-                + "\n</sequence>\n"
-                + "Return strictly JSON for each question — no extra commentary."
+                + "\n</sequence>\nAnd you must bow work with only this sequence and all relevant context for it. You will be asked a series of questions about this sequence.\n"
+                + "Return strictly JSON for each question — no extra commentary. You will receive a JSON schema in each question."
             )
 
             # Create a fresh stateful session for THIS sequence (keeps context across questions)
@@ -1054,40 +1056,56 @@ def run_query_model_speed_up(
                     with open(raw_txt_path, mode="at", encoding="utf-8") as f:
                         f.write(f"> {query}\n< {raw_json}\n\n")
 
-                    answers_log.append(
-                        {"sequence": seq, "param": param, "response": obj}
-                    )
+                    validator = Draft202012Validator(json.loads(schema))
 
-                    #fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\nReturn null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
-                    #fix_query = f"Rewrite the object {raw_json} in the new schema. Return null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
-                    fix_chat = outlines.inputs.Chat()
-                    fix_chat.add_system_message(prompt + f"\nIn this chat you have to transform the user-provided JSON object to match the following schema:\n```json\n{json.dumps(schema)}\n```\n.If user provided-data is not enough to fill-in some fields, put null value in them, but try harder to transform as much data to the new schema as possible.")
-                    fix_chat.add_user_message(raw_json)
-                    try:
-                        format_fixed_raw_json = think_generate(
-                            model=model,
-                            model_input=fix_chat,
-                            logger=logger,
-                            output_type=JsonSchema(schema=schema),
-                            think=True,
+                    errors = sorted(validator.iter_errors(obj), key=lambda er: er.path)
+                    if errors:
+                        # fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\nReturn null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
+                        # fix_query = f"Rewrite the object {raw_json} in the new schema. Return null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
+                        fix_chat = outlines.inputs.Chat()
+                        fix_chat.add_system_message(
+                            prompt
+                            + f"\nIn this chat you have to transform the user-provided JSON object to match the following schema:\n```json\n{json.dumps(schema)}\n```\n. If user provided-data is not enough to fill-in some fields, put null value in them, but try harder to transform as much data to the new schema as possible. Please do not modify or invent values by yourself. Just move existing values to the corresponging fields of the schema. Please be thoughtful and careful while doing so!"
                         )
-                    except ollama.ResponseError:
-                        logger.exception(f"Error on model {model.model_name}, sequence {seq}, query {query} and prompts {chat_prompts}")
-                        print("", flush=True)
+                        fix_chat.add_user_message(raw_json)
+                        try:
+                            format_fixed_raw_json = think_generate(
+                                model=model,
+                                model_input=fix_chat,
+                                logger=logger,
+                                output_type=JsonSchema(schema=schema),
+                                think=True,
+                                options=ollama_parameters,
+                            )
+                        except ollama.ResponseError:
+                            logger.exception(
+                                f"Error on model {model.model_name}, sequence {seq}, query {query} and prompts {chat_prompts}"
+                            )
+                            print("", flush=True)
+                            format_fixed_raw_json = raw_json
 
-                    # Persist logs
-                    #msgs = '\n'.join(map(lambda k,v: "\n".join([f"{k}: {v}"]), fix_chat.messages))
-                    with open(raw_txt_path, mode="at", encoding="utf-8") as f:
-                        f.write(f"> FIX_PROMPT\n< {format_fixed_raw_json}\n\n")
+                        # Persist logs
+                        # msgs = '\n'.join(map(lambda k,v: "\n".join([f"{k}: {v}"]), fix_chat.messages))
+                        with open(raw_txt_path, mode="at", encoding="utf-8") as f:
+                            f.write(f"> FIX_PROMPT\n< {format_fixed_raw_json}\n\n")
 
-                    format_fixed = repair_json(format_fixed_raw_json)
-                    fixed_obj = json.loads(format_fixed)
+                        format_fixed = repair_json(format_fixed_raw_json)
+                        fixed_obj = json.loads(format_fixed)
 
-                    answers_log.append(
-                        {"sequence": seq, "param": param, "response": fixed_obj}
-                    )
-
-                    seq_desc[param] = fixed_obj
+                        answers_log.append(
+                            {
+                                "sequence": seq,
+                                "param": param,
+                                "response": obj,
+                                "fixed_response": fixed_obj,
+                            }
+                        )
+                        seq_desc[param] = fixed_obj
+                    else:
+                        answers_log.append(
+                            {"sequence": seq, "param": param, "response": obj}
+                        )
+                        seq_desc[param] = obj
                 except Exception as e:
                     logger.exception(
                         f"Exception on sequence {seq} during question '{param}'"
@@ -2318,7 +2336,9 @@ def run_project(project_dir: str | Path) -> None:
                     f"[DB INSERT SEQDESC MY] stitching failed for {article_name} : {model_name}"
                 )
 
-            logger.warning("[SeqDesc-OLD] Parsing old sequence descriptors is disabled in this run.")
+            logger.warning(
+                "[SeqDesc-OLD] Parsing old sequence descriptors is disabled in this run."
+            )
             old_sequence_descriptors = []
             # old_sequence_descriptors = run_query_model(
             #     model=model,
