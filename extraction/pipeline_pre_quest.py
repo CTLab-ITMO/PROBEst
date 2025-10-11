@@ -2318,18 +2318,20 @@ def run_project(project_dir: str | Path) -> None:
                     f"[DB INSERT SEQDESC MY] stitching failed for {article_name} : {model_name}"
                 )
 
-            old_sequence_descriptors = run_query_model(
-                model=model,
-                article_text=article_text,
-                sequences=all_found_sequences,
-                out_base=out_base,
-                article_stem=article_name,
-                common_prompt_path=cfg.common_prompt_path,
-                ollama_parameters=cfg.ollama_parameters,
-                logger=logger,
-                model_name=model_name,
-                tqdm_position=2,
-            )
+            logger.warning("[SeqDesc-OLD] Parsing old sequence descriptors is disabled in this run.")
+            old_sequence_descriptors = []
+            # old_sequence_descriptors = run_query_model(
+            #     model=model,
+            #     article_text=article_text,
+            #     sequences=all_found_sequences,
+            #     out_base=out_base,
+            #     article_stem=article_name,
+            #     common_prompt_path=cfg.common_prompt_path,
+            #     ollama_parameters=cfg.ollama_parameters,
+            #     logger=logger,
+            #     model_name=model_name,
+            #     tqdm_position=2,
+            # )
 
             stamp = _now_stamp()
             full_dir = out_base / "json_full"

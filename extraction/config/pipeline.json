@@ -10,7 +10,7 @@
         "seed": 42
     },
     "ollama_base_url": "http://127.0.0.1:11434",
-    "timeout_s": 120,
+    "timeout_s": 45,
     "__input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
     "input_dir": "/mnt/Models/articles2_marker/no_llm/markdown/",
     "_input_dir": "input/md",
