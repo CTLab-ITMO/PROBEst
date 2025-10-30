@@ -12,7 +12,7 @@ import sqlite3
 from contextlib import contextmanager, closing
 from datetime import datetime, timezone
 from loguru import logger
-from ollama import chat, ChatResponse 
+from ollama import chat, ChatResponse
 from json_repair import repair_json
 import os, sys
 from jsonschema import Draft202012Validator
@@ -23,10 +23,19 @@ SQLite dataset builder for hybridization-article extractions.
 
 Public API:
     init_db(db_path)
+
+    # HYBRIDIZATION ARTICLE / EXPERIMENT STRUCTURE
     insert_article_object(db_path, article_obj, model_name, article_name)
     insert_seqdesc_object(...)
+
+    # PERFORMANCE / PIPELINE METRICS
     insert_perf_event(db_path, event_dict)
     insert_perf_events(db_path, [event_dict, ...])
+
+    # NEW (ADDED FOR PIPELINE CONTINUATION + SIDE-CAR PERF TRACKING)
+    insert_pipeline_artifact(db_path, artifact_dict)
+    get_pipeline_artifacts_for_article(db_path, model_name, article_name)
+    get_completed_passes(db_path, model_name, article_name)
 
 Features:
 - Auto-initializes schema (tables, indexes, views).
@@ -34,8 +43,38 @@ Features:
 - Normalizes sense/antisense & prime markers.
 - Guards against non-oligo "probes" (skips probe insertion but keeps experiment).
 - Includes Ollama-style helper tools with Google docstrings.
-- NEW: perf_events table for timings/tokens of every step/question.
+- perf_events table for timings/tokens of every step/question.
+- NEW: pipeline_artifacts table for per-pass / per-file sidecar metrics and
+       continuation bookkeeping. Each JSON artifact the pipeline writes on disk
+       (per pass, per article, per model) can have a "sidecar" JSON with timing
+       and token usage. We mirror that data into pipeline_artifacts so that:
+         * downstream QC / benchmarking code can query timings and tokens
+         * the pipeline can resume/continue work by checking which passes for a
+           given (model_name, article_name) have already succeeded.
+  The pipeline will:
+    - emit a sidecar JSON next to every produced .json/.log.json/etc. file
+      containing timing, token counts, and file paths
+    - call insert_pipeline_artifact(...) with the same metadata
+  Because this module always calls _ensure_schema() on connect, the new table
+  will be created automatically in older existing DBs without migration steps.
+
+Tables overview
+---------------
+articles / runs / raw_payloads / experiments / ... :
+    Structured hybridization experiment data (final stitched objects).
+
+seqdesc_* :
+    Per-sequence descriptors from sequence descriptor passes.
+
+perf_events :
+    Fine-grained timing and token usage for any granular step/question.
+
+pipeline_artifacts :
+    Coarse-grained artifact-level bookkeeping used for:
+        - sidecar perf metrics per produced JSON artifact
+        - continuation / resume logic (which pipeline passes already finished)
 """
+
 import json
 import re
 import sqlite3
@@ -224,7 +263,7 @@ CREATE TABLE IF NOT EXISTS no_sequences_explanations (
 );
 CREATE INDEX IF NOT EXISTS idx_no_seq_run ON no_sequences_explanations(run_id);
 
-/* NEW: generic performance/timing/token metrics for all steps and questions */
+/* generic performance/timing/token metrics for all steps and questions */
 CREATE TABLE IF NOT EXISTS perf_events (
     id                   INTEGER PRIMARY KEY,
     namespace            TEXT NOT NULL CHECK (namespace IN ('pre_pass','pass','query','construct','stitch','db_insert','other')),
@@ -245,6 +284,36 @@ CREATE TABLE IF NOT EXISTS perf_events (
     notes                TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_perf_ns_article_model ON perf_events(namespace, article_name, model_name);
+
+/* NEW TABLE:
+   pipeline_artifacts captures artifact-level metadata (per produced JSON file).
+   It is designed for:
+     - performance sidecar ingestion (duration, token counts, sidecar paths)
+     - resume/continuation bookkeeping (which passes are already done)
+   The UNIQUE constraint prevents exact duplicate rows for the same (model,article,pass,file),
+   but allows multiple historical attempts over time if artifact_path differs
+   (timestamps are embedded in filenames in the pipeline).
+*/
+CREATE TABLE IF NOT EXISTS pipeline_artifacts (
+    id                   INTEGER PRIMARY KEY,
+    model_name           TEXT NOT NULL,
+    article_name         TEXT NOT NULL,
+    pass_name            TEXT NOT NULL,
+    artifact_path        TEXT NOT NULL,
+    sidecar_path         TEXT,
+    started_at           TEXT,
+    finished_at          TEXT,
+    duration_ms          REAL,
+    prompt_tokens        INTEGER,
+    completion_tokens    INTEGER,
+    total_tokens         INTEGER,
+    tokens_per_sec       REAL,
+    success              INTEGER,  -- NULL/0/1
+    notes                TEXT,
+    UNIQUE (model_name, article_name, pass_name, artifact_path)
+);
+CREATE INDEX IF NOT EXISTS idx_pa_lookup   ON pipeline_artifacts(model_name, article_name, pass_name);
+CREATE INDEX IF NOT EXISTS idx_pa_finished ON pipeline_artifacts(finished_at);
 """
 
 _VIEWS_SQL = """
@@ -513,7 +582,28 @@ def _event_defaults(ev: Dict[str, Any]) -> Dict[str, Any]:
     return d
 
 def insert_perf_event(db_path: str, event: Dict[str, Any]) -> int:
-    """Insert a single performance/timing event row."""
+    """Insert a single performance/timing event row.
+
+    Typical usage:
+        insert_perf_event(db_path, {
+            "namespace": "pass",
+            "article_name": "paper123",
+            "model_name": "my/model:7b",
+            "article_doi": "10.xxxx/yyy",
+            "pass_name": "A_core",
+            "sequence_key": None,
+            "question_param": None,
+            "started_at": "...",
+            "finished_at": "...",
+            "duration_ms": 1234.5,
+            "prompt_tokens": 4567,
+            "completion_tokens": 890,
+            "total_tokens": 5457,
+            "tokens_per_sec": 12.34,
+            "sidecar_path": "/path/to/file.sidecar.json",
+            "notes": "ok"
+        })
+    """
     with _db(db_path) as conn:
         _ensure_schema(conn)
         cur = conn.cursor()
@@ -566,6 +656,249 @@ def insert_perf_events(db_path: str, events: List[Dict[str, Any]]) -> List[int]:
             )
             ids.append(cur.lastrowid)
     return ids
+
+
+# NEW: pipeline_artifacts API ------------------------------------------ #
+
+def _artifact_defaults(rec: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize/complete an artifact record dict before DB insert.
+
+    Expected keys in `rec`:
+        model_name         : str
+        article_name       : str
+        pass_name          : str  (e.g. 'A_core', 'SeqDesc-OPTIM', 'FULL')
+        artifact_path      : str  (absolute or project-rel path to main JSON)
+        sidecar_path       : str|None (path to sidecar .perf.json)
+        started_at         : str|None (ISO8601 UTC)
+        finished_at        : str|None (ISO8601 UTC)
+        duration_ms        : float|None
+        prompt_tokens      : int|None
+        completion_tokens  : int|None
+        total_tokens       : int|None
+        tokens_per_sec     : float|None
+        success            : bool|int|None
+        notes              : str|None
+    """
+    d = dict(rec or {})
+    for k in (
+        "model_name", "article_name", "pass_name", "artifact_path",
+        "sidecar_path", "started_at", "finished_at", "duration_ms",
+        "prompt_tokens", "completion_tokens", "total_tokens", "tokens_per_sec",
+        "success", "notes"
+    ):
+        d.setdefault(k, None)
+
+    # Convert success -> int bool (1/0/NULL)
+    d["success"] = _to_int_bool(d.get("success"))
+    return d
+
+
+def insert_pipeline_artifact(db_path: str, artifact: Dict[str, Any]) -> int:
+    """Insert a single pipeline_artifacts row.
+
+    This captures per-pass / per-article / per-model artifact bookkeeping
+    (timings + token usage for the JSON file) as well as marking a pass
+    as 'successfully finished' for continuation.
+
+    NOTE:
+    We do a plain INSERT. The table has a UNIQUE constraint on
+    (model_name, article_name, pass_name, artifact_path), so the pipeline
+    should generate unique artifact_path names (it already includes a
+    timestamped suffix in filenames). We intentionally do NOT overwrite.
+
+    Returns:
+      row_id (int).
+    """
+    with _db(db_path) as conn:
+        _ensure_schema(conn)
+        cur = conn.cursor()
+        r = _artifact_defaults(artifact)
+        cur.execute(
+            """
+            INSERT INTO pipeline_artifacts (
+                model_name, article_name, pass_name, artifact_path, sidecar_path,
+                started_at, finished_at, duration_ms,
+                prompt_tokens, completion_tokens, total_tokens, tokens_per_sec,
+                success, notes
+            )
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                r["model_name"],
+                r["article_name"],
+                r["pass_name"],
+                r["artifact_path"],
+                r["sidecar_path"],
+                r["started_at"],
+                r["finished_at"],
+                r["duration_ms"],
+                r["prompt_tokens"],
+                r["completion_tokens"],
+                r["total_tokens"],
+                r["tokens_per_sec"],
+                r["success"],
+                r["notes"],
+            ),
+        )
+        return cur.lastrowid
+
+
+def get_pipeline_artifacts_for_article(
+    db_path: str,
+    model_name: str,
+    article_name: str,
+) -> List[Dict[str, Any]]:
+    """Fetch all recorded artifacts for (model_name, article_name).
+
+    This is useful for:
+      - debugging
+      - external QC scripts
+      - continuation logic in the pipeline (to see what's already done)
+
+    Returns:
+      A list (possibly empty) of dicts, newest-first by finished_at (NULL last).
+    """
+    with _db(db_path) as conn:
+        _ensure_schema(conn)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT
+                id,
+                model_name,
+                article_name,
+                pass_name,
+                artifact_path,
+                sidecar_path,
+                started_at,
+                finished_at,
+                duration_ms,
+                prompt_tokens,
+                completion_tokens,
+                total_tokens,
+                tokens_per_sec,
+                success,
+                notes
+            FROM pipeline_artifacts
+            WHERE model_name = ?
+              AND article_name = ?
+            ORDER BY
+                CASE WHEN finished_at IS NULL THEN 1 ELSE 0 END,
+                finished_at DESC
+            """,
+            (model_name, article_name),
+        )
+        rows = cur.fetchall()
+
+    out_rows: List[Dict[str, Any]] = []
+    for row in rows:
+        (
+            rid, mname, aname, pass_name, artifact_path, sidecar_path,
+            started_at, finished_at, duration_ms,
+            prompt_tokens, completion_tokens, total_tokens, tokens_per_sec,
+            success, notes
+        ) = row
+        out_rows.append(
+            {
+                "id": rid,
+                "model_name": mname,
+                "article_name": aname,
+                "pass_name": pass_name,
+                "artifact_path": artifact_path,
+                "sidecar_path": sidecar_path,
+                "started_at": started_at,
+                "finished_at": finished_at,
+                "duration_ms": duration_ms,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens,
+                "tokens_per_sec": tokens_per_sec,
+                "success": bool(success) if success is not None else None,
+                "notes": notes,
+            }
+        )
+    return out_rows
+
+
+def get_completed_passes(
+    db_path: str,
+    model_name: str,
+    article_name: str,
+) -> Dict[str, Dict[str, Any]]:
+    """Return a summary of which logical passes have already completed
+    successfully for (model_name, article_name).
+
+    The pipeline can use this to implement continuation / resume:
+      - If a pass_name appears here with success True, the pipeline MAY skip
+        regenerating that pass for that (model, article), unless --fresh was
+        requested or the pipeline.json layout changed and the user wants that
+        pass rerun anyway.
+
+    Returns:
+      dict:
+        {
+           "A_core": {
+               "finished_at": "...",
+               "artifact_path": ".../paper__A_core__model__timestamp.json",
+               "sidecar_path": ".../paper__A_core__model__timestamp.perf.json",
+               "duration_ms": 1234.5,
+               "total_tokens": 9876,
+               ...
+           },
+           ...
+        }
+
+      If multiple rows exist for the same pass_name we pick the most recent row
+      with success == 1 (by finished_at DESC). If none are successful for a
+      pass, that pass won't appear in the dict.
+    """
+    artifacts = get_pipeline_artifacts_for_article(
+        db_path=db_path, model_name=model_name, article_name=article_name
+    )
+
+    best: Dict[str, Dict[str, Any]] = {}
+    for row in artifacts:
+        pname = row["pass_name"]
+        if not row.get("success"):
+            continue
+        prev = best.get(pname)
+        if prev is None:
+            best[pname] = row
+            continue
+        # pick newer finished_at
+        prev_finished = prev.get("finished_at")
+        cur_finished = row.get("finished_at")
+        # if prev_finished is None but cur_finished not None -> prefer current
+        # if both not None -> compare lexicographically (ISO8601 so OK)
+        take_current = False
+        if prev_finished is None and cur_finished is not None:
+            take_current = True
+        elif prev_finished is not None and cur_finished is not None:
+            if str(cur_finished) > str(prev_finished):
+                take_current = True
+        elif prev_finished is None and cur_finished is None:
+            # keep first, arbitrary
+            take_current = False
+        # else prev has finished_at but current doesn't — keep prev.
+        if take_current:
+            best[pname] = row
+
+    # Only expose a shallow summary for convenience
+    summarized: Dict[str, Dict[str, Any]] = {}
+    for pname, row in best.items():
+        summarized[pname] = {
+            "finished_at": row.get("finished_at"),
+            "artifact_path": row.get("artifact_path"),
+            "sidecar_path": row.get("sidecar_path"),
+            "duration_ms": row.get("duration_ms"),
+            "prompt_tokens": row.get("prompt_tokens"),
+            "completion_tokens": row.get("completion_tokens"),
+            "total_tokens": row.get("total_tokens"),
+            "tokens_per_sec": row.get("tokens_per_sec"),
+            "notes": row.get("notes"),
+        }
+    return summarized
+
 
 # ----------------------------- Ollama-style helper tools ----------------------------- #
 

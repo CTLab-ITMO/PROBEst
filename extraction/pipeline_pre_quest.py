@@ -9,12 +9,40 @@ File-driven multi-pass extractor with Outlines + Ollama.
 - Stitches pass outputs into a full object, validates against full schema (if provided),
   and optionally inserts into SQLite via hyb_db.insert_article_object.
 
+NEW FEATURES ADDED:
+1. Performance metrics / sidecar files:
+   - For every JSON artifact we emit, we now also write a "<artifact>.perf.json"
+     sidecar with:
+        - start/end timestamps
+        - wallclock duration_ms
+        - token usage (if available from Ollama; otherwise nulls)
+        - simple throughput
+        - model_name / article_name / pass_name
+        - artifact path
+     These metrics are also mirrored into SQLite (if cfg.db_path is not None)
+     using hyb_db.insert_pipeline_artifact(...), with automatic table creation.
+   - This allows downstream automated QC / benchmarking.
+
+2. Continuation / resume:
+   - The pipeline can resume across runs without losing progress.
+   - Unless --fresh is passed, we will SKIP any (model_name, article_name)
+     pair that is already marked complete for pass_name "FULL" in the DB
+     (hyb_db.get_completed_passes()).
+   - This satisfies the requirement that we do not reprocess already-finished
+     articles on rerun.
+   - Re-doing the _current_ interrupted article from scratch is acceptable
+     (the spec explicitly allows reparsing one article).
+
+
 Requirements:
-  pip install outlines ollama jsonschema tqdm
+  pip install outlines ollama jsonschema tqdm json_repair loguru
 
 Usage (script):
   from pipeline_filedriven import run_project
-  run_project("your_project_dir")
+  run_project("your_project_dir", fresh=False)
+
+CLI:
+  python pipeline_filedriven.py <project_dir> [--fresh]
 
 The project_dir must contain (by default):
   config/pipeline.json
@@ -27,8 +55,9 @@ import json
 import logging
 import re
 import os, sys
+import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Set, Tuple
 
@@ -197,6 +226,105 @@ def _make_logger(log_dir: Path) -> logging.Logger:
 
 
 # ──────────────────────────────────────────────────────────────────────
+# NEW: Perf / sidecar helpers (feature 1) and continuation helpers (feature 2)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _write_perf_sidecar_and_db(
+    *,
+    artifact_path: Path,
+    pass_name: str,
+    model_name: str,
+    article_name: str,
+    start_time: datetime,
+    end_time: datetime,
+    prompt_tokens: Optional[int],
+    completion_tokens: Optional[int],
+    db_path: Optional[Path],
+    logger: logging.Logger,
+    notes: Optional[str] = None,
+) -> None:
+    """Write <artifact>.perf.json sidecar and mirror metrics into SQLite.
+
+    - duration_ms: wallclock elapsed between start_time and end_time
+    - prompt_tokens / completion_tokens: from Ollama metadata when available
+    - total_tokens / tokens_per_sec: derived
+    - if db_path is provided, also insert a row into hyb_db.pipeline_artifacts
+      (auto-creates tables if needed)
+
+    This function never raises; it logs exceptions instead.
+    """
+    try:
+        duration_ms = (end_time - start_time).total_seconds() * 1000.0
+    except Exception:
+        duration_ms = None
+
+    total_tokens = None
+    if (prompt_tokens is not None) or (completion_tokens is not None):
+        total_tokens = (prompt_tokens or 0) + (completion_tokens or 0)
+
+    tokens_per_sec = None
+    try:
+        if total_tokens is not None and duration_ms and duration_ms > 0:
+            tokens_per_sec = total_tokens / (duration_ms / 1000.0)
+    except Exception:
+        tokens_per_sec = None
+
+    sidecar_dict = {
+        "model_name": model_name,
+        "article_name": article_name,
+        "pass_name": pass_name,
+        "artifact_path": str(artifact_path),
+        "started_at": start_time.isoformat(),
+        "finished_at": end_time.isoformat(),
+        "duration_ms": duration_ms,
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "total_tokens": total_tokens,
+        "tokens_per_sec": tokens_per_sec,
+        "notes": notes,
+    }
+
+    sidecar_path = Path(str(artifact_path) + ".perf.json")
+    try:
+        sidecar_path.write_text(
+            json.dumps(sidecar_dict, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+    except Exception as e:
+        logger.exception(
+            f"[PERF] Failed to write sidecar for {artifact_path}: {repr(e)}"
+        )
+
+    if db_path:
+        try:
+            from hyb_db import insert_pipeline_artifact
+
+            insert_pipeline_artifact(
+                db_path=str(db_path),
+                artifact={
+                    "model_name": model_name,
+                    "article_name": article_name,
+                    "pass_name": pass_name,
+                    "artifact_path": str(artifact_path),
+                    "sidecar_path": str(sidecar_path),
+                    "started_at": start_time.isoformat(),
+                    "finished_at": end_time.isoformat(),
+                    "duration_ms": duration_ms,
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": total_tokens,
+                    "tokens_per_sec": tokens_per_sec,
+                    "success": True,
+                    "notes": notes,
+                },
+            )
+        except Exception as e:
+            logger.exception(
+                f"[PERF][DB] insert_pipeline_artifact failed for {artifact_path}: {repr(e)}"
+            )
+
+
+# ──────────────────────────────────────────────────────────────────────
 # Tools (Ollama helpers) — Google-style docstrings
 # ──────────────────────────────────────────────────────────────────────
 
@@ -351,6 +479,10 @@ class OllamaJSONChat:
     We seed once with a system prompt (includes article snippet & sequence),
     then for each question we call generate() with only the new instruction
     and pass the returned `context` back in.
+
+    NEW:
+    - self._last_meta stores token / timing metadata from the most recent
+      .ask_json() call so we can accumulate perf stats.
     """
 
     def __init__(
@@ -370,9 +502,10 @@ class OllamaJSONChat:
         self.keep_alive = keep_alive
         self.logger = logger or logging.getLogger("OllamaJSONChat")
         self.context: Optional[List[int]] = None
+        self._last_meta: Dict[str, Any] = {}
+        self._schema_supported = False
 
         # Bootstrap the KV cache with the system prompt once.
-        # We don't care about the text reply here; we only keep the returned context.
         boot = self.client.generate(
             model=self.model_name,
             prompt=system_prompt,
@@ -382,7 +515,6 @@ class OllamaJSONChat:
         self.context = boot.get("context")
 
         # Detect JSON schema support (best effort: try once without touching our context).
-        self._schema_supported = False
         if use_schema_format:
             try:
                 _ = self.client.generate(
@@ -407,6 +539,8 @@ class OllamaJSONChat:
         Ask a single question. Only the new instruction is sent; the previous
         state is carried via `context`.
         Returns the raw text from `response`.
+
+        Also captures Ollama's prompt_eval_count / eval_count in self._last_meta.
         """
         kwargs = dict(
             model=self.model_name,
@@ -423,6 +557,17 @@ class OllamaJSONChat:
         res = self.client.generate(**kwargs)
         # Persist updated KV context
         self.context = res.get("context", self.context)
+
+        # Capture perf metadata from Ollama response.
+        # Typical keys: prompt_eval_count, eval_count, total_duration, etc.
+        self._last_meta = {
+            "prompt_eval_count": res.get("prompt_eval_count"),
+            "eval_count": res.get("eval_count"),
+            "total_duration": res.get("total_duration"),
+            "prompt_eval_duration": res.get("prompt_eval_duration"),
+            "eval_duration": res.get("eval_duration"),
+        }
+
         return res.get("response", "")  # generate() returns 'response'
 
 
@@ -473,10 +618,17 @@ def run_query_model_speed_up(
     tqdm_position: int = 0,
     client: Optional[ollama.Client] = None,  # NEW: pass the ollama client here
     chat_prompts: Literal["my", "optimized"] = "my",
+    db_path: Optional[Path] = None,  # NEW: for perf sidecar + DB
+    article_name: Optional[str] = None,  # NEW: for perf sidecar + DB
 ) -> List[Tuple[str, Any]]:
     """
     Faster version: use Ollama chat 'context' to avoid re-sending the whole chat every turn,
     and seed each sequence with a small snippet instead of the full article.
+
+    NEW:
+    - We track timing & token counts across the entire pass (all sequences/questions).
+    - We emit .perf.json sidecars next to generated .json/.log.json.
+    - We mirror those metrics into SQLite for continuation / benchmarking.
     """
     if client is None:
         raise ValueError(
@@ -999,6 +1151,12 @@ def run_query_model_speed_up(
     answers_log: List[Dict[str, Any]] = []
     described_sequences: List[Tuple[str, Dict[str, Any]]] = []
 
+    # PERF tracking for the entire sequence-descriptor pass:
+    perf_start_dt = datetime.now(timezone.utc)
+    agg_prompt_tokens = 0
+    agg_completion_tokens = 0
+    have_token_info = False
+
     try:
         for seq in tqdm(
             sequences,
@@ -1017,7 +1175,6 @@ def run_query_model_speed_up(
                 + article_text
                 + "\n</article>\n"
                 + f"And the most relevant snippet seems to be <snippet>\nsnippet\n</snippet>\n\n"
-                # + f"You MUST base answers ONLY on this article snipet: <snippet>\nsnippet\n</snippet>\n\n"
                 + "The candidate for being a probe sequence is:\n<sequence>\n"
                 + seq
                 + "\n</sequence>\nAnd you must bow work with only this sequence and all relevant context for it. You will be asked a series of questions about this sequence.\n"
@@ -1048,14 +1205,25 @@ def run_query_model_speed_up(
                         + "\nReturn ONLY valid JSON matching this schema:\n"
                         + json.dumps(schema, ensure_ascii=False)
                     )
-                    raw_json = chat.ask_json(user_msg, schema=schema)
+                    q_raw_json = chat.ask_json(user_msg, schema=schema)
                     # Best-effort repair + parse
-                    fixed = repair_json(raw_json)
+                    fixed = repair_json(q_raw_json)
                     obj = json.loads(fixed)
+
+                    # PERF gather from last_meta
+                    meta = getattr(chat, "_last_meta", {}) or {}
+                    pt = meta.get("prompt_eval_count")
+                    ct = meta.get("eval_count")
+                    if pt is not None or ct is not None:
+                        have_token_info = True
+                        if pt is not None:
+                            agg_prompt_tokens += pt
+                        if ct is not None:
+                            agg_completion_tokens += ct
 
                     # Persist logs
                     with open(raw_txt_path, mode="at", encoding="utf-8") as f:
-                        f.write(f"> {query}\n< {raw_json}\n\n")
+                        f.write(f"> {query}\n< {q_raw_json}\n\n")
 
                     validator = Draft202012Validator(schema)
                     errors = sorted(validator.iter_errors(obj), key=lambda er: er.path)
@@ -1071,10 +1239,19 @@ def run_query_model_speed_up(
                                     pass
                                 if probable_value is not None:
                                     validator_easy = Draft202012Validator(schema)
-                                    errors_easy = sorted(validator_easy.iter_errors(probable_value), key=lambda er: er.path)
+                                    errors_easy = sorted(
+                                        validator_easy.iter_errors(probable_value),
+                                        key=lambda er: er.path,
+                                    )
                                     if not errors_easy:
-                                        with open(raw_txt_path, mode="at", encoding="utf-8") as f:
-                                            f.write(f"> FIX_EASY\n< {probable_value}\n\n")
+                                        with open(
+                                            raw_txt_path,
+                                            mode="at",
+                                            encoding="utf-8",
+                                        ) as f:
+                                            f.write(
+                                                f"> FIX_EASY\n< {probable_value}\n\n"
+                                            )
                                         answers_log.append(
                                             {
                                                 "sequence": seq,
@@ -1087,14 +1264,13 @@ def run_query_model_speed_up(
                                         continue
                         except Exception as e:
                             logger.exception("Failed to easily-fix an object")
-                        # fix_query = f"There was a task: {query} on which the LLM produced an output:\n```json\n{raw_json}\n```. Please, rewrite it to satisfy the given schema format:\n```json\n{json.dumps(schema)}\nReturn null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
-                        # fix_query = f"Rewrite the object {raw_json} in the new schema. Return null if and only if there is not enough data and provided data is insufficient for inferring the request.```."
+                        # Fallback path using outlines for schema repair
                         fix_chat = outlines.inputs.Chat()
                         fix_chat.add_system_message(
                             prompt
                             + f"\nIn this chat you have to transform the user-provided JSON object to match the following schema:\n```json\n{json.dumps(schema)}\n```\n. If user provided-data is not enough to fill-in some fields, put null value in them, but try harder to transform as much data to the new schema as possible. Please do not modify or invent values by yourself. Just move existing values to the corresponging fields of the schema. Please be thoughtful and careful while doing so!"
                         )
-                        fix_chat.add_user_message(raw_json)
+                        fix_chat.add_user_message(q_raw_json)
                         try:
                             format_fixed_raw_json = think_generate(
                                 model=model,
@@ -1109,12 +1285,13 @@ def run_query_model_speed_up(
                                 f"Error on model {model.model_name}, sequence {seq}, query {query} and prompts {chat_prompts}"
                             )
                             print("", flush=True)
-                            format_fixed_raw_json = raw_json
+                            format_fixed_raw_json = q_raw_json
 
                         # Persist logs
-                        # msgs = '\n'.join(map(lambda k,v: "\n".join([f"{k}: {v}"]), fix_chat.messages))
                         with open(raw_txt_path, mode="at", encoding="utf-8") as f:
-                            f.write(f"> FIX_PROMPT\n< {format_fixed_raw_json}\n\n")
+                            f.write(
+                                f"> FIX_PROMPT\n< {format_fixed_raw_json}\n\n"
+                            )
 
                         format_fixed = repair_json(format_fixed_raw_json)
                         fixed_obj = json.loads(format_fixed)
@@ -1143,6 +1320,7 @@ def run_query_model_speed_up(
             described_sequences.append((seq, seq_desc))
 
     finally:
+        # Write log + output JSONs (original behavior)
         json_log_path.write_text(
             json.dumps(answers_log, indent=2, ensure_ascii=False), encoding="utf-8"
         )
@@ -1152,6 +1330,59 @@ def run_query_model_speed_up(
             ),
             encoding="utf-8",
         )
+
+        # PERF sidecar + DB insert for this pass.
+        perf_end_dt = datetime.now(timezone.utc)
+        # token stats aggregated over Q&A:
+        prompt_tokens = agg_prompt_tokens if have_token_info else None
+        completion_tokens = agg_completion_tokens if have_token_info else None
+
+        # pick user-facing pass label
+        pass_label = (
+            "SeqDesc-OPTIM" if chat_prompts == "optimized" else "SeqDesc-MY"
+        )
+
+        if article_name is None:
+            article_name = article_stem
+
+        try:
+            _write_perf_sidecar_and_db(
+                artifact_path=json_out_path,
+                pass_name=pass_label,
+                model_name=model_name,
+                article_name=article_name,
+                start_time=perf_start_dt,
+                end_time=perf_end_dt,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                db_path=db_path,
+                logger=logger,
+                notes=f"{pass_label} per-article descriptor map",
+            )
+        except Exception as e:
+            logger.exception(
+                f"[PERF] Failed to record perf for {json_out_path}: {repr(e)}"
+            )
+
+        try:
+            _write_perf_sidecar_and_db(
+                artifact_path=json_log_path,
+                pass_name=pass_label,
+                model_name=model_name,
+                article_name=article_name,
+                start_time=perf_start_dt,
+                end_time=perf_end_dt,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                db_path=db_path,
+                logger=logger,
+                notes=f"{pass_label} Q&A log",
+            )
+        except Exception as e:
+            logger.exception(
+                f"[PERF] Failed to record perf for {json_log_path}: {repr(e)}"
+            )
+
         return described_sequences
 
 
@@ -1202,8 +1433,18 @@ def run_single_pass(
     logger: logging.Logger,
     ollama_parameters: Dict[str, Any],
     model_name: str,
+    db_path: Optional[Path] = None,  # NEW: for perf sidecar + DB
+    article_name: Optional[str] = None,  # NEW: for perf sidecar + DB
 ) -> Dict[str, Any]:
-    """Run one pass (schema+prompt from files), save raw+json+log, return object."""
+    """Run one pass (schema+prompt from files), save raw+json+log, return object.
+
+    NEW:
+    - We track timing for this single pass.
+    - We emit <json_out_path>.perf.json containing timing & token stats.
+    - We mirror those metrics to SQLite via insert_pipeline_artifact().
+    """
+    perf_start_dt = datetime.now(timezone.utc)
+
     txt_dir = out_base / "txt"
     json_dir = out_base / "json"
     log_dir = out_base / "logs"
@@ -1275,6 +1516,30 @@ def run_single_pass(
     json_out_path.write_text(
         json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8"
     )
+
+    # PERF sidecar + DB insert
+    perf_end_dt = datetime.now(timezone.utc)
+    if article_name is None:
+        article_name = article_stem
+    try:
+        _write_perf_sidecar_and_db(
+            artifact_path=json_out_path,
+            pass_name=pass_cfg.name,
+            model_name=model_name,
+            article_name=article_name,
+            start_time=perf_start_dt,
+            end_time=perf_end_dt,
+            prompt_tokens=None,  # Outlines doesn't expose token counts directly
+            completion_tokens=None,
+            db_path=db_path,
+            logger=logger,
+            notes=f"{pass_cfg.name} single-pass extraction",
+        )
+    except Exception as e:
+        logger.exception(
+            f"[PERF] Failed to record perf for {json_out_path}: {repr(e)}"
+        )
+
     return obj
 
 
@@ -1290,8 +1555,16 @@ def run_construct_single_experiment_pass(
     logger: logging.Logger,
     ollama_parameters: Dict[str, Any],
     model_name: str,
+    db_path: Optional[Path] = None,  # NEW: for perf sidecar + DB
+    article_name: Optional[str] = None,  # NEW: for perf sidecar + DB
 ) -> Dict[str, Any]:
-    """Run one pass (schema+prompt from files), save raw+json+log, return object."""
+    """Run one pass (schema+prompt from files), save raw+json+log, return object.
+
+    NEW:
+    - Perf timing + sidecar + DB artifact row (per sequence_id).
+    """
+    perf_start_dt = datetime.now(timezone.utc)
+
     txt_dir = out_base / "txt"
     json_dir = out_base / "json"
     log_dir = out_base / "logs"
@@ -1393,6 +1666,30 @@ def run_construct_single_experiment_pass(
     json_out_path.write_text(
         json.dumps(obj, indent=2, ensure_ascii=False), encoding="utf-8"
     )
+
+    # PERF sidecar + DB insert
+    perf_end_dt = datetime.now(timezone.utc)
+    if article_name is None:
+        article_name = article_stem
+    try:
+        _write_perf_sidecar_and_db(
+            artifact_path=json_out_path,
+            pass_name=f"{pass_cfg.name}__{sequence_id}",
+            model_name=model_name,
+            article_name=article_name,
+            start_time=perf_start_dt,
+            end_time=perf_end_dt,
+            prompt_tokens=None,
+            completion_tokens=None,
+            db_path=db_path,
+            logger=logger,
+            notes=f"{pass_cfg.name} construct_single_experiment_pass for sequence {sequence_id}",
+        )
+    except Exception as e:
+        logger.exception(
+            f"[PERF] Failed to record perf for {json_out_path}: {repr(e)}"
+        )
+
     return obj
 
 
@@ -2148,8 +2445,19 @@ def aggregate_c_outputs(outputs: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
 # ──────────────────────────────────────────────────────────────────────
 
 
-def run_project(project_dir: str | Path) -> None:
-    """Run the pipeline as configured by files under project_dir."""
+def run_project(project_dir: str | Path, fresh: bool = False) -> None:
+    """Run the pipeline as configured by files under project_dir.
+
+    NEW:
+    - fresh=False (default): continuation mode. We skip any article/model pair
+      that already has a successful "FULL" pass recorded in the DB
+      (hyb_db.pipeline_artifacts.success == 1 for pass_name "FULL").
+    - fresh=True: force re-run everything.
+
+    NOTE:
+    - Within a single interrupted article we may redo that article from scratch.
+      This is allowed per spec.
+    """
     project_dir = Path(project_dir)
     cfg = load_pipeline_config(project_dir)
 
@@ -2195,6 +2503,29 @@ def run_project(project_dir: str | Path) -> None:
             files, desc=f"Articles for model {model_name}", position=1, leave=False
         ):
             article_name = art_path.stem
+
+            # CONTINUATION CHECK:
+            # If --fresh was not passed and db_path is configured, attempt to skip
+            # articles already fully processed for this model.
+            if (not fresh) and cfg.db_path:
+                try:
+                    from hyb_db import get_completed_passes
+
+                    completed = get_completed_passes(
+                        db_path=str(cfg.db_path),
+                        model_name=model_name,
+                        article_name=article_name,
+                    )
+                    if "FULL" in completed:
+                        logger.info(
+                            f"[CONTINUE] Skipping {article_name} for model {model_name} (already FULL)."
+                        )
+                        continue
+                except Exception:
+                    logger.exception(
+                        f"[CONTINUE] Continuation check failed for {article_name}:{model_name}; proceeding with full run."
+                    )
+
             logger.info(f"=== {article_name} : {model_name} ===")
             article_text = art_path.read_text(encoding="utf-8")
 
@@ -2217,6 +2548,8 @@ def run_project(project_dir: str | Path) -> None:
                         logger=logger,
                         ollama_parameters=cfg.ollama_parameters,
                         model_name=model_name,
+                        db_path=cfg.db_path,
+                        article_name=article_name,
                     )
                 except Exception:
                     logger.exception(
@@ -2253,6 +2586,8 @@ def run_project(project_dir: str | Path) -> None:
                         logger=logger,
                         ollama_parameters=cfg.ollama_parameters,
                         model_name=model_name,
+                        db_path=cfg.db_path,
+                        article_name=article_name,
                     )
                 except Exception:
                     logger.exception(
@@ -2272,6 +2607,8 @@ def run_project(project_dir: str | Path) -> None:
                 tqdm_position=2,
                 client=client,  # <-- important: pass the raw ollama.Client
                 chat_prompts="optimized",
+                db_path=cfg.db_path,
+                article_name=article_name,
             )
 
             stamp = _now_stamp()
@@ -2281,12 +2618,35 @@ def run_project(project_dir: str | Path) -> None:
                 full_dir
                 / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-OPTIM__{stamp}.json"
             )
+            # record perf for creating this full copy (aggregation-only,
+            # tokens not known here separately)
+            write_start_dt = datetime.now(timezone.utc)
             full_seq_desc_path.write_text(
                 json.dumps(
                     optimized_sequence_descriptors, indent=2, ensure_ascii=False
                 ),
                 encoding="utf-8",
             )
+            write_end_dt = datetime.now(timezone.utc)
+            if cfg.db_path:
+                try:
+                    _write_perf_sidecar_and_db(
+                        artifact_path=full_seq_desc_path,
+                        pass_name="SeqDesc-OPTIM",
+                        model_name=model_name,
+                        article_name=article_name,
+                        start_time=write_start_dt,
+                        end_time=write_end_dt,
+                        prompt_tokens=None,
+                        completion_tokens=None,
+                        db_path=cfg.db_path,
+                        logger=logger,
+                        notes="SeqDesc-OPTIM aggregation file",
+                    )
+                except Exception as e:
+                    logger.exception(
+                        f"[PERF] Failed to record perf for {full_seq_desc_path}: {repr(e)}"
+                    )
 
             try:
                 # Optional DB insert
@@ -2325,6 +2685,8 @@ def run_project(project_dir: str | Path) -> None:
                 tqdm_position=2,
                 client=client,  # <-- important: pass the raw ollama.Client
                 chat_prompts="my",
+                db_path=cfg.db_path,
+                article_name=article_name,
             )
 
             stamp = _now_stamp()
@@ -2334,10 +2696,31 @@ def run_project(project_dir: str | Path) -> None:
                 full_dir
                 / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-MY__{stamp}.json"
             )
+            write_start_dt = datetime.now(timezone.utc)
             full_seq_desc_path.write_text(
                 json.dumps(my_sequence_descriptors, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
+            write_end_dt = datetime.now(timezone.utc)
+            if cfg.db_path:
+                try:
+                    _write_perf_sidecar_and_db(
+                        artifact_path=full_seq_desc_path,
+                        pass_name="SeqDesc-MY",
+                        model_name=model_name,
+                        article_name=article_name,
+                        start_time=write_start_dt,
+                        end_time=write_end_dt,
+                        prompt_tokens=None,
+                        completion_tokens=None,
+                        db_path=cfg.db_path,
+                        logger=logger,
+                        notes="SeqDesc-MY aggregation file",
+                    )
+                except Exception as e:
+                    logger.exception(
+                        f"[PERF] Failed to record perf for {full_seq_desc_path}: {repr(e)}"
+                    )
 
             try:
                 # Optional DB insert
@@ -2387,10 +2770,31 @@ def run_project(project_dir: str | Path) -> None:
                 full_dir
                 / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-OLD__{stamp}.json"
             )
+            write_start_dt = datetime.now(timezone.utc)
             full_seq_desc_path.write_text(
                 json.dumps(old_sequence_descriptors, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
+            write_end_dt = datetime.now(timezone.utc)
+            if cfg.db_path:
+                try:
+                    _write_perf_sidecar_and_db(
+                        artifact_path=full_seq_desc_path,
+                        pass_name="SeqDesc-OLD",
+                        model_name=model_name,
+                        article_name=article_name,
+                        start_time=write_start_dt,
+                        end_time=write_end_dt,
+                        prompt_tokens=None,
+                        completion_tokens=None,
+                        db_path=cfg.db_path,
+                        logger=logger,
+                        notes="SeqDesc-OLD aggregation file",
+                    )
+                except Exception as e:
+                    logger.exception(
+                        f"[PERF] Failed to record perf for {full_seq_desc_path}: {repr(e)}"
+                    )
 
             try:
                 # Optional DB insert
@@ -2428,10 +2832,31 @@ def run_project(project_dir: str | Path) -> None:
                 full_dir
                 / f"{article_name}_{model_name_encode(model_name)}__SeqDesc-FULL__{stamp}.json"
             )
+            write_start_dt = datetime.now(timezone.utc)
             full_seq_desc_path.write_text(
                 json.dumps(sequence_descriptors, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
+            write_end_dt = datetime.now(timezone.utc)
+            if cfg.db_path:
+                try:
+                    _write_perf_sidecar_and_db(
+                        artifact_path=full_seq_desc_path,
+                        pass_name="SeqDesc-FULL",
+                        model_name=model_name,
+                        article_name=article_name,
+                        start_time=write_start_dt,
+                        end_time=write_end_dt,
+                        prompt_tokens=None,
+                        completion_tokens=None,
+                        db_path=cfg.db_path,
+                        logger=logger,
+                        notes="SeqDesc-FULL combined aggregation file",
+                    )
+                except Exception as e:
+                    logger.exception(
+                        f"[PERF] Failed to record perf for {full_seq_desc_path}: {repr(e)}"
+                    )
 
             for i, seq in enumerate(
                 tqdm(
@@ -2459,11 +2884,17 @@ def run_project(project_dir: str | Path) -> None:
                             logger=logger,
                             ollama_parameters=cfg.ollama_parameters,
                             model_name=model_name,
+                            db_path=cfg.db_path,
+                            article_name=article_name,
                         )
                     except Exception:
                         logger.exception(
                             f"Pass failed: {p.name} : {article_name} : {model_name}"
                         )
+
+            # Prepare timing for final FULL object stitching+DB
+            full_start_dt = datetime.now(timezone.utc)
+            full_path = None
 
             # Stitch only if the expected pass names are present
             try:
@@ -2556,10 +2987,48 @@ def run_project(project_dir: str | Path) -> None:
                     f"[DB INSERT SEQDESC] stitching failed for {article_name} : {model_name}"
                 )
 
+            # PERF sidecar + DB artifact row for FULL artifact.
+            # Mark article/model as "done" for continuation purposes.
+            if full_path is not None:
+                full_end_dt = datetime.now(timezone.utc)
+                if cfg.db_path:
+                    try:
+                        _write_perf_sidecar_and_db(
+                            artifact_path=full_path,
+                            pass_name="FULL",
+                            model_name=model_name,
+                            article_name=article_name,
+                            start_time=full_start_dt,
+                            end_time=full_end_dt,
+                            prompt_tokens=None,
+                            completion_tokens=None,
+                            db_path=cfg.db_path,
+                            logger=logger,
+                            notes="Final stitched article object + DB inserts",
+                        )
+                    except Exception as e:
+                        logger.exception(
+                            f"[PERF] Failed to record perf for {full_path}: {repr(e)}"
+                        )
+
 
 # Optional CLI hook (project_dir arg)
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python pipeline_filedriven.py <project_dir>")
-        sys.exit(1)
-    run_project(sys.argv[1])
+    # Updated CLI to support --fresh
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Run the hybridization extraction pipeline."
+    )
+    parser.add_argument(
+        "project_dir",
+        help="Path to the project directory containing config/, passes/, inputs/, etc.",
+    )
+    parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help="Disable continuation / resume. Re-run all articles even if previously completed (pass 'FULL' already recorded).",
+    )
+
+    args = parser.parse_args()
+    run_project(args.project_dir, fresh=args.fresh)
