@@ -1,7 +1,13 @@
 {
     "model_names": [
+        "myaniu/qwen2.5-1m:7b",     
+        "deepseek-r1:1.5b",           
+        "qwen2.5-coder:3b",
         "phi4-mini-reasoning:latest",
         "gemma3:4b",
+        "phi3:latest",
+        "llama3.1:latest",
+        "myaniu/qwen2.5-1m:14b",
         "phi4:14b",
         "gemma3:27b"
     ],
@@ -12,7 +18,7 @@
         "seed": 42
     },
     "ollama_base_url": "http://127.0.0.1:11434",
-    "timeout_s": 45,
+    "timeout_s": 60,
     "__input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
     "input_dir": "/mnt/Models/articles2_marker/no_llm/markdown/",
     "_input_dir": "input/md",
@@ -41,9 +47,28 @@
             "schema": "passes/_1_SeqPrompt/schema_strict.json",
             "prompt": "passes/_1_SeqPrompt/prompt_strict.txt",
             "timeout": 60
+        },
+                {
+            "name": "SeqPrompt",
+            "schema": "passes/_1_SeqPrompt/schema.json",
+            "prompt": "passes/_1_SeqPrompt/prompt.txt",
+            "timeout": 60
         }
     ],
-    "construct_single_experiment_passes": [],
+    "construct_single_experiment_passes": [
+        {
+            "name": "_4_ConstructSingleSmallExperiment",
+            "schema": "passes/_4_ConstructSingleSmallExperiment/schema.json",
+            "prompt": "passes/_4_ConstructSingleSmallExperiment/prompt.txt",
+            "timeout": 60
+        },
+        {
+            "name": "_6_ConstructSingleSequenceExperimentAndOutcome",
+            "schema": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/schema.json",
+            "prompt": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/prompt.txt",
+            "timeout": 60
+        }
+    ],
     "passes": [
         {
             "name": "A_core",
