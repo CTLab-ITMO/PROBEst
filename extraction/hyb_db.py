@@ -24,6 +24,9 @@ SQLite dataset builder for hybridization-article extractions.
 Public API:
     init_db(db_path)
     insert_article_object(db_path, article_obj, model_name, article_name)
+    insert_seqdesc_object(...)
+    insert_perf_event(db_path, event_dict)
+    insert_perf_events(db_path, [event_dict, ...])
 
 Features:
 - Auto-initializes schema (tables, indexes, views).
@@ -31,6 +34,7 @@ Features:
 - Normalizes sense/antisense & prime markers.
 - Guards against non-oligo "probes" (skips probe insertion but keeps experiment).
 - Includes Ollama-style helper tools with Google docstrings.
+- NEW: perf_events table for timings/tokens of every step/question.
 """
 import json
 import re
@@ -219,6 +223,28 @@ CREATE TABLE IF NOT EXISTS no_sequences_explanations (
     FOREIGN KEY (run_id) REFERENCES runs(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_no_seq_run ON no_sequences_explanations(run_id);
+
+/* NEW: generic performance/timing/token metrics for all steps and questions */
+CREATE TABLE IF NOT EXISTS perf_events (
+    id                   INTEGER PRIMARY KEY,
+    namespace            TEXT NOT NULL CHECK (namespace IN ('pre_pass','pass','query','construct','stitch','db_insert','other')),
+    article_name         TEXT,
+    model_name           TEXT,
+    article_doi          TEXT,
+    pass_name            TEXT,
+    sequence_key         TEXT,
+    question_param       TEXT,
+    started_at           TEXT,
+    finished_at          TEXT,
+    duration_ms          REAL,
+    prompt_tokens        INTEGER,
+    completion_tokens    INTEGER,
+    total_tokens         INTEGER,
+    tokens_per_sec       REAL,
+    sidecar_path         TEXT,
+    notes                TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_perf_ns_article_model ON perf_events(namespace, article_name, model_name);
 """
 
 _VIEWS_SQL = """
@@ -475,6 +501,72 @@ def insert_article_object(db_path: str, article_obj: Dict[str, Any],
         return run_id
 
 
+# NEW: perf events API -------------------------------------------------- #
+
+def _event_defaults(ev: Dict[str, Any]) -> Dict[str, Any]:
+    d = dict(ev or {})
+    for k in ("namespace","article_name","model_name","article_doi","pass_name",
+              "sequence_key","question_param","started_at","finished_at",
+              "duration_ms","prompt_tokens","completion_tokens","total_tokens",
+              "tokens_per_sec","sidecar_path","notes"):
+        d.setdefault(k, None)
+    return d
+
+def insert_perf_event(db_path: str, event: Dict[str, Any]) -> int:
+    """Insert a single performance/timing event row."""
+    with _db(db_path) as conn:
+        _ensure_schema(conn)
+        cur = conn.cursor()
+        e = _event_defaults(event)
+        cur.execute(
+            """
+            INSERT INTO perf_events (
+                namespace, article_name, model_name, article_doi, pass_name,
+                sequence_key, question_param, started_at, finished_at, duration_ms,
+                prompt_tokens, completion_tokens, total_tokens, tokens_per_sec,
+                sidecar_path, notes
+            )
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                e["namespace"], e["article_name"], e["model_name"], e["article_doi"], e["pass_name"],
+                e["sequence_key"], e["question_param"], e["started_at"], e["finished_at"], e["duration_ms"],
+                e["prompt_tokens"], e["completion_tokens"], e["total_tokens"], e["tokens_per_sec"],
+                e["sidecar_path"], e["notes"]
+            ),
+        )
+        return cur.lastrowid
+
+def insert_perf_events(db_path: str, events: List[Dict[str, Any]]) -> List[int]:
+    """Bulk insert multiple performance events."""
+    ids: List[int] = []
+    if not events:
+        return ids
+    with _db(db_path) as conn:
+        _ensure_schema(conn)
+        cur = conn.cursor()
+        for ev in events:
+            e = _event_defaults(ev)
+            cur.execute(
+                """
+                INSERT INTO perf_events (
+                    namespace, article_name, model_name, article_doi, pass_name,
+                    sequence_key, question_param, started_at, finished_at, duration_ms,
+                    prompt_tokens, completion_tokens, total_tokens, tokens_per_sec,
+                    sidecar_path, notes
+                )
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    e["namespace"], e["article_name"], e["model_name"], e["article_doi"], e["pass_name"],
+                    e["sequence_key"], e["question_param"], e["started_at"], e["finished_at"], e["duration_ms"],
+                    e["prompt_tokens"], e["completion_tokens"], e["total_tokens"], e["tokens_per_sec"],
+                    e["sidecar_path"], e["notes"]
+                ),
+            )
+            ids.append(cur.lastrowid)
+    return ids
+
 # ----------------------------- Ollama-style helper tools ----------------------------- #
 
 def to_si(value: Optional[float], unit: Optional[str]) -> Tuple[Optional[float], Optional[str]]:
@@ -487,7 +579,7 @@ def to_si(value: Optional[float], unit: Optional[str]) -> Tuple[Optional[float],
 
     Args:
       value: The numeric value parsed from the article, or None if unknown.
-      unit: The unit string as written in the article (e.g., '°C', 'C', 'mM', 'µM', 'nM', '%'), or None.
+      unit: The unit string as written in the article (e.g., '°C', 'C', 'mM', '%'), or None.
 
     Returns:
       A pair (si_value, si_unit):
