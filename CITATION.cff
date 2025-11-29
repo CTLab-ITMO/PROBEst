@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+title: "PROBEst"
+version: "0.1.4"
+doi: "10.20944/preprints202511.2140.v1"
+date-released: "2025-11-01"
+authors:
+  - family-names: "Serdiukov"
+    given-names: "Alexandr"
+  - family-names: "Dragvelis"
+    given-names: "Vitaliy"
+  - family-names: "Smutin"
+    given-names: "Daniil"
+  - family-names: "Taldaev"
+    given-names: "Amir"
+  - family-names: "Muravyov"
+    given-names: "Sergey"
+keywords:
+  - "nucleotide probes"
+  - "bioinformatics"
+  - "probe generation"
+  - "BLASTn"
+  - "evolutionary algorithm"
+license: MIT
+repository-code: "https://github.com/CTLab-ITMO/PROBEst"
+abstract: "PROBEst is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results."
+reference:
+  type: article
+  title: "Efficient and Verified Extraction of the Research Data Using LLM"
+  authors:
+    - family-names: "Serdiukov"
+      given-names: "Alexandr"
+    - family-names: "Dragvelis"
+      given-names: "Vitaliy"
+    - family-names: "Smutin"
+      given-names: "Daniil"
+    - family-names: "Taldaev"
+      given-names: "Amir"
+    - family-names: "Muravyov"
+      given-names: "Sergey"
+  journal: "Preprints"
+  doi: "10.20944/preprints202511.2140.v1"
+  year: 2025
+  month: 11
