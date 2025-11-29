@@ -1,7 +1,7 @@
 # PROBEst v.0.1.4. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
 ### St. Petersburg tool for genereting nucleotide probes with specified properties
 
-[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yaml?label=build)
+[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yaml)
 
 <span style="color: red">**Warning**:</span> tool is under active development
 
