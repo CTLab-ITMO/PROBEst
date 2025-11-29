@@ -1,7 +1,7 @@
 # PROBEst v.0.1.4. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
 ### St. Petersburg tool for genereting nucleotide probes with specified properties
 
-[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/python-package.yaml)
+[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/badge.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/badge.yaml)
 
 <span style="color: red">**Warning**:</span> tool is under active development
 
@@ -84,6 +84,24 @@ For parameter selection, grid search is implemented. You can specify parameters 
 python test_parameters.py \
   -p {JSON}
 ```
+
+### Web Application
+
+PROBEst includes a user-friendly web interface for probe generation. The web app provides:
+
+- **Easy file upload**: Upload archives (.zip or .tar.gz) containing FASTA files
+- **Automatic preprocessing**: Archives are automatically extracted and preprocessed using `prep_db.sh` to create BLAST databases
+- **Interactive parameter configuration**: Access all pipeline parameters through a web form
+- **Real-time results**: View top 5 best probes with hit counts and sequences
+- **Download results**: Download complete results as a ZIP file
+
+#### Running the Web Application
+
+```bash
+python app/app.py
+```
+
+For detailed web app documentation, see [app/README.md](app/README.md)
 
 
 # Algorithm
@@ -262,11 +280,13 @@ graph LR
     PROBEst([PROBEst]) --> src[src/]
     PROBEst --> scripts[scripts/]
     PROBEst --> tests[tests/]
+    PROBEst --> app[app/]
 
     subgraph folders
     src
     scripts
     tests
+    app
     end
     
     src --> C[benchmarking]
@@ -276,6 +296,11 @@ graph LR
     scripts --> D[preprocessing]
     scripts --> B[database parsing]
     D --> A
+    
+    app --> E[web interface]
+    E --> A
+    F --> D
+    A --> G
 ```
 
 # Testing
