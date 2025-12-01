@@ -100,6 +100,90 @@ class GAILWide(nn.Module):
     def forward(self, x):
         return self.net(x)
 
+# ---------- GAIL_Wide variations for further architecture search ----------
+class GAILWideDeep(nn.Module):
+    """Wide and deep GAIL with 3 layers"""
+    def __init__(self, input_size, hidden1=512, hidden2=256, hidden3=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden1),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden1, hidden2),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden2, hidden3),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden3, 1),
+            nn.Sigmoid()
+        )
+    def forward(self, x):
+        return self.net(x)
+
+class GAILWideDropout(nn.Module):
+    """Wide GAIL with dropout regularization"""
+    def __init__(self, input_size, hidden1=512, hidden2=256, dropout=0.3):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden1),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(dropout),
+            nn.Linear(hidden1, hidden2),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(dropout),
+            nn.Linear(hidden2, 1),
+            nn.Sigmoid()
+        )
+    def forward(self, x):
+        return self.net(x)
+
+class GAILWideBatchNorm(nn.Module):
+    """Wide GAIL with batch normalization"""
+    def __init__(self, input_size, hidden1=512, hidden2=256):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden1),
+            nn.BatchNorm1d(hidden1),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden1, hidden2),
+            nn.BatchNorm1d(hidden2),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden2, 1),
+            nn.Sigmoid()
+        )
+    def forward(self, x):
+        return self.net(x)
+
+class GAILWideExtra(nn.Module):
+    """Extra wide GAIL with even larger layers"""
+    def __init__(self, input_size, hidden1=768, hidden2=384):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden1),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden1, hidden2),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden2, 1),
+            nn.Sigmoid()
+        )
+    def forward(self, x):
+        return self.net(x)
+
+class GAILWideBalanced(nn.Module):
+    """Wide GAIL with balanced layer sizes"""
+    def __init__(self, input_size, hidden1=512, hidden2=256, hidden3=128):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden1),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden1, hidden2),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden2, hidden3),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden3, 1),
+            nn.Sigmoid()
+        )
+    def forward(self, x):
+        return self.net(x)
+
 class GAILNarrow(nn.Module):
     """Narrower GAIL with smaller hidden layers"""
     def __init__(self, input_size, hidden1=128, hidden2=64):

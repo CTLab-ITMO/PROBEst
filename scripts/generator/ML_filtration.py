@@ -9,7 +9,8 @@ from PROBESt.filtration import (
 )
 from PROBESt.models_registry import (
     ShallowNet, WideNet, ResidualNet, GAILDiscriminator, TabTransformer,
-    GAILDeep, GAILWide, GAILNarrow, GAILWithDropout
+    GAILDeep, GAILWide, GAILNarrow, GAILWithDropout,
+    GAILWideDeep, GAILWideDropout, GAILWideBatchNorm, GAILWideExtra, GAILWideBalanced
 )
 
 MODELS = {
@@ -120,6 +121,10 @@ def main():
     print(f"Best model: {best_model_name} (F1: {results[best_model_name]['f1']:.4f})")
     print(f"{'='*60}")
     
+    # Store GAIL search results for potential use later
+    gail_search_results = {}
+    gail_trained_models = {}
+    
     # Architecture search for GAIL if it's the best model
     if best_model_name == "GAIL":
         print("\n" + "="*60)
@@ -135,9 +140,6 @@ def main():
             "GAIL_Custom1": lambda n: TorchClassifier(GAILDiscriminator(n, hidden1=384, hidden2=192), weight_pos=5),
             "GAIL_Custom2": lambda n: TorchClassifier(GAILDiscriminator(n, hidden1=192, hidden2=96), weight_pos=5),
         }
-        
-        gail_search_results = {}
-        gail_trained_models = {}
         
         for variant_name, constructor in gail_variations.items():
             print(f"\n===== Training {variant_name} =====")
@@ -187,6 +189,135 @@ def main():
             best_model_name = best_gail_variant
         else:
             print(f"\nOriginal GAIL remains the best.")
+    
+    # Further architecture search for GAIL_Wide if it's the best model
+    if best_model_name == "GAIL_Wide" or best_model_name.startswith("GAIL_Wide"):
+        print("\n" + "="*60)
+        print("GAIL_Wide is the best model. Performing further architecture search...")
+        print("="*60)
+        
+        # Define GAIL_Wide architecture variations
+        gail_wide_variations = {
+            "GAIL_Wide_Deep": lambda n: TorchClassifier(GAILWideDeep(n), weight_pos=5),
+            "GAIL_Wide_Dropout": lambda n: TorchClassifier(GAILWideDropout(n), weight_pos=5),
+            "GAIL_Wide_BatchNorm": lambda n: TorchClassifier(GAILWideBatchNorm(n), weight_pos=5),
+            "GAIL_Wide_Extra": lambda n: TorchClassifier(GAILWideExtra(n), weight_pos=5),
+            "GAIL_Wide_Balanced": lambda n: TorchClassifier(GAILWideBalanced(n), weight_pos=5),
+            "GAIL_Wide_Custom1": lambda n: TorchClassifier(GAILWide(n, hidden1=640, hidden2=320), weight_pos=5),
+            "GAIL_Wide_Custom2": lambda n: TorchClassifier(GAILWide(n, hidden1=384, hidden2=192), weight_pos=5),
+            "GAIL_Wide_Custom3": lambda n: TorchClassifier(GAILWideDeep(n, hidden1=512, hidden2=256, hidden3=128), weight_pos=5),
+        }
+        
+        gail_wide_search_results = {}
+        gail_wide_trained_models = {}
+        
+        for variant_name, constructor in gail_wide_variations.items():
+            print(f"\n===== Training {variant_name} =====")
+            variant_model = constructor(input_size)
+            
+            # Train with learning curve tracking (more epochs for better training)
+            X_train = train_data.drop(columns=['type'])
+            y_train = train_data['type']
+            variant_model.train(X_train, y_train, epochs=150, batch_size=32, 
+                              val_data=val_data, track_curves=True)
+            
+            # Validate
+            variant_val_metrics = validate_filtration_AI(
+                variant_model, val_data, output_name=f"{variant_name}.png"
+            )
+            gail_wide_search_results[variant_name] = variant_val_metrics
+            gail_wide_trained_models[variant_name] = variant_model
+            
+            print(f"\n{variant_name} validation metrics:")
+            for metric, value in variant_val_metrics.items():
+                print(f"  {metric}: {value:.4f}")
+        
+        # Compare with original GAIL_Wide
+        # Get the current best model's metrics
+        if best_model_name == "GAIL_Wide":
+            # GAIL_Wide came from first GAIL search
+            original_metrics = gail_search_results.get("GAIL_Wide", {})
+        elif best_model_name in gail_search_results:
+            # It's from the first GAIL search
+            original_metrics = gail_search_results[best_model_name]
+        else:
+            # Fallback to results dict
+            original_metrics = results.get(best_model_name, {})
+        
+        gail_wide_search_results["GAIL_Wide_Original"] = original_metrics
+        gail_wide_trained_models["GAIL_Wide_Original"] = best_model
+        
+        # Find best GAIL_Wide variant
+        best_gail_wide_variant = max(gail_wide_search_results.keys(), 
+                                    key=lambda m: gail_wide_search_results[m].get("f1", 0))
+        best_gail_wide_model = gail_wide_trained_models[best_gail_wide_variant]
+        
+        print(f"\n{'='*60}")
+        print(f"Best GAIL_Wide variant: {best_gail_wide_variant} (F1: {gail_wide_search_results[best_gail_wide_variant].get('f1', 0):.4f})")
+        print(f"{'='*60}")
+        
+        # Plot learning curves for best GAIL_Wide variant
+        if hasattr(best_gail_wide_model, 'train_losses') and len(best_gail_wide_model.train_losses) > 0:
+            print("\nGenerating learning curves for best GAIL_Wide variant...")
+            plot_learning_curves(best_gail_wide_model, output_dir=output_dir, 
+                               output_name=f'learning_curves_{best_gail_wide_variant}.png')
+            print(f"Learning curves saved to {os.path.join(output_dir, f'learning_curves_{best_gail_wide_variant}.png')}")
+        
+        # Update best model if variant is better
+        current_f1 = gail_wide_search_results.get("GAIL_Wide_Original", {}).get("f1", 0)
+        if gail_wide_search_results[best_gail_wide_variant].get("f1", 0) > current_f1:
+            print(f"\nBest GAIL_Wide variant ({best_gail_wide_variant}) outperforms original!")
+            best_model = best_gail_wide_model
+            best_model_name = best_gail_wide_variant
+            
+            # Train the best model for even more epochs
+            print(f"\n{'='*60}")
+            print(f"Training {best_model_name} for extended epochs (300 epochs)...")
+            print(f"{'='*60}")
+            X_train = train_data.drop(columns=['type'])
+            y_train = train_data['type']
+            best_model.train(X_train, y_train, epochs=300, batch_size=32, 
+                            val_data=val_data, track_curves=True)
+            
+            # Re-validate after extended training
+            final_val_metrics = validate_filtration_AI(
+                best_model, val_data, output_name=f"{best_model_name}_final.png"
+            )
+            print(f"\nFinal {best_model_name} validation metrics after extended training:")
+            for metric, value in final_val_metrics.items():
+                print(f"  {metric}: {value:.4f}")
+            
+            # Plot final learning curves
+            if hasattr(best_model, 'train_losses') and len(best_model.train_losses) > 0:
+                print("\nGenerating final learning curves...")
+                plot_learning_curves(best_model, output_dir=output_dir, 
+                                   output_name=f'learning_curves_{best_model_name}_final.png')
+                print(f"Final learning curves saved to {os.path.join(output_dir, f'learning_curves_{best_model_name}_final.png')}")
+        else:
+            print(f"\nOriginal GAIL_Wide remains the best.")
+            # Still train the best model for more epochs
+            print(f"\n{'='*60}")
+            print(f"Training {best_model_name} for extended epochs (300 epochs)...")
+            print(f"{'='*60}")
+            X_train = train_data.drop(columns=['type'])
+            y_train = train_data['type']
+            best_model.train(X_train, y_train, epochs=300, batch_size=32, 
+                            val_data=val_data, track_curves=True)
+            
+            # Re-validate after extended training
+            final_val_metrics = validate_filtration_AI(
+                best_model, val_data, output_name=f"{best_model_name}_final.png"
+            )
+            print(f"\nFinal {best_model_name} validation metrics after extended training:")
+            for metric, value in final_val_metrics.items():
+                print(f"  {metric}: {value:.4f}")
+            
+            # Plot final learning curves
+            if hasattr(best_model, 'train_losses') and len(best_model.train_losses) > 0:
+                print("\nGenerating final learning curves...")
+                plot_learning_curves(best_model, output_dir=output_dir, 
+                                   output_name=f'learning_curves_{best_model_name}_final.png')
+                print(f"Final learning curves saved to {os.path.join(output_dir, f'learning_curves_{best_model_name}_final.png')}")
     
     # Plot learning curves for the best model (if it has learning curve data)
     if hasattr(best_model, 'train_losses') and len(best_model.train_losses) > 0:
