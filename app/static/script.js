@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsSection = document.getElementById('resultsSection');
     const resultsContent = document.getElementById('resultsContent');
     const downloadBtn = document.getElementById('downloadBtn');
+    const statusText = document.getElementById('statusText');
+    const progressContainer = document.getElementById('progressContainer');
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -13,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingOverlay.style.display = 'flex';
         resultsSection.style.display = 'none';
         submitBtn.disabled = true;
+        statusText.textContent = 'Waiting to finish...';
+        progressContainer.style.display = 'block';
 
         // Create FormData
         const formData = new FormData(form);
@@ -39,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             loadingOverlay.style.display = 'none';
             submitBtn.disabled = false;
+            progressContainer.style.display = 'none';
         }
     });
 
@@ -78,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function displayResults(topProbes, totalProbes) {
         resultsContent.innerHTML = '';
+        statusText.textContent = 'Completed.';
 
         // Add summary
         const summary = document.createElement('div');
@@ -148,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContent.appendChild(errorDiv);
         resultsSection.style.display = 'block';
         resultsSection.scrollIntoView({ behavior: 'smooth' });
+        statusText.textContent = 'Error during generation.';
     }
 });
 

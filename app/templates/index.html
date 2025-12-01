@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROBESt - Probe Generation Tool</title>
+    <title>PROBESt</title>
+    <link rel="icon" href="{{ url_for('static', filename='probe_icon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>PROBESt v0.1.4</h1>
-            <p class="subtitle">Probe Generation and Optimization Tool</p>
+            <div class="header-inner">
+                <div class="logo-title">
+                    <img src="{{ url_for('static', filename='ctlab_probest_white.png') }}" alt="PROBESt" style="width: 30vw;">
+                    <div>
+                        <h1>PROBESt v0.1.4</h1>
+                        <p class="subtitle">ITMO probe generation and optimization tool</p>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <form id="probeForm" enctype="multipart/form-data">
@@ -25,190 +33,205 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="true_base_file">True Base Archive <span class="required">*</span></label>
+                    <label for="true_base_file">Target database <span class="required">*</span></label>
                     <input type="file" id="true_base_file" name="true_base_file" accept=".zip,.tar.gz,.tgz,.tar" required>
-                    <small>Archive (.zip or .tar.gz) containing FASTA files. Will be preprocessed to create BLAST database.</small>
+                    <small>Archive (.zip or .tar.gz) containing FASTA files for the target database. Will be preprocessed to create a BLAST database.</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="false_base_files">False Base Archive(s) <span class="required">*</span></label>
+                    <label for="false_base_files">Offtarget database(s) <span class="required">*</span></label>
                     <input type="file" id="false_base_files" name="false_base_files" accept=".zip,.tar.gz,.tgz,.tar" multiple required>
-                    <small>Archive(s) (.zip or .tar.gz) containing FASTA files for non-specific testing. Can select multiple. Will be preprocessed to create BLAST databases.</small>
+                    <small>Archive(s) (.zip or .tar.gz) containing FASTA files for offtarget (non-specific) databases. Can select multiple. Will be preprocessed to create BLAST databases.</small>
                 </div>
-            </section>
 
-            <!-- Basic Parameters Section -->
-            <section class="form-section">
-                <h2>Basic Parameters</h2>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="threads">Threads</label>
-                        <input type="number" id="threads" name="threads" value="1" min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="algorithm">Algorithm</label>
-                        <select id="algorithm" name="algorithm">
-                            <option value="FISH" selected>FISH</option>
-                            <option value="primer">Primer</option>
-                        </select>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Evolutionary Algorithm Parameters -->
-            <section class="form-section">
-                <h2>Evolutionary Algorithm Parameters</h2>
-                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="iterations">Iterations</label>
-                        <input type="number" id="iterations" name="iterations" value="5" min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="top">Top Probes</label>
-                        <input type="number" id="top" name="top" value="10" min="1">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="mutation_rate">Mutation Rate</label>
-                        <input type="number" id="mutation_rate" name="mutation_rate" value="0.05" step="0.01" min="0" max="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="indel_rate">InDel Rate</label>
-                        <input type="number" id="indel_rate" name="indel_rate" value="0.05" step="0.01" min="0" max="1">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="set_size">Set Size</label>
-                        <input type="number" id="set_size" name="set_size" value="10" min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="append">Append Best Probes</label>
-                        <select id="append" name="append">
-                            <option value="True" selected>True</option>
-                            <option value="False">False</option>
-                        </select>
+                        <input type="number" id="iterations" name="iterations" value="10" min="1">
                     </div>
                 </div>
             </section>
 
-            <!-- Primer3 Parameters -->
-            <section class="form-section">
-                <h2>Primer3 Parameters</h2>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="PRIMER_PICK_PRIMER">Pick Primer</label>
-                        <input type="number" id="PRIMER_PICK_PRIMER" name="PRIMER_PICK_PRIMER" value="10" min="1">
+            <!-- Advanced Settings -->
+            <details class="advanced-section">
+                <summary>Advanced settings</summary>
+
+                <!-- Basic Parameters Section -->
+                <section class="form-section">
+                    <h2>Basic Parameters</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="threads">Threads</label>
+                            <input type="number" id="threads" name="threads" value="1" min="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="algorithm">Algorithm</label>
+                            <select id="algorithm" name="algorithm">
+                                <option value="FISH" selected>FISH</option>
+                                <option value="primer">Primer</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Evolutionary Algorithm Parameters -->
+                <section class="form-section">
+                    <h2>Evolutionary Algorithm Parameters</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="top">Top Probes</label>
+                            <input type="number" id="top" name="top" value="10" min="1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mutation_rate">Mutation Rate</label>
+                            <input type="number" id="mutation_rate" name="mutation_rate" value="0.05" step="0.01" min="0" max="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="indel_rate">InDel Rate</label>
+                            <input type="number" id="indel_rate" name="indel_rate" value="0.05" step="0.01" min="0" max="1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="set_size">Set Size</label>
+                            <input type="number" id="set_size" name="set_size" value="10" min="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="append">Append Best Probes</label>
+                            <select id="append" name="append">
+                                <option value="True" selected>True</option>
+                                <option value="False">False</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Primer3 Parameters -->
+                <section class="form-section">
+                    <h2>Primer3 Parameters</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="PRIMER_PICK_PRIMER">Pick Primer</label>
+                            <input type="number" id="PRIMER_PICK_PRIMER" name="PRIMER_PICK_PRIMER" value="10" min="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="PRIMER_NUM_RETURN">Num Return</label>
+                            <input type="number" id="PRIMER_NUM_RETURN" name="PRIMER_NUM_RETURN" value="10" min="1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="PRIMER_OPT_SIZE">Optimal Size</label>
+                            <input type="number" id="PRIMER_OPT_SIZE" name="PRIMER_OPT_SIZE" value="25" min="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="PRIMER_MIN_SIZE">Min Size</label>
+                            <input type="number" id="PRIMER_MIN_SIZE" name="PRIMER_MIN_SIZE" value="15" min="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="PRIMER_MAX_SIZE">Max Size</label>
+                            <input type="number" id="PRIMER_MAX_SIZE" name="PRIMER_MAX_SIZE" value="30" min="1">
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="PRIMER_NUM_RETURN">Num Return</label>
-                        <input type="number" id="PRIMER_NUM_RETURN" name="PRIMER_NUM_RETURN" value="10" min="1">
+                        <label for="PRIMER_PRODUCT_SIZE_RANGE">Product Size Range</label>
+                        <input type="text" id="PRIMER_PRODUCT_SIZE_RANGE" name="PRIMER_PRODUCT_SIZE_RANGE" value="100-1000" pattern="\d+-\d+">
+                        <small>Format: min-max (e.g., 100-1000)</small>
                     </div>
-                </div>
+                </section>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="PRIMER_OPT_SIZE">Optimal Size</label>
-                        <input type="number" id="PRIMER_OPT_SIZE" name="PRIMER_OPT_SIZE" value="25" min="1">
-                    </div>
+                <!-- BLAST Parameters -->
+                <section class="form-section">
+                    <h2>BLAST Parameters</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="word_size">Word Size</label>
+                            <input type="text" id="word_size" name="word_size" value="7">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="PRIMER_MIN_SIZE">Min Size</label>
-                        <input type="number" id="PRIMER_MIN_SIZE" name="PRIMER_MIN_SIZE" value="15" min="1">
-                    </div>
+                        <div class="form-group">
+                            <label for="reward">Reward</label>
+                            <input type="text" id="reward" name="reward" value="3">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="PRIMER_MAX_SIZE">Max Size</label>
-                        <input type="number" id="PRIMER_MAX_SIZE" name="PRIMER_MAX_SIZE" value="30" min="1">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="PRIMER_PRODUCT_SIZE_RANGE">Product Size Range</label>
-                    <input type="text" id="PRIMER_PRODUCT_SIZE_RANGE" name="PRIMER_PRODUCT_SIZE_RANGE" value="100-1000" pattern="\d+-\d+">
-                    <small>Format: min-max (e.g., 100-1000)</small>
-                </div>
-            </section>
-
-            <!-- BLAST Parameters -->
-            <section class="form-section">
-                <h2>BLAST Parameters</h2>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="word_size">Word Size</label>
-                        <input type="text" id="word_size" name="word_size" value="7">
+                        <div class="form-group">
+                            <label for="penalty">Penalty</label>
+                            <input type="text" id="penalty" name="penalty" value="-3">
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="reward">Reward</label>
-                        <input type="text" id="reward" name="reward" value="3">
-                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gapopen">Gap Open</label>
+                            <input type="text" id="gapopen" name="gapopen" value="6">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="penalty">Penalty</label>
-                        <input type="text" id="penalty" name="penalty" value="-3">
-                    </div>
-                </div>
+                        <div class="form-group">
+                            <label for="gapextend">Gap Extend</label>
+                            <input type="text" id="gapextend" name="gapextend" value="3">
+                        </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="gapopen">Gap Open</label>
-                        <input type="text" id="gapopen" name="gapopen" value="6">
+                        <div class="form-group">
+                            <label for="evalue">E-value</label>
+                            <input type="text" id="evalue" name="evalue" value="1">
+                        </div>
                     </div>
+                </section>
 
-                    <div class="form-group">
-                        <label for="gapextend">Gap Extend</label>
-                        <input type="text" id="gapextend" name="gapextend" value="3">
-                    </div>
+                <!-- Probe Check Parameters -->
+                <section class="form-section">
+                    <h2>Probe Check Parameters</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="max_mismatch">Max Mismatch</label>
+                            <input type="text" id="max_mismatch" name="max_mismatch" value="5">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="evalue">E-value</label>
-                        <input type="text" id="evalue" name="evalue" value="1">
-                    </div>
-                </div>
-            </section>
+                        <div class="form-group">
+                            <label for="multimap_max">Multimap Max</label>
+                            <input type="text" id="multimap_max" name="multimap_max" value="1">
+                        </div>
 
-            <!-- Probe Check Parameters -->
-            <section class="form-section">
-                <h2>Probe Check Parameters</h2>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="max_mismatch">Max Mismatch</label>
-                        <input type="text" id="max_mismatch" name="max_mismatch" value="5">
-                    </div>
+                        <div class="form-group">
+                            <label for="negative_max">Negative Max</label>
+                            <input type="text" id="negative_max" name="negative_max" value="0">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="multimap_max">Multimap Max</label>
-                        <input type="text" id="multimap_max" name="multimap_max" value="1">
+                        <div class="form-group">
+                            <label for="min_ident">Min Identity (%)</label>
+                            <input type="text" id="min_ident" name="min_ident" value="70">
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="negative_max">Negative Max</label>
-                        <input type="text" id="negative_max" name="negative_max" value="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="min_ident">Min Identity (%)</label>
-                        <input type="text" id="min_ident" name="min_ident" value="70">
-                    </div>
-                </div>
-            </section>
+                </section>
+            </details>
 
             <div class="form-actions">
-                <button type="submit" id="submitBtn" class="btn btn-primary">Generate Probes</button>
+                <div class="action-row">
+                    <div class="status-area">
+                        <div id="statusText" class="status-text"></div>
+                        <div id="progressContainer" class="progress-container" style="display: none;">
+                            <div class="progress-bar"></div>
+                        </div>
+                    </div>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">Generate probes</button>
+                </div>
             </div>
         </form>
 
@@ -226,6 +249,12 @@
             <div class="loading-spinner"></div>
             <p>Processing... This may take several minutes.</p>
         </div>
+
+        <footer class="footer">
+            <p><a href="https://github.com/CTLab-ITMO/PROBESt">PROBESt</a> | <a href="https://www.itmo.ru">ITMO University</a></p>
+            <p>Contact: <a href="mailto:dvsmutin@itmo.ru">dvsmutin@itmo.ru</a></p>
+            <p>Funding: ITMO University, НИРСИИ №640102</p>
+        </footer>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

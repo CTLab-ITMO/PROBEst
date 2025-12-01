@@ -360,7 +360,7 @@ def process():
         # Optional parameters
         args_dict['threads'] = request.form.get('threads', '1')
         args_dict['algorithm'] = request.form.get('algorithm', 'FISH')
-        args_dict['iterations'] = request.form.get('iterations', '5')
+        args_dict['iterations'] = request.form.get('iterations', '10')
         args_dict['top'] = request.form.get('top', '10')
         args_dict['mutation_rate'] = request.form.get('mutation_rate', '0.05')
         args_dict['indel_rate'] = request.form.get('indel_rate', '0.05')
