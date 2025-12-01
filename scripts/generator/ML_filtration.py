@@ -13,6 +13,7 @@ from PROBESt.models_registry import (
     GAILDeep, GAILWide, GAILNarrow, GAILWithDropout,
     GAILWideDeep, GAILWideDropout, GAILWideBatchNorm, GAILWideExtra, GAILWideBalanced
 )
+from PROBESt.tokenization import tokenize_table
 
 MODELS = {
     "ShallowNet": lambda n: TorchClassifier(ShallowNet(n), weight_pos=5),
@@ -22,10 +23,34 @@ MODELS = {
     "TabTransformer": lambda n: TorchClassifier(TabTransformer(n), weight_pos=5),
 }
 
-def main():
-    # Load data
-    data_path = 'data/databases/open/test_ML_database.csv'
-    data = pd.read_csv(data_path)
+def load_and_prepare_data(data_path, use_tokenized=False, add_tokens=50, force_regenerate=False):
+    """Load and prepare data, optionally with tokenization.
+    
+    Args:
+        data_path: Path to the CSV file
+        use_tokenized: If True, tokenize sequences and add token columns
+        add_tokens: Number of top k-mers to add as columns per sequence column (if use_tokenized=True)
+        force_regenerate: If True, regenerate tokenized file even if it exists
+    
+    Returns:
+        Tuple of (train_data, val_data, test_data)
+    """
+    if use_tokenized:
+        print(f"\n{'='*60}")
+        print("Tokenizing sequences...")
+        print(f"{'='*60}")
+        # Tokenize the table
+        tokenized_path = data_path.rsplit('.', 1)[0] + '_tokenized.csv'
+        if force_regenerate or not os.path.exists(tokenized_path):
+            print(f"Generating tokenized file: {tokenized_path}")
+            tokenize_table(data_path, output_csv=tokenized_path, add_tokens=add_tokens, 
+                          drop_original_sequences=True)
+        else:
+            print(f"Using existing tokenized file: {tokenized_path}")
+        data = pd.read_csv(tokenized_path)
+        print(f"Loaded tokenized data from {tokenized_path}")
+    else:
+        data = pd.read_csv(data_path)
     
     # Convert boolean 'type' column to numeric
     data['type'] = data['type'].astype(int)
@@ -46,6 +71,14 @@ def main():
     print(f"Training set size: {len(train_data)}")
     print(f"Validation set size: {len(val_data)}")
     print(f"Test set size: {len(test_data)}")
+    
+    return train_data, val_data, test_data
+
+
+def main():
+    # Load data
+    data_path = 'data/databases/open/test_ML_database.csv'
+    train_data, val_data, test_data = load_and_prepare_data(data_path, use_tokenized=False)
     
     # Get input size
     input_size = train_data.shape[1] - 1
@@ -352,6 +385,95 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
     test_predictions.to_csv(os.path.join(output_dir, 'test_predictions.csv'), index=False)
     print(f"\nPredictions saved to {os.path.join(output_dir, 'test_predictions.csv')}")
+    
+    # Test GAIL_Wide_Custom2 on both tokenized and non-tokenized data
+    print("\n" + "="*60)
+    print("Testing GAIL_Wide_Custom2 on tokenized vs non-tokenized data")
+    print("="*60)
+    
+    # Test on non-tokenized data (already loaded)
+    print("\n" + "-"*60)
+    print("Testing GAIL_Wide_Custom2 on NON-TOKENIZED data")
+    print("-"*60)
+    gail_wide_custom2_non_tokenized = TorchClassifier(
+        GAILWide(input_size, hidden1=384, hidden2=192), weight_pos=5
+    )
+    X_train = train_data.drop(columns=['type'])
+    y_train = train_data['type']
+    gail_wide_custom2_non_tokenized.train(
+        X_train, y_train, epochs=150, batch_size=32, 
+        val_data=val_data, track_curves=True
+    )
+    non_tokenized_metrics = validate_filtration_AI(
+        gail_wide_custom2_non_tokenized, val_data, 
+        output_name='GAIL_Wide_Custom2_non_tokenized.png'
+    )
+    print("\nGAIL_Wide_Custom2 (non-tokenized) validation metrics:")
+    for metric, value in non_tokenized_metrics.items():
+        print(f"  {metric}: {value:.4f}")
+    
+    # Plot learning curves for non-tokenized
+    if hasattr(gail_wide_custom2_non_tokenized, 'train_losses') and len(gail_wide_custom2_non_tokenized.train_losses) > 0:
+        plot_learning_curves(
+            gail_wide_custom2_non_tokenized, output_dir=output_dir, 
+            output_name='learning_curves_GAIL_Wide_Custom2_non_tokenized.png'
+        )
+        print(f"Learning curves saved to {os.path.join(output_dir, 'learning_curves_GAIL_Wide_Custom2_non_tokenized.png')}")
+    
+    # Test on tokenized data
+    print("\n" + "-"*60)
+    print("Testing GAIL_Wide_Custom2 on TOKENIZED data")
+    print("-"*60)
+    train_data_tokenized, val_data_tokenized, test_data_tokenized = load_and_prepare_data(
+        data_path, use_tokenized=True, add_tokens=50, force_regenerate=True
+    )
+    input_size_tokenized = train_data_tokenized.shape[1] - 1
+    print(f"Tokenized data input size: {input_size_tokenized} (vs {input_size} for non-tokenized)")
+    
+    gail_wide_custom2_tokenized = TorchClassifier(
+        GAILWide(input_size_tokenized, hidden1=384, hidden2=192), weight_pos=5
+    )
+    X_train_tokenized = train_data_tokenized.drop(columns=['type'])
+    y_train_tokenized = train_data_tokenized['type']
+    gail_wide_custom2_tokenized.train(
+        X_train_tokenized, y_train_tokenized, epochs=150, batch_size=32, 
+        val_data=val_data_tokenized, track_curves=True
+    )
+    tokenized_metrics = validate_filtration_AI(
+        gail_wide_custom2_tokenized, val_data_tokenized, 
+        output_name='GAIL_Wide_Custom2_tokenized.png'
+    )
+    print("\nGAIL_Wide_Custom2 (tokenized) validation metrics:")
+    for metric, value in tokenized_metrics.items():
+        print(f"  {metric}: {value:.4f}")
+    
+    # Plot learning curves for tokenized
+    if hasattr(gail_wide_custom2_tokenized, 'train_losses') and len(gail_wide_custom2_tokenized.train_losses) > 0:
+        plot_learning_curves(
+            gail_wide_custom2_tokenized, output_dir=output_dir, 
+            output_name='learning_curves_GAIL_Wide_Custom2_tokenized.png'
+        )
+        print(f"Learning curves saved to {os.path.join(output_dir, 'learning_curves_GAIL_Wide_Custom2_tokenized.png')}")
+    
+    # Compare results
+    print("\n" + "="*60)
+    print("COMPARISON: GAIL_Wide_Custom2 - Tokenized vs Non-Tokenized")
+    print("="*60)
+    print(f"{'Metric':<20} {'Non-Tokenized':<15} {'Tokenized':<15} {'Difference':<15}")
+    print("-"*60)
+    for metric in non_tokenized_metrics.keys():
+        non_val = non_tokenized_metrics[metric]
+        tok_val = tokenized_metrics[metric]
+        diff = tok_val - non_val
+        print(f"{metric:<20} {non_val:<15.4f} {tok_val:<15.4f} {diff:+.4f}")
+    
+    # Determine winner
+    if tokenized_metrics['f1'] > non_tokenized_metrics['f1']:
+        print(f"\n✓ Tokenized version performs better (F1: {tokenized_metrics['f1']:.4f} vs {non_tokenized_metrics['f1']:.4f})")
+    elif non_tokenized_metrics['f1'] > tokenized_metrics['f1']:
+        print(f"\n✓ Non-tokenized version performs better (F1: {non_tokenized_metrics['f1']:.4f} vs {tokenized_metrics['f1']:.4f})")
+    else:
+        print(f"\n= Both versions perform equally (F1: {non_tokenized_metrics['f1']:.4f})")
 
 if __name__ == '__main__':
     main() 
