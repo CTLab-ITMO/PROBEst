@@ -136,7 +136,12 @@ class TorchClassifier(BaseAIModel):
         
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
         
-    def train(self, X, y, epochs=100, batch_size=32):
+        # Track learning curves
+        self.train_losses = []
+        self.val_losses = []
+        self.val_metrics_history = {'f1': [], 'accuracy': [], 'recall': [], 'precision': []}
+        
+    def train(self, X, y, epochs=100, batch_size=32, val_data=None, track_curves=False):
         X_scaled = self.preprocess_data(X)
         X_tensor = torch.FloatTensor(X_scaled)
         y_tensor = torch.FloatTensor(y.values).reshape(-1, 1)
@@ -144,7 +149,24 @@ class TorchClassifier(BaseAIModel):
         dataset = torch.utils.data.TensorDataset(X_tensor, y_tensor)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
         
+        # Prepare validation data if provided
+        val_X_tensor = None
+        val_y_tensor = None
+        if val_data is not None and track_curves:
+            val_X = val_data.drop(columns=['type'])
+            val_y = val_data['type']
+            val_X_scaled = self.scaler.transform(val_X)
+            val_X_tensor = torch.FloatTensor(val_X_scaled)
+            val_y_tensor = torch.FloatTensor(val_y.values).reshape(-1, 1)
+        
+        # Reset tracking if tracking curves
+        if track_curves:
+            self.train_losses = []
+            self.val_losses = []
+            self.val_metrics_history = {'f1': [], 'accuracy': [], 'recall': [], 'precision': []}
+        
         for e in range(epochs):
+            self.model.train()
             total_loss = 0
             for bx, by in loader:
                 self.optimizer.zero_grad()
@@ -154,8 +176,31 @@ class TorchClassifier(BaseAIModel):
                 self.optimizer.step()
                 total_loss += loss.item()
             
+            avg_loss = total_loss / len(loader)
+            if track_curves:
+                self.train_losses.append(avg_loss)
+            
+            # Evaluate on validation set if provided
+            if val_X_tensor is not None and track_curves:
+                self.model.eval()
+                with torch.no_grad():
+                    val_logits = self.model(val_X_tensor)
+                    val_loss = self.criterion(val_logits, val_y_tensor).item()
+                    self.val_losses.append(val_loss)
+                    
+                    # Calculate metrics
+                    val_pred_proba = torch.sigmoid(val_logits).numpy()
+                    val_pred = (val_pred_proba > 0.5).astype(int)
+                    val_y_np = val_y_tensor.numpy().flatten()
+                    
+                    from sklearn.metrics import f1_score, accuracy_score, recall_score, precision_score
+                    self.val_metrics_history['f1'].append(f1_score(val_y_np, val_pred))
+                    self.val_metrics_history['accuracy'].append(accuracy_score(val_y_np, val_pred))
+                    self.val_metrics_history['recall'].append(recall_score(val_y_np, val_pred))
+                    self.val_metrics_history['precision'].append(precision_score(val_y_np, val_pred, zero_division=0))
+            
             if e % 20 == 0:
-                print(f"Epoch {e}: loss = {total_loss:.4f}")
+                print(f"Epoch {e}: loss = {avg_loss:.4f}")
 
     def predict(self, X):
         X_scaled = self.scaler.transform(X)

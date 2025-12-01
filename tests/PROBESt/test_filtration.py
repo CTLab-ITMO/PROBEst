@@ -24,9 +24,8 @@ def test_train_filtration_AI(sample_data):
     model = LogisticRegressionModel()
     trained_model, metrics = train_filtration_AI(model, sample_data)
     
-    assert all(metric in metrics for metric in ['accuracy', 'f1', 'recall', 'r2'])
-    # R2 score can be negative, so we only check other metrics
-    assert all(0 <= value <= 1 for value in [metrics['accuracy'], metrics['f1'], metrics['recall']])
+    assert all(metric in metrics for metric in ['accuracy', 'f1', 'recall', 'precision'])
+    assert all(0 <= value <= 1 for value in [metrics['accuracy'], metrics['f1'], metrics['recall'], metrics['precision']])
 
 def test_validate_filtration_AI(sample_data):
     model = LogisticRegressionModel()
@@ -34,9 +33,8 @@ def test_validate_filtration_AI(sample_data):
     
     metrics = validate_filtration_AI(trained_model, sample_data)
     
-    assert all(metric in metrics for metric in ['accuracy', 'f1', 'recall', 'r2'])
-    # R2 score can be negative, so we only check other metrics
-    assert all(0 <= value <= 1 for value in [metrics['accuracy'], metrics['f1'], metrics['recall']])
+    assert all(metric in metrics for metric in ['accuracy', 'f1', 'recall', 'precision'])
+    assert all(0 <= value <= 1 for value in [metrics['accuracy'], metrics['f1'], metrics['recall'], metrics['precision']])
     assert os.path.exists('tests_outs/validation_plots.png')
 
 def test_apply_filtration_AI(sample_data):
