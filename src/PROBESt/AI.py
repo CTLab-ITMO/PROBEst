@@ -125,6 +125,51 @@ class DeepNeuralNetwork(nn.Module):
         
     def forward(self, x):
         return self.network(x)
+class TorchClassifier(BaseAIModel):
+    def __init__(self, model: nn.Module, learning_rate=0.001, weight_pos=1.0):
+        super().__init__()
+        self.model = model
+        self.learning_rate = learning_rate
+        
+        pos_weight = torch.tensor([weight_pos])
+        self.criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+        
+        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
+        
+    def train(self, X, y, epochs=100, batch_size=32):
+        X_scaled = self.preprocess_data(X)
+        X_tensor = torch.FloatTensor(X_scaled)
+        y_tensor = torch.FloatTensor(y.values).reshape(-1, 1)
+        
+        dataset = torch.utils.data.TensorDataset(X_tensor, y_tensor)
+        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        
+        for e in range(epochs):
+            total_loss = 0
+            for bx, by in loader:
+                self.optimizer.zero_grad()
+                logits = self.model(bx)
+                loss = self.criterion(logits, by)
+                loss.backward()
+                self.optimizer.step()
+                total_loss += loss.item()
+            
+            if e % 20 == 0:
+                print(f"Epoch {e}: loss = {total_loss:.4f}")
+
+    def predict(self, X):
+        X_scaled = self.scaler.transform(X)
+        X_tensor = torch.FloatTensor(X_scaled)
+        with torch.no_grad():
+            preds = torch.sigmoid(self.model(X_tensor)).numpy()
+        return (preds > 0.5).astype(int)
+
+    def predict_proba(self, X):
+        X_scaled = self.scaler.transform(X)
+        X_tensor = torch.FloatTensor(X_scaled)
+        with torch.no_grad():
+            preds = torch.sigmoid(self.model(X_tensor)).numpy()
+        return preds
 
 class DeepNeuralNetworkModel(BaseAIModel):
     def __init__(self, input_size: int, learning_rate: float = 0.001, dropout_rate: float = 0.3):
@@ -202,4 +247,4 @@ class DeepNeuralNetworkModel(BaseAIModel):
         self.model.eval()
         with torch.no_grad():
             predictions = self.model(X_tensor)
-        return predictions.numpy() 
+        return predictions.numpy()

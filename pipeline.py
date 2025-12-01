@@ -51,7 +51,7 @@ args.script_path = os.path.dirname(
     "/scripts/generator/"
 
 # 1. Initial set generation ----
-print("\n---- PROBESt v.0.1.4 ----\n")
+print("\n---- PROBESt v.0.2.0 ----\n")
 print("Arguments passed")
 
 # Create TMP

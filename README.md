@@ -23,7 +23,7 @@ python setup.py install
 ## Dependencies
 ```bash
 conda install bioconda::primer3
-conda install bioconda::blast
+conda install bioconda::blast==2.16.0
 ```
 
 ### Validate installation

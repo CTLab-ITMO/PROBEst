@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata from this file."
 title: "PROBEst"
-version: "0.1.4"
+version: "0.2.0"
 doi: "10.20944/preprints202511.2140.v1"
 date-released: "2025-11-01"
 authors:

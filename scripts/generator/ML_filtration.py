@@ -4,6 +4,17 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from PROBESt.AI import LogisticRegressionModel, PerceptronModel, DeepNeuralNetworkModel
 from PROBESt.filtration import train_filtration_AI, validate_filtration_AI, apply_filtration_AI
+from models_registry import ShallowNet, WideNet, ResidualNet, GAILDiscriminator, TabTransformer
+from PROBESt.AI import TorchClassifier
+from PROBESt.filtration import train_filtration_AI, validate_filtration_AI
+
+MODELS = {
+    "ShallowNet": lambda n: TorchClassifier(ShallowNet(n), weight_pos=5),
+    "WideNet": lambda n: TorchClassifier(WideNet(n), weight_pos=5),
+    "ResidualNet": lambda n: TorchClassifier(ResidualNet(n), weight_pos=5),
+    "GAIL": lambda n: TorchClassifier(GAILDiscriminator(n), weight_pos=5),
+    "TabTransformer": lambda n: TorchClassifier(TabTransformer(n), weight_pos=5),
+}
 
 def main():
     # Load data

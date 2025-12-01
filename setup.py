@@ -3,10 +3,10 @@ import os
 
 setup(
     name='PROBESt',
-    version='0.1.4',
+    version='0.2.0',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
-    python_requires='>=3.10',
+    python_requires='>=3.12',
     author='CTLab',
     author_email='dvsmutin@itmo.ru',
     description='PROBESt: package for nucleotide probes generation',
@@ -17,7 +17,7 @@ setup(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
     entry_points={
