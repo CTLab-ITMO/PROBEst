@@ -1,7 +1,7 @@
 # PROBEst v.0.1.4. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
-### St. Petersburg tool for genereting nucleotide probes with specified properties
+### St. Petersburg tool for generating nucleotide probes with specified properties
 
-[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/badge.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/badge.yaml)
+[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml)
 
 <span style="color: red">**Warning**:</span> tool is under active development
 
@@ -330,22 +330,6 @@ If you use PROBEst LLM pipeline for the extraction of the research data, please 
 
 **Plain text:**
 Serdiukov, A., Dragvelis, V., Smutin, D., Taldaev, A., & Muravyov, S. (2025). Efficient and Verified Extraction of the Research Data Using LLM. *Preprints*. https://doi.org/10.20944/preprints202511.2140.v1
-
-
-# License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-# Contribution
-
-We welcome contributions from the community! To contribute:
-
-
-Please read the [Contribution Guidelines](CONTRIBUTING.md) for more details.
-
-# Wiki
-
-Tool have its own <a href = "https://github.com/CTLab-ITMO/PROBEst/wiki">Wiki</a> pages with detailed information on usage cases, data description and another neccessary information
 
 
 # License
