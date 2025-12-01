@@ -1,9 +1,9 @@
-# PROBEst v.0.1.4. <a href=""><img src="img/probest_logo.jpg" align="right" width="150" ></a> 
+<a href=""><img src="img/ctlab_probest.jpg" align="right" width="300" ></a> 
+
+# PROBEst
 ### St. Petersburg tool for generating nucleotide probes with specified properties
 
 [![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml)
-
-<span style="color: red">**Warning**:</span> tool is under active development
 
 **PROBEst** is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
 
@@ -299,7 +299,6 @@ graph LR
     
     app --> E[web interface]
     E --> A
-    F --> D
     A --> G
 ```
 
