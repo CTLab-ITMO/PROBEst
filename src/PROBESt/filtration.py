@@ -338,4 +338,99 @@ def plot_learning_curves(
     
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, output_name), dpi=300, bbox_inches='tight')
+    plt.close()
+
+def plot_gail_architecture_comparison(
+    results_dict: Dict[str, Dict[str, float]],
+    output_dir: str = 'tests_outs',
+    output_name: str = 'gail_architecture_comparison.png'
+) -> None:
+    """
+    Plot comparison of all GAIL architecture variants.
+    
+    Args:
+        results_dict: Dictionary mapping GAIL variant names to their metrics dictionaries
+        output_dir: Directory to save plots
+        output_name: Name of output file
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Filter to only GAIL variants
+    gail_results = {k: v for k, v in results_dict.items() 
+                   if k.startswith("GAIL") or "GAIL" in k}
+    
+    if len(gail_results) == 0:
+        print("Warning: No GAIL architectures found for comparison.")
+        return
+    
+    model_names = list(gail_results.keys())
+    metrics_to_plot = ['f1', 'recall', 'accuracy', 'precision']
+    
+    # Prepare data for plotting
+    metric_values = {metric: [gail_results[name].get(metric, 0) for name in model_names] 
+                     for metric in metrics_to_plot}
+    
+    # Create grouped bar chart
+    x = np.arange(len(model_names))
+    width = 0.2
+    
+    fig, ax = plt.subplots(figsize=(16, 8))
+    
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+    for i, metric in enumerate(metrics_to_plot):
+        offset = (i - 1.5) * width
+        bars = ax.bar(x + offset, metric_values[metric], width, 
+                     label=metric.upper(), alpha=0.8, color=colors[i])
+        
+        # Add value labels on bars
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                       f'{height:.3f}',
+                       ha='center', va='bottom', fontsize=7)
+    
+    ax.set_xlabel('GAIL Architecture Variant', fontsize=12)
+    ax.set_ylabel('Score', fontsize=12)
+    ax.set_title('GAIL Architecture Comparison', fontsize=14, fontweight='bold')
+    ax.set_xticks(x)
+    ax.set_xticklabels(model_names, rotation=45, ha='right', fontsize=9)
+    ax.set_ylim([0, 1.1])
+    ax.legend(loc='upper left', fontsize=10)
+    ax.grid(axis='y', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, output_name), dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Also create a heatmap-style comparison
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Create matrix for heatmap
+    heatmap_data = np.array([[gail_results[name].get(metric, 0) 
+                             for metric in metrics_to_plot] 
+                            for name in model_names])
+    
+    im = ax.imshow(heatmap_data, cmap='YlOrRd', aspect='auto', vmin=0, vmax=1)
+    
+    # Set ticks and labels
+    ax.set_xticks(np.arange(len(metrics_to_plot)))
+    ax.set_yticks(np.arange(len(model_names)))
+    ax.set_xticklabels([m.upper() for m in metrics_to_plot])
+    ax.set_yticklabels(model_names)
+    
+    # Rotate x-axis labels
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    
+    # Add text annotations
+    for i in range(len(model_names)):
+        for j in range(len(metrics_to_plot)):
+            text = ax.text(j, i, f'{heatmap_data[i, j]:.3f}',
+                          ha="center", va="center", color="black", fontsize=8)
+    
+    ax.set_title("GAIL Architecture Performance Heatmap", fontsize=14, fontweight='bold', pad=20)
+    plt.colorbar(im, ax=ax, label='Score')
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, output_name.replace('.png', '_heatmap.png')), 
+               dpi=300, bbox_inches='tight')
     plt.close() 

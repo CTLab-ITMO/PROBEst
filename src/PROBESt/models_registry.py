@@ -35,9 +35,10 @@ class ResidualBlock(nn.Module):
     def __init__(self, width):
         super().__init__()
         self.fc = nn.Linear(width, width)
-        self.bn = nn.BatchNorm1d(width)
+        # Use LayerNorm instead of BatchNorm to handle batch size 1
+        self.ln = nn.LayerNorm(width)
     def forward(self, x):
-        return F.relu(self.bn(self.fc(x)) + x)
+        return F.relu(self.ln(self.fc(x)) + x)
 
 class ResidualNet(nn.Module):
     def __init__(self, input_size):
@@ -136,15 +137,15 @@ class GAILWideDropout(nn.Module):
         return self.net(x)
 
 class GAILWideBatchNorm(nn.Module):
-    """Wide GAIL with batch normalization"""
+    """Wide GAIL with layer normalization (works with any batch size)"""
     def __init__(self, input_size, hidden1=512, hidden2=256):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(input_size, hidden1),
-            nn.BatchNorm1d(hidden1),
+            nn.LayerNorm(hidden1),  # Use LayerNorm instead of BatchNorm for batch size 1 compatibility
             nn.LeakyReLU(0.2),
             nn.Linear(hidden1, hidden2),
-            nn.BatchNorm1d(hidden2),
+            nn.LayerNorm(hidden2),  # Use LayerNorm instead of BatchNorm for batch size 1 compatibility
             nn.LeakyReLU(0.2),
             nn.Linear(hidden2, 1),
             nn.Sigmoid()

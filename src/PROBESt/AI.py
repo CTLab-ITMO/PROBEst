@@ -100,22 +100,22 @@ class DeepNeuralNetwork(nn.Module):
         super().__init__()
         self.network = nn.Sequential(
             nn.Linear(input_size, 128),
-            nn.BatchNorm1d(128),
+            nn.LayerNorm(128),  # Use LayerNorm instead of BatchNorm for batch size 1 compatibility
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             
             nn.Linear(128, 64),
-            nn.BatchNorm1d(64),
+            nn.LayerNorm(64),  # Use LayerNorm instead of BatchNorm for batch size 1 compatibility
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             
             nn.Linear(64, 32),
-            nn.BatchNorm1d(32),
+            nn.LayerNorm(32),  # Use LayerNorm instead of BatchNorm for batch size 1 compatibility
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             
             nn.Linear(32, 16),
-            nn.BatchNorm1d(16),
+            nn.LayerNorm(16),  # Use LayerNorm instead of BatchNorm for batch size 1 compatibility
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             
@@ -147,7 +147,8 @@ class TorchClassifier(BaseAIModel):
         y_tensor = torch.FloatTensor(y.values).reshape(-1, 1)
         
         dataset = torch.utils.data.TensorDataset(X_tensor, y_tensor)
-        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        # Drop last batch if it's smaller than batch_size to avoid BatchNorm issues
+        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
         
         # Prepare validation data if provided
         val_X_tensor = None
@@ -245,7 +246,8 @@ class DeepNeuralNetworkModel(BaseAIModel):
         dataloader = torch.utils.data.DataLoader(
             dataset,
             batch_size=batch_size,
-            shuffle=True
+            shuffle=True,
+            drop_last=True  # Drop last incomplete batch to avoid BatchNorm issues
         )
         
         best_loss = float('inf')
