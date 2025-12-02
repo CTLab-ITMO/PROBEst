@@ -204,6 +204,12 @@ def arguments_parse():
                         default="70",
                         help="Probe check template option: Minimum identity percentage. Default is 70.")
 
+    parser.add_argument("--visualize",
+                        required=False,
+                        default=True,
+                        type=bool,
+                        help="Whether to create visualizations for probe-target pairs. Default is True.")
+
     args = parser.parse_args()
     
     # Correct args

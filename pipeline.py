@@ -26,6 +26,7 @@ from PROBESt.bash_wrappers import uniline_fasta, blastn_function, probe_check_fu
 from PROBESt.misc import write_stats
 from PROBESt.merge import merge
 from PROBESt.args import arguments_parse
+from PROBESt.modeling import run_modeling
 
 # Functions
 
@@ -191,3 +192,7 @@ fasta.close()
 
 write_stats(stats, args.output)
 print("Done\n\nFinish")
+
+# 7. Modeling ----
+modeling_output = os.path.join(args.output, "modeling_results.tsv")
+run_modeling(args, args.input, args.output + "/output.fa", modeling_output)
