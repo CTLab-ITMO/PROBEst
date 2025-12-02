@@ -206,9 +206,9 @@ def arguments_parse():
 
     parser.add_argument("--visualize",
                         required=False,
-                        default=True,
+                        default=False,
                         type=bool,
-                        help="Whether to create visualizations for probe-target pairs. Default is True.")
+                        help="Whether to create visualizations for probe-target pairs. Default is False.")
 
     args = parser.parse_args()
     

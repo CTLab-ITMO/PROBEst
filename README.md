@@ -16,15 +16,7 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 
 ```bash
 git clone https://github.com/CTLab-ITMO/PROBEst.git
-cd PROBEst
-pip install -e .
-#or: python setup.py install 
-```
-
-## Dependencies
-```bash
-conda install bioconda::primer3
-conda install bioconda::blast==2.16.0
+pip install -e PROBEst 
 ```
 
 ### Validate installation
@@ -235,6 +227,7 @@ graph LR
     T7
     T8
     M1
+    E3
     end
 
     B --- E6[ ]:::empty --> M1[modeling]
@@ -304,7 +297,6 @@ graph LR
     
     app --> E[web interface]
     E --> A
-    A --> G
 ```
 
 # Testing

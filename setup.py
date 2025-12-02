@@ -1,12 +1,25 @@
 from setuptools import setup, find_packages
 import os
 
+def read_requirements():
+    """Read requirements from requirements.txt file."""
+    requirements_path = os.path.join(os.path.dirname(__file__), 'requirements.txt')
+    with open(requirements_path, 'r') as f:
+        requirements = []
+        for line in f:
+            line = line.strip()
+            # Skip empty lines and comments
+            if line and not line.startswith('#'):
+                requirements.append(line)
+        return requirements
+
 setup(
     name='PROBESt',
     version='0.2.0',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     python_requires='>=3.12',
+    install_requires=read_requirements(),
     author='CTLab',
     author_email='dvsmutin@itmo.ru',
     description='PROBESt: package for nucleotide probes generation',

@@ -18,6 +18,7 @@ data/databases/open/test_ML_database_tokenized.csv
 genome_parse_results.csv
 data/genomes/
 data/articles2/
+data/test/
 
 # Python
 __pycache__/
