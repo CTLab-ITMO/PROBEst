@@ -97,6 +97,27 @@ def arguments_parse():
                         default=True, type=bool,
                         help="Whether to append the best probes to the array in the evolutionary algorithm. Default is True.")
 
+    # De-degeneration algorithm arguments
+    parser.add_argument("-D", "--dedegeneration_iterations",
+                        required=False,
+                        default=5, type=int,
+                        help="Maximum number of iterations for the de-degeneration algorithm. Default is 5.")
+    
+    parser.add_argument("--dedegeneration_set_size",
+                        required=False,
+                        default=10, type=int,
+                        help="Number of de-degenerated variants to generate per probe in the de-degeneration algorithm. Default is 10.")
+    
+    parser.add_argument("--dedegeneration_append",
+                        required=False,
+                        default=True, type=bool,
+                        help="Whether to append the best probes to the array in the de-degeneration algorithm. Default is True.")
+    
+    parser.add_argument("--dedegeneration_rate",
+                        required=False,
+                        default=0.5, type=float,
+                        help="De-degeneration probability per degenerate nucleotide position. Default is 0.5.")
+
     # Execution arguments
     parser.add_argument("--primer3",
                         required=False,

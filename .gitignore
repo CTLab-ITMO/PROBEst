@@ -19,6 +19,7 @@ genome_parse_results.csv
 data/genomes/
 data/articles2/
 data/test/
+benchmark*
 
 # Python
 __pycache__/

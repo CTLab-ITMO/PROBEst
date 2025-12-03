@@ -10,14 +10,27 @@
 # </ evolutionary algorithm >
 #
 # 6. output
+#
+# < de-degeneration algorithm >
+# 7. de-degeneration iterations
+# </ de-degeneration algorithm >
+#
+# 8. modeling and visualization
 
 # 0. Imports: python packages ----
 
 import os
+import sys
 import subprocess
 import numpy as np
 import pandas as pd
 import re
+
+# Add src directory to path to ensure local modules can be imported
+script_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.join(script_dir, 'src')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 # 0 Imports: absolute import ----
 from PROBESt.primer3 import initial_set_generation
@@ -27,6 +40,7 @@ from PROBESt.misc import write_stats
 from PROBESt.merge import merge
 from PROBESt.args import arguments_parse
 from PROBESt.modeling import run_modeling
+from PROBESt.dedegeneration import run_dedegeneration
 
 # Functions
 
@@ -193,6 +207,16 @@ fasta.close()
 write_stats(stats, args.output)
 print("Done\n\nFinish")
 
-# 7. Modeling ----
+# 7. De-degeneration ----
+if args.dedegeneration_iterations > 0:
+    dedegeneration_input = args.output + "/output.fa"
+    dedegeneration_output = args.output + "/output_dedegenerated.fa"
+    run_dedegeneration(args, dedegeneration_input, dedegeneration_output)
+    # Use de-degenerated output for modeling
+    final_output_fa = dedegeneration_output
+else:
+    final_output_fa = args.output + "/output.fa"
+
+# 8. Modeling and visualization ----
 modeling_output = os.path.join(args.output, "modeling_results.tsv")
-run_modeling(args, args.input, args.output + "/output.fa", modeling_output)
+run_modeling(args, args.input, final_output_fa, modeling_output)

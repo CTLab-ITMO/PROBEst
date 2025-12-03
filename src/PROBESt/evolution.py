@@ -60,3 +60,49 @@ def mutate_sequence(args, out_dir, seqs):
     fasta.close()
 
     print("Done")
+
+
+def dedegenerate_position(x, dedegen_rate):
+    """
+    De-degenerates a nucleotide based on a given de-degeneration rate.
+
+    This function attempts to replace degenerate nucleotides with specific ones.
+    It's the reverse of mutation - it makes sequences less ambiguous by replacing
+    degenerate codes (N, Y, W, S, M, K, R, B, D, H, V) with specific nucleotides (ATGCU).
+
+    Args:
+        x (str): The nucleotide to potentially de-degenerate.
+        dedegen_rate (float): The probability of de-degenerating a degenerate nucleotide.
+
+    Returns:
+        str: The de-degenerated nucleotide or the original if not degenerate or not selected.
+    """
+    # Define degenerate nucleotide codes and their possible replacements
+    degenerate_map = {
+        'N': ['A', 'T', 'G', 'C'],
+        'R': ['A', 'G'],
+        'Y': ['C', 'T'],
+        'S': ['G', 'C'],
+        'W': ['A', 'T'],
+        'K': ['G', 'T'],
+        'M': ['A', 'C'],
+        'B': ['C', 'G', 'T'],
+        'D': ['A', 'G', 'T'],
+        'H': ['A', 'C', 'T'],
+        'V': ['A', 'C', 'G']
+    }
+    
+    # If not degenerate, return as-is
+    if x.upper() not in degenerate_map:
+        return x
+    
+    # Generate a random number to determine if de-degeneration should occur
+    rstate = random.random()
+    
+    # Check if de-degeneration should occur based on the rate
+    if rstate <= dedegen_rate:
+        # Replace degenerate nucleotide with a random non-degenerate option
+        return random.choice(degenerate_map[x.upper()])
+    
+    # No de-degeneration: Return the original degenerate nucleotide
+    return x
