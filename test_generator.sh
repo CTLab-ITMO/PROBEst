@@ -20,6 +20,7 @@ prepare () {
     rm -rf data/test/general/contigs
     rm -rf data/test/general/blastn_base
     rm -rf data/test/general/output
+    rm -rf data/test/general/output_oligominer
     
     # Prepare BLAST database and contigs table for the "true base" dataset
     bash scripts/generator/prep_db.sh \
@@ -48,7 +49,7 @@ prepare
 
 echo -e "All BLASTn database created" 
 
-# Execute the Python pipeline for probe generation and analysis
+# Execute the Python pipeline for probe generation and analysis (using Primer3)
 python pipeline.py \
     -i data/test/general/test.fna \
     -o data/test/general/output \
@@ -59,3 +60,30 @@ python pipeline.py \
     -a FISH \
     --PRIMER_PICK_PRIMER 1 \
     --PRIMER_NUM_RETURN 1
+
+# Optional: Test with OligoMiner (uncomment if OligoMiner is installed)
+#conda activate probeMining
+if [ -n "$OLIGOMINER_PATH" ] && [ -d "$OLIGOMINER_PATH" ]; then
+     echo -e "\n---- Testing with OligoMiner ----\n"
+    
+    # Clean up previous OligoMiner output
+    rm -rf data/test/general/output_oligominer
+    
+    # Execute the Python pipeline with OligoMiner
+    python pipeline.py \
+        -i data/test/general/test.fna \
+        -o data/test/general/output_oligominer \
+        -tb data/test/general/blastn_base/true_base \
+        -fb data/test/general/blastn_base/false_base_1 \
+        data/test/general/blastn_base/false_base_2 \
+        -c data/test/general/contigs \
+        -a FISH \
+        --initial_generator oligominer \
+        --oligominer_path "$OLIGOMINER_PATH" \
+        --oligominer_probe_length 25 \
+        --oligominer_temperature 58
+    
+    echo -e "\nOligoMiner test completed"
+else
+    echo -e "\nSkipping OligoMiner test (set OLIGOMINER_PATH environment variable to enable)"
+fi

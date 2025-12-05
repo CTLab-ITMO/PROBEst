@@ -7,7 +7,7 @@
 
 **PROBEst** is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
 
-At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for initial oligonucleotide generation, BLASTn for specificity and universality checks, and a mutation module for probe optimization. The tool allows users to input target sequences, select reference files for universality and specificity validation, and customize layouts for probe design. The evolutionary algorithm iteratively refines the probes by introducing mutations and evaluating their performance, ensuring that the final output is both specific to the target and universally applicable across related sequences.
+At the core of PROBEst is an AI-enhanced workflow that combines Primer3 or OligoMiner for initial oligonucleotide generation, BLASTn for specificity and universality checks, and a mutation module for probe optimization. The tool allows users to input target sequences, select reference files for universality and specificity validation, and customize layouts for probe design. The evolutionary algorithm iteratively refines the probes by introducing mutations and evaluating their performance, ensuring that the final output is both specific to the target and universally applicable across related sequences.
 
 
 # Download and installation
@@ -17,6 +17,28 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 for init
 ```bash
 git clone https://github.com/CTLab-ITMO/PROBEst.git
 pip install -e PROBEst 
+```
+
+### Optional: Install OligoMiner (for alternative initial probe generation)
+
+If you want to use OligoMiner instead of Primer3 for initial probe generation, install it as follows:
+
+```bash
+git clone https://github.com/beliveau-lab/OligoMiner.git
+cd OligoMiner
+conda env create -f environment.yml  # Remove NUPACK dependency from environment.yml if needed
+conda activate probeMining
+```
+
+**Additional dependencies for OligoMiner:**
+- `bedtools` - for BED file operations
+- `bowtie2` - for sequence alignment
+- `biopython` - Python package (already in requirements)
+- `pandas` - Python package (already in requirements)
+
+These can be installed via conda:
+```bash
+conda install bedtools bowtie2
 ```
 
 ### Validate installation
@@ -68,6 +90,10 @@ python pipeline.py \
 - `-o OUTPUT`: Output path for results.
 - `-t THREADS`: Number of threads to use.
 - `-a ALGORITHM`: Algorithm for probe generation (`FISH` or `primer`).
+- `--initial_generator`: Tool for initial probe set generation (`primer3` or `oligominer`, default: `primer3`).
+- `--oligominer_path`: Path to OligoMiner installation directory (required when using `oligominer`).
+- `--oligominer_probe_length`: Probe length in nucleotides for OligoMiner (default: 25).
+- `--oligominer_temperature`: Melting temperature in Celsius for OligoMiner (default: 58).
 
 For a full list of arguments, run:
 

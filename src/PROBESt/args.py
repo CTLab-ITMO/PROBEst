@@ -135,6 +135,42 @@ def arguments_parse():
                         nargs="*",
                         help="File(s) containing additional sets of probes to append to the initial primer3 generation. Default is None.")
 
+    # Initial set generator selection
+    parser.add_argument("--initial_generator",
+                        required=False,
+                        default="primer3",
+                        choices=["primer3", "oligominer"],
+                        help="Tool to use for initial probe set generation. Options: 'primer3' (default) or 'oligominer'.")
+
+    # OligoMiner arguments
+    parser.add_argument("--oligominer_path",
+                        required=False,
+                        default=None,
+                        help="Path to the OligoMiner installation directory. Required when --initial_generator=oligominer.")
+
+    parser.add_argument("--oligominer_probe_length",
+                        required=False,
+                        default=25,
+                        type=int,
+                        help="OligoMiner option: Probe length in nucleotides. Default is 25.")
+
+    parser.add_argument("--oligominer_temperature",
+                        required=False,
+                        default=58,
+                        type=float,
+                        help="OligoMiner option: Melting temperature in Celsius. Default is 58.")
+
+    parser.add_argument("--oligominer_insert_coords",
+                        required=False,
+                        default=None,
+                        help="OligoMiner option: Path to BED file with insert coordinates for filtering probes. If not provided, all probes are kept.")
+
+    parser.add_argument("--oligominer_keep_tmp",
+                        required=False,
+                        default=False,
+                        type=bool,
+                        help="OligoMiner option: Whether to keep temporary files after processing. Default is False.")
+
     # Primer3 template arguments
     parser.add_argument("--PRIMER_PICK_PRIMER",
                         required=False,

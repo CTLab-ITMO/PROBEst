@@ -33,7 +33,6 @@ if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
 # 0 Imports: absolute import ----
-from PROBESt.primer3 import initial_set_generation
 from PROBESt.evolution import mutate_position
 from PROBESt.bash_wrappers import uniline_fasta, blastn_function, probe_check_function
 from PROBESt.misc import write_stats
@@ -77,7 +76,17 @@ uniline_fasta(args, out_dir(0))
 print("Input fasta parsed")
 
 # Template generation
-initial_set_generation(args, out_dir(0))
+# Check if initial_generator argument exists (for backward compatibility)
+initial_generator = getattr(args, 'initial_generator', 'primer3')
+
+if initial_generator == "primer3":
+    from PROBESt.primer3 import initial_set_generation
+    initial_set_generation(args, out_dir(0))
+elif initial_generator == "oligominer":
+    from PROBESt.oligominer import initial_set_generation
+    initial_set_generation(args, out_dir(0))
+else:
+    raise ValueError(f"Unknown initial generator: {initial_generator}")
 merge_iter(0)
 
 # < evolutionary algorithm >
