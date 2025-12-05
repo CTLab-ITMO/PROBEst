@@ -20,6 +20,7 @@ data/genomes/
 data/articles2/
 data/test/
 benchmark*
+OligoMiner
 
 # Python
 __pycache__/

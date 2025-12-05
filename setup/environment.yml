@@ -19,6 +19,10 @@ dependencies:
   - blast>=2.16.0
   - primer3>=2.6.1
   - flake8>=7.3.0
+  # OligoMiner dependencies (required - OligoMiner is now obligatory)
+  - bedtools>=2.30.0
+  - bowtie2>=2.5.0
+  - pip
   - pip:
     - ViennaRNA==2.6.4
   #optional: PDF parsing

@@ -15,36 +15,11 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 or Oligo
 ## Installation
 
 ```bash
-git clone https://github.com/CTLab-ITMO/PROBEst.git
-pip install -e PROBEst 
-```
-
-### Optional: Install OligoMiner (for alternative initial probe generation)
-
-If you want to use OligoMiner instead of Primer3 for initial probe generation, install it as follows:
-
-```bash
-git clone https://github.com/beliveau-lab/OligoMiner.git
-cd OligoMiner
-conda env create -f environment.yml  # Remove NUPACK dependency from environment.yml if needed
-conda activate probeMining
-```
-
-**Additional dependencies for OligoMiner:**
-- `bedtools` - for BED file operations
-- `bowtie2` - for sequence alignment
-- `biopython` - Python package (already in requirements)
-- `pandas` - Python package (already in requirements)
-
-These can be installed via conda:
-```bash
-conda install bedtools bowtie2
-```
-
-### Validate installation
-
-```bash
-bash test_generator.sh
+git clone https://github.com/CTLab-ITMO/PROBESt.git
+cd PROBEst
+bash setup/install.sh
+#validate installation with 
+#setup/test_generator.sh
 ```
 
 ## Usage
