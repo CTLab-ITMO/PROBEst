@@ -155,15 +155,15 @@ def arguments_parse():
 
     parser.add_argument("--oligominer_probe_length",
                         required=False,
-                        default=25,
+                        default=None,
                         type=int,
-                        help="OligoMiner option: Probe length in nucleotides. Default is 25.")
+                        help="OligoMiner option: Probe length in nucleotides. If not specified, blockParse.py will use its default (36-41).")
 
     parser.add_argument("--oligominer_temperature",
                         required=False,
-                        default=58,
+                        default=None,
                         type=int,
-                        help="OligoMiner option: Melting temperature in Celsius. Default is 58.")
+                        help="OligoMiner option: Melting temperature in Celsius. If not specified, blockParse.py will use its default (42-47).")
 
     parser.add_argument("--oligominer_insert_coords",
                         required=False,

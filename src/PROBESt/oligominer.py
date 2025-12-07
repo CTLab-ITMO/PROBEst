@@ -24,10 +24,9 @@ def initial_set_generation(args, out_dir: str) -> None:
     Generates an initial set of probes using OligoMiner and writes them to a FASTA file.
 
     This function performs the following steps:
-    1. Processes each sequence in the input FASTA file separately.
-    2. Runs blockParse.py to generate FASTQ files with candidate probes.
-    3. Converts FASTQ files to FASTA format and merges them.
-    4. Optionally appends additional sequences to the FASTA file.
+    1. Runs blockParse.py on the entire input FASTA file to generate a FASTQ file with candidate probes.
+    2. Converts the FASTQ file to FASTA format.
+    3. Optionally appends additional sequences to the FASTA file.
 
     Args:
         args: Parsed command-line arguments.
@@ -109,119 +108,110 @@ def initial_set_generation(args, out_dir: str) -> None:
     
     print(f"Using Python interpreter for OligoMiner: {python_cmd}")
     
-    # Process each sequence in the input FASTA file
-    sequences = list(SeqIO.parse(input_fasta, "fasta"))
-    all_fastq_files = []
+    # Step 1: Run blockParse.py on the entire input FASTA file
+    # blockParse.py generates a FASTQ file with candidate probes
+    # It writes output to current working directory using filename stem (split('.')[0])
+    # blockParse uses split('.')[0] on the input file path to get the stem
+    # For "/path/to/input.fa", split('.')[0] gives "/path/to/input"
+    # Then it writes "{outName}.fastq" where outName is that path
+    # Since it writes to current working directory, it creates ".fastq" in the main output directory
+    blockparse_log = os.path.join(oligominer_tmp, 'blockparse.log')
     
-    # Process each sequence separately
-    for record in sequences:
-        # Create a temporary FASTA file for this sequence
-        seq_fasta = os.path.join(oligominer_tmp, f"{record.id}.fasta")
-        with open(seq_fasta, "w") as f:
-            SeqIO.write(record, f, "fasta")
-        
-        # Extract prefix for naming
-        prefix = re.sub(r'[^a-zA-Z0-9_]', '_', record.id)
-        prefix = prefix[:50]  # Limit length
-        
-        # Step 1: Run blockParse.py
-        # blockParse.py generates a FASTQ file with candidate probes
-        # Note: blockParse.py writes output to current working directory using filename stem
-        # It splits on '.' and takes first part, so we need to handle this carefully
-        blockparse_log = os.path.join(oligominer_tmp, f'{prefix}_blockparse.log')
-        
-        # Get the base name of the input file (without path) for output filename
-        seq_fasta_basename = os.path.basename(seq_fasta)
-        # blockParse uses split('.')[0] to get the stem, so we need to match that
-        # For "AE006914.1_cds_AAL02539.1_1.fasta", split('.')[0] = "AE006914"
-        seq_fasta_stem = seq_fasta_basename.split('.')[0]
-        # blockParse will create {stem}.fastq in the current working directory
-        # Since we run with cwd=oligominer_tmp, the output will be there
-        expected_fastq = os.path.join(oligominer_tmp, f'{seq_fasta_stem}.fastq')
-        
-        # Run blockParse.py in the tmp directory so output goes there
-        # Redirect both stdout and stderr to log file to suppress verbose output
-        # Use relative path for input file since we're changing to that directory
-        blockparse_cmd = [
-            python_cmd,
-            os.path.join(oligominer_path, 'blockParse.py'),
-            '-l', str(args.oligominer_probe_length),
-            '-L', str(args.oligominer_probe_length),  # Set max length same as min for fixed length
-            '-T', str(args.oligominer_temperature),
-            '-f', seq_fasta_basename  # Use basename since we're running in oligominer_tmp
-        ]
-        # Redirect output to log file to suppress verbose messages
-        with open(blockparse_log, 'w') as log_file:
-            result = subprocess.run(
-                blockparse_cmd,
-                cwd=oligominer_tmp,  # Change to tmp directory so output goes there
-                stdout=log_file,
-                stderr=subprocess.STDOUT,  # Redirect stderr to stdout
-                text=True
+    # The FASTQ file is created in the main output directory (args.output), not in out_dir
+    # Check for .fastq in the main output directory
+    main_output_dir = args.output
+    expected_fastq = os.path.join(main_output_dir, '.fastq')
+    
+    # Build blockParse command - only add -l/-L and -T if provided
+    # Use absolute path for input file to avoid path issues
+    input_fasta_abs = os.path.abspath(input_fasta)
+    blockparse_cmd = [
+        python_cmd,
+        os.path.join(oligominer_path, 'blockParse.py'),
+        '-f', input_fasta_abs  # Use absolute path to input file
+    ]
+    
+    # Add probe length arguments only if provided
+    if args.oligominer_probe_length is not None:
+        blockparse_cmd.extend(['-l', str(args.oligominer_probe_length)])
+        blockparse_cmd.extend(['-L', str(args.oligominer_probe_length)])  # Set max length same as min for fixed length
+    
+    # Add temperature argument only if provided
+    if args.oligominer_temperature is not None:
+        blockparse_cmd.extend(['-T', str(args.oligominer_temperature)])
+    
+    # Redirect output to log file to suppress verbose messages
+    # Run from main output directory so FASTQ is created there
+    with open(blockparse_log, 'w') as log_file:
+        result = subprocess.run(
+            blockparse_cmd,
+            cwd=main_output_dir,  # Run from main output directory so FASTQ is created there
+            stdout=log_file,
+            stderr=subprocess.STDOUT,  # Redirect stderr to stdout
+            text=True
+        )
+    
+    # Check for errors in blockParse and whether probes were found
+    probe_found = False
+    probe_count = 0
+    
+    if os.path.exists(blockparse_log):
+        with open(blockparse_log, 'r') as f:
+            log_content = f.read()
+            
+            # Check for Python version errors
+            if 'SyntaxError' in log_content or 'print' in log_content.lower():
+                raise RuntimeError(
+                    f"OligoMiner blockParse.py failed with Python version error. "
+                    f"OligoMiner requires Python 2. Please set --oligominer_python to a Python 2 interpreter "
+                    f"(e.g., 'python2' or 'python2.7'). Error: {log_content[:500]}"
+                )
+            
+            # Check if probes were identified
+            if 'candidate probes identified' in log_content:
+                # Extract number of probes
+                match = re.search(r'(\d+) candidate probes identified', log_content)
+                if match:
+                    probe_count = int(match.group(1))
+                    if probe_count > 0:
+                        probe_found = True
+            elif 'No candidate probes discovered' in log_content:
+                probe_found = False
+                probe_count = 0
+    
+    # Check if FASTQ was generated
+    # blockParse writes to current working directory (which is now main_output_dir)
+    # It creates .fastq in the main output directory
+    fastq_file = expected_fastq
+    
+    # Final check
+    if not os.path.exists(fastq_file) or os.path.getsize(fastq_file) == 0:
+        if not probe_found or probe_count == 0:
+            raise RuntimeError(
+                "OligoMiner blockParse.py found no candidate probes. "
+                "Try adjusting probe generation parameters or using a different initial generator."
             )
-        
-        # Check for errors in blockParse and whether probes were found
-        probe_found = False
-        probe_count = 0
-        
-        if os.path.exists(blockparse_log):
-            with open(blockparse_log, 'r') as f:
-                log_content = f.read()
-                
-                # Check for Python version errors
-                if 'SyntaxError' in log_content or 'print' in log_content.lower():
-                    raise RuntimeError(
-                        f"OligoMiner blockParse.py failed with Python version error for {record.id}. "
-                        f"OligoMiner requires Python 2. Please set --oligominer_python to a Python 2 interpreter "
-                        f"(e.g., 'python2' or 'python2.7'). Error: {log_content[:500]}"
-                    )
-                
-                # Check if probes were identified
-                if 'candidate probes identified' in log_content:
-                    # Extract number of probes
-                    match = re.search(r'(\d+) candidate probes identified', log_content)
-                    if match:
-                        probe_count = int(match.group(1))
-                        if probe_count > 0:
-                            probe_found = True
-                elif 'No candidate probes discovered' in log_content:
-                    probe_found = False
-                    probe_count = 0
-        
-        # If blockParse failed or no probes found, skip this sequence
-        if result.returncode != 0 or not probe_found or probe_count == 0:
-            continue  # Skip silently - no probes found for this sequence
-        
-        # Check if FASTQ was generated
-        fastq_file = expected_fastq
-        if not os.path.exists(fastq_file):
-            # Probes were found but FASTQ not created - try to find it with different patterns
-            # Search for any .fastq files in the tmp directory that might match
-            possible_fastq = glob.glob(os.path.join(oligominer_tmp, '*.fastq'))
-            if possible_fastq:
-                # Use the most recently created one (likely from this run)
-                fastq_file = max(possible_fastq, key=os.path.getmtime)
-            else:
-                # Still not found - skip this sequence
-                continue
-        
-        # Add to list of FASTQ files to convert
-        if os.path.exists(fastq_file) and os.path.getsize(fastq_file) > 0:
-            all_fastq_files.append(fastq_file)
+        else:
+            raise RuntimeError(
+                f"OligoMiner blockParse.py found {probe_count} probes but FASTQ file was not found. "
+                f"Expected at: {expected_fastq}. "
+                "Check the log file for details."
+            )
     
     print("OligoMiner done")
     
-    # Step 2: Convert all FASTQ files to FASTA and merge them
+    # Step 2: Convert FASTQ file to FASTA
     output_fasta_path = os.path.join(out_dir, "output.fa")
     with open(output_fasta_path, 'w') as out_fasta:
-        for fastq_file in all_fastq_files:
-            try:
-                for record in SeqIO.parse(fastq_file, "fastq"):
-                    # Write as FASTA: header and sequence
-                    out_fasta.write(f">{record.id}\n{record.seq}\n")
-            except Exception as e:
-                # Skip files that can't be parsed
-                continue
+        try:
+            for record in SeqIO.parse(fastq_file, "fastq"):
+                # Write as FASTA: header and sequence
+                out_fasta.write(f">{record.id}\n{record.seq}\n")
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to convert FASTQ to FASTA: {e}. "
+                f"FASTQ file: {fastq_file}"
+            )
     
     # Append additional sequences if provided
     if hasattr(args, 'add_set') and args.add_set:

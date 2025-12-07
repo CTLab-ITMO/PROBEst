@@ -39,16 +39,19 @@ else
     echo ""
 fi
 
+clear_previous_test() {
+    rm -rf "$PROJECT_ROOT/data/test/general/output"
+    rm -rf "$PROJECT_ROOT/data/test/general/output_oligominer"
+}
+
 # Function to prepare BLAST databases and contigs table
-prepare () {
+prepare_blast () {
     echo -e "---- Preparation stage ----\n"
 
     # Clean up previous output directories
     rm -rf "$PROJECT_ROOT/data/test/general/contigs"
     rm -rf "$PROJECT_ROOT/data/test/general/blastn_base"
-    rm -rf "$PROJECT_ROOT/data/test/general/output"
-    rm -rf "$PROJECT_ROOT/data/test/general/output_oligominer"
-    
+
     # Prepare BLAST database and contigs table for the "true base" dataset
     bash "$PROJECT_ROOT/scripts/generator/prep_db.sh" \
         -n "$PROJECT_ROOT/data/test/general/blastn_base/true_base" \
@@ -69,6 +72,8 @@ prepare () {
         -c "$PROJECT_ROOT/data/test/general/contigs" \
         -t "$PROJECT_ROOT/data/test/general/tmp" \
         "$PROJECT_ROOT/data/test/general/fasta_base/false_base_2"/*
+
+    echo -e "All BLASTn database created" 
 }
 
 # Change to project root for running pipeline
@@ -111,16 +116,13 @@ test2(){
         -c data/test/general/contigs \
         -a FISH \
         --initial_generator oligominer \
-        --oligominer_path "$OLIGOMINER_DIR" \
-        --oligominer_probe_length 25 \
-        --oligominer_temperature 58
+        --oligominer_path "$OLIGOMINER_DIR"
 }
 
 
 
 # Execute the preparation function
-prepare
-
-echo -e "All BLASTn database created" 
-#test1
+clear_previous_test
+prepare_blast
+test1
 test2
