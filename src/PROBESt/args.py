@@ -32,7 +32,8 @@ def arguments_parse():
     # Main arguments
     parser.add_argument("-i", "--input",
                         required=True,
-                        help="Input FASTA file for probe generation. Probes are generated for different contigs separately. Only gene-coding regions are recommended (.fna).")
+                        nargs="*",
+                        help="Input FASTA file(s) or directory(ies) for probe generation. Can be a single file/directory or multiple files/directories. If a directory is provided, all *.fa, *.fna, *.fasta files (and their .gz versions) will be processed. Probes are generated for different contigs separately. Only gene-coding regions are recommended (.fna).")
 
     parser.add_argument("-tb", "--true_base",
                         required=True,

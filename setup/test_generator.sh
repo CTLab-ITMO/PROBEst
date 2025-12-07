@@ -119,6 +119,19 @@ test2(){
         --oligominer_path "$OLIGOMINER_DIR"
 }
 
+# Test multifasta input
+test3 () {
+    gzip -d data/test/general/fasta_base/true_base/*.gz
+    python pipeline.py \
+        -i data/test/general/fasta_base/true_base \
+        -o data/test/general/output_multifasta \
+        -tb data/test/general/fasta_base/true_base \
+        -fb data/test/general/fasta_base/false_base_1 \
+        data/test/general/fasta_base/false_base_2 \
+        -a FISH \
+        --PRIMER_PICK_PRIMER 1 \
+        --PRIMER_NUM_RETURN 1
+}
 
 
 # Execute the preparation function
@@ -126,3 +139,4 @@ clear_previous_test
 prepare_blast
 test1
 test2
+test3

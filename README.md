@@ -25,24 +25,6 @@ bash setup/install.sh
 
 ## Usage
 
-### Preparation
-
-`pipeline.py` relies on pre-prepared BLASTn databases. To create the required `true_base`, `false_base`, and `contig_table`, you can use the following script:
-
-```bash
-bash scripts/generator/prep_db.sh \
-  -n {DATABASE_NAME} \
-  -c {CONTIG_NAME} \
-  -t {TMP_DIR} \
-  [FASTA]
-```
-
-#### Arguments:
-- `-n DATABASE_NAME`:  Name of the output BLAST database (required).  
-- `-c CONTIG_TABLE`:  Output file to store contig names and their corresponding sequence headers (required).  
-- `-t TMP_DIR`:  Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
-- `FASTA`:  List of input FASTA files (gzipped or uncompressed). 
-
 ### Generation
 
 PROBEst can be run using the following command:
@@ -59,7 +41,7 @@ python pipeline.py \
 **Blastn databases** and **contig table** are results of the ```prep_db.sh```
 
 #### Key arguments:
-- `-i INPUT`: Input FASTA file for probe generation.
+- `-i INPUT`: Input FASTA file (or directory with fasta / fasta.gz file) for the initial probe setgeneration.
 - `-tb TRUE_BASE`: Input BLASTn database path for primer adjusting.
 - `-fb FALSE_BASE`: Input BLASTn database path for non-specific testing.
 - `-c CONTIG_TABLE`: .tsv table with BLAST database information.
@@ -80,6 +62,25 @@ For parameter selection, grid search is implemented. You can specify parameters 
 python test_parameters.py \
   -p {JSON}
 ```
+
+
+### Manual preparation
+
+`pipeline.py` relies on pre-prepared BLASTn databases. To create the required `true_base`, `false_base`, and `contig_table`, you can use the following script:
+
+```bash
+bash scripts/generator/prep_db.sh \
+  -n {DATABASE_NAME} \
+  -c {CONTIG_NAME} \
+  -t {TMP_DIR} \
+  [FASTA]
+```
+
+#### Arguments:
+- `-n DATABASE_NAME`:  Name of the output BLAST database (required).  
+- `-c CONTIG_TABLE`:  Output file to store contig names and their corresponding sequence headers (required).  
+- `-t TMP_DIR`:  Temporary directory for intermediate files (optional, defaults to `./.tmp`).  
+- `FASTA`:  List of input FASTA files (gzipped or uncompressed). 
 
 ### Web Application
 

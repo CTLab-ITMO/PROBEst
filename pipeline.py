@@ -25,6 +25,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 import re
+import gzip
 
 # Add src directory to path to ensure local modules can be imported
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -35,7 +36,7 @@ if src_dir not in sys.path:
 # 0 Imports: absolute import ----
 from PROBESt.evolution import mutate_position
 from PROBESt.bash_wrappers import uniline_fasta, blastn_function, probe_check_function
-from PROBESt.misc import write_stats
+from PROBESt.misc import write_stats, collect_fasta_files, process_multiple_inputs
 from PROBESt.merge import merge
 from PROBESt.args import arguments_parse
 from PROBESt.modeling import run_modeling
@@ -82,25 +83,18 @@ args.true_base, args.false_base = prepare_bases_if_needed(
     script_path=args.script_path
 )
 
+# Collect all FASTA files from inputs
+input_fasta_files = collect_fasta_files(args.input)
+print(f"Found {len(input_fasta_files)} FASTA file(s) to process")
+
 # Create TMP
 os.makedirs(out_dir(0), exist_ok=True)
 
-# Make uniline fasta
-uniline_fasta(args, out_dir(0))
-print("Input fasta parsed")
-
-# Template generation
-# Check if initial_generator argument exists (for backward compatibility)
+# Process each input FASTA separately for initial set generation
 initial_generator = getattr(args, 'initial_generator', 'primer3')
+process_multiple_inputs(args, input_fasta_files, out_dir(0), initial_generator)
 
-if initial_generator == "primer3":
-    from PROBESt.primer3 import initial_set_generation
-    initial_set_generation(args, out_dir(0))
-elif initial_generator == "oligominer":
-    from PROBESt.oligominer import initial_set_generation
-    initial_set_generation(args, out_dir(0))
-else:
-    raise ValueError(f"Unknown initial generator: {initial_generator}")
+# Merge the final combined output
 merge_iter(0)
 
 # Check if initial set generation produced any probes
@@ -376,5 +370,18 @@ else:
     final_output_fa = args.output + "/output.fa"
 
 # 8. Modeling and visualization ----
+# Create combined input FASTA for modeling (from all input files)
+combined_input_fa = os.path.join(args.output, ".tmp", "combined_input.fa")
+os.makedirs(os.path.dirname(combined_input_fa), exist_ok=True)
+with open(combined_input_fa, 'w') as outfile:
+    for fasta_file in input_fasta_files:
+        # Handle gzipped files
+        if fasta_file.endswith('.gz'):
+            with gzip.open(fasta_file, 'rt') as infile:
+                outfile.write(infile.read())
+        else:
+            with open(fasta_file, 'r') as infile:
+                outfile.write(infile.read())
+
 modeling_output = os.path.join(args.output, "modeling_results.tsv")
-run_modeling(args, args.input, final_output_fa, modeling_output)
+run_modeling(args, combined_input_fa, final_output_fa, modeling_output)
