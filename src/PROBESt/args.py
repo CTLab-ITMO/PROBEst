@@ -44,12 +44,19 @@ def arguments_parse():
                         help="Path(s) to the BLAST database(s) for non-specific testing. These databases are used to filter out non-specific probes. Wildcards are not accepted.")
 
     parser.add_argument("-c", "--contig_table",
-                        required=True,
-                        help="Path to a .tsv table containing BLAST database information.")
+                        required=False,
+                        default=None,
+                        help="Path to a .tsv table containing BLAST database information. If not provided and FASTA directories are used for bases, it will be auto-generated in the output directory.")
 
     parser.add_argument("-o", "--output",
                         required=True,
                         help="Output directory path for storing results.")
+
+    # BLAST database preparation arguments (for FASTA directory inputs)
+    parser.add_argument("--prep_db_tmp",
+                        required=False,
+                        default=None,
+                        help="Temporary directory for BLAST database preparation when using FASTA directories as input. If not provided, a temporary directory will be created in the output directory.")
 
     parser.add_argument("-t", "--threads",
                         required=False,
@@ -285,5 +292,9 @@ def arguments_parse():
     # Correct tmp
     if args.output_tmp == "":
         args.output_tmp = args.output + "/.tmp/"
+    
+    # Set default contig_table if not provided
+    if args.contig_table is None:
+        args.contig_table = args.output + "/contigs.tsv"
     
     return args

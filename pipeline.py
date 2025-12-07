@@ -40,6 +40,7 @@ from PROBESt.merge import merge
 from PROBESt.args import arguments_parse
 from PROBESt.modeling import run_modeling
 from PROBESt.dedegeneration import run_dedegeneration
+from PROBESt.prepare_blast import prepare_bases_if_needed
 
 # Functions
 
@@ -67,6 +68,19 @@ args.script_path = os.path.dirname(
 # 1. Initial set generation ----
 print("\n---- PROBESt v.0.2.0 ----\n")
 print("Arguments passed")
+
+# Create output directory early (needed for BLAST database preparation)
+os.makedirs(args.output, exist_ok=True)
+
+# 0.1. Prepare BLAST databases from FASTA directories if needed ----
+args.true_base, args.false_base = prepare_bases_if_needed(
+    true_base=args.true_base,
+    false_bases=args.false_base,
+    output_dir=args.output,
+    contig_table_path=args.contig_table,
+    tmp_dir=args.prep_db_tmp,
+    script_path=args.script_path
+)
 
 # Create TMP
 os.makedirs(out_dir(0), exist_ok=True)
