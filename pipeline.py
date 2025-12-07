@@ -89,6 +89,25 @@ else:
     raise ValueError(f"Unknown initial generator: {initial_generator}")
 merge_iter(0)
 
+# Check if initial set generation produced any probes
+output_fa_path = out_dir(0) + "output.fa"
+if not os.path.exists(output_fa_path) or os.path.getsize(output_fa_path) == 0:
+    print("\nERROR: Initial set generation produced no probes (empty output.fa).")
+    print("This may happen if:")
+    print("  - The input sequences are too short or have low complexity")
+    print("  - The probe generation parameters are too restrictive")
+    print("  - The selected initial generator is not suitable for your input")
+    print(f"\nSuggestion: Try using a different initial generator (current: {initial_generator})")
+    if initial_generator == "primer3":
+        print("  Consider using: --initial_generator oligominer")
+    elif initial_generator == "oligominer":
+        print("  Consider using: --initial_generator primer3")
+    print("\nAlternatively, adjust the probe generation parameters:")
+    if initial_generator == "oligominer":
+        print("  - Try adjusting --oligominer_probe_length")
+        print("  - Try adjusting --oligominer_temperature")
+    sys.exit(1)
+
 # < evolutionary algorithm >
 
 # commands
@@ -97,13 +116,29 @@ probe_check = probe_check_function(args)
 
 # arrays
 stats = {}  # Hit stats for each iteration
+last_valid_iter = 0  # Track the last iteration with valid probes
 
 for iter in range(1, args.iterations+1):
     print("\nIteration", iter, "----")
     os.makedirs(out_dir(iter), exist_ok=True)
 
+    # Check if previous iteration's merged.fa exists and is not empty
+    prev_merged_fa = out_dir(iter-1) + "merged.fa"
+    if not os.path.exists(prev_merged_fa) or os.path.getsize(prev_merged_fa) == 0:
+        if iter == 1:
+            # This means iteration 0 had empty output, which should have been caught earlier
+            # But handle it here as a safety check
+            print("\nERROR: No probes available from previous iteration.")
+            print("Initial set generation may have failed. Try using a different initial generator.")
+            sys.exit(1)
+        else:
+            # Later iteration had empty output - use last valid iteration
+            print(f"\nWARNING: Iteration {iter-1} produced no probes (empty merged.fa).")
+            print(f"Stopping evolutionary algorithm. Using results from iteration {last_valid_iter}.")
+            break
+
     # 2. blastn ----
-    blastn_iter = blastn + " -query " + out_dir(iter-1) + "merged.fa"
+    blastn_iter = blastn + " -query " + prev_merged_fa
 
     # true base
     blastn_db = blastn_iter + " -db " + args.true_base + \
@@ -130,12 +165,35 @@ for iter in range(1, args.iterations+1):
     subprocess.run(probe_check_iter, shell=True)
 
     # 4. probes matching ----
+    clear_hits_path = out_dir(iter) + "clear_hits.tsv"
     try:
-        probe_out = pd.read_table(out_dir(iter) + "clear_hits.tsv",
-                                  sep=' ', header=None)
-    except:
-        raise InterruptedError(
-            "Empty file after filtration, try to use other probe_check properties and review false databases")
+        # Check if file exists and is not empty
+        if not os.path.exists(clear_hits_path) or os.path.getsize(clear_hits_path) == 0:
+            if iter == 1:
+                # First iteration failed - this is a problem with initial set or probe_check
+                raise InterruptedError(
+                    "Empty file after filtration at iteration 1. "
+                    "This suggests the initial probe set may not be suitable. "
+                    "Try using a different initial generator (--initial_generator) or "
+                    "adjusting probe_check properties and reviewing false databases.")
+            else:
+                # Later iteration failed - use last valid iteration
+                print(f"\nWARNING: Iteration {iter} produced no valid probes after filtration.")
+                print(f"Stopping evolutionary algorithm. Using results from iteration {last_valid_iter}.")
+                break
+        
+        probe_out = pd.read_table(clear_hits_path, sep=' ', header=None)
+    except (pd.errors.EmptyDataError, FileNotFoundError) as e:
+        if iter == 1:
+            raise InterruptedError(
+                "Empty file after filtration at iteration 1. "
+                "This suggests the initial probe set may not be suitable. "
+                "Try using a different initial generator (--initial_generator) or "
+                "adjusting probe_check properties and reviewing false databases.")
+        else:
+            print(f"\nWARNING: Iteration {iter} produced no valid probes after filtration.")
+            print(f"Stopping evolutionary algorithm. Using results from iteration {last_valid_iter}.")
+            break
 
     probe_vals = probe_out.iloc[:, 0].value_counts()
 
@@ -152,7 +210,18 @@ for iter in range(1, args.iterations+1):
     print("Mean hits:", mean_hits)
 
     # grep in probes.fa from previous iter
-    fasta = open(out_dir(iter-1) + "output.fa", "r")
+    prev_output_fa = out_dir(iter-1) + "output.fa"
+    if not os.path.exists(prev_output_fa) or os.path.getsize(prev_output_fa) == 0:
+        if iter == 1:
+            print("\nERROR: No probes available from previous iteration.")
+            print("Initial set generation may have failed. Try using a different initial generator.")
+            sys.exit(1)
+        else:
+            print(f"\nWARNING: Iteration {iter-1} produced no probes (empty output.fa).")
+            print(f"Stopping evolutionary algorithm. Using results from iteration {last_valid_iter}.")
+            break
+    
+    fasta = open(prev_output_fa, "r")
     seqs = {}
     for iter_line, line in enumerate(fasta):
         if iter_line % 2 == 0:
@@ -172,6 +241,21 @@ for iter in range(1, args.iterations+1):
             if keep:
                 seqs[line_name] = line[:-1]
     fasta.close()
+    
+    # Check if we have any sequences after filtering
+    if len(seqs) == 0:
+        if iter == 1:
+            print("\nERROR: No probes matched after filtering at iteration 1.")
+            print("This suggests the initial probe set may not be suitable.")
+            print("Try using a different initial generator (--initial_generator).")
+            sys.exit(1)
+        else:
+            print(f"\nWARNING: Iteration {iter} produced no matching probes after filtering.")
+            print(f"Stopping evolutionary algorithm. Using results from iteration {last_valid_iter}.")
+            break
+    
+    # Mark this iteration as valid
+    last_valid_iter = iter
 
     # 5*. mutations ----
     if iter != args.iterations:  # (if not final)
@@ -194,6 +278,13 @@ for iter in range(1, args.iterations+1):
             fasta.write(">" + fname + "\n" + seqs_mutated[fname]+"\n")
         fasta.close()
         merge_iter(iter)
+        
+        # Check if merged.fa was created and is not empty
+        merged_fa_path = out_dir(iter) + "merged.fa"
+        if not os.path.exists(merged_fa_path) or os.path.getsize(merged_fa_path) == 0:
+            print(f"\nWARNING: Iteration {iter} produced empty merged.fa after mutations.")
+            print(f"Stopping evolutionary algorithm. Using results from iteration {last_valid_iter}.")
+            break
 
     print("Done")
 
@@ -201,6 +292,50 @@ for iter in range(1, args.iterations+1):
 
 # </ evolutionary algorithm >
 # 6. output ----
+# Use the last valid iteration's data for final output
+if last_valid_iter == 0:
+    # No valid iterations - this should have been caught earlier, but handle it
+    print("\nERROR: No valid iterations completed.")
+    sys.exit(1)
+
+# If we broke out early, we need to reload the data from the last valid iteration
+# Note: last_valid_iter is the iteration that had valid probes after filtering
+# We need to use the probe_vals and seqs from that iteration
+final_iter = last_valid_iter
+if final_iter < args.iterations:
+    # We broke out early, reload data from the last valid iteration
+    print(f"\nReloading data from iteration {final_iter} (last valid iteration).")
+    clear_hits_path = out_dir(final_iter) + "clear_hits.tsv"
+    probe_out = pd.read_table(clear_hits_path, sep=' ', header=None)
+    probe_vals = probe_out.iloc[:, 0].value_counts()
+    probe_list = list(set(probe_out.iloc[:, 0]))
+    probe_list_hash = [hash(_) for _ in probe_list]
+    
+    # Reload sequences from the iteration before the last valid one
+    # (the output.fa that was used to generate the last valid iteration's results)
+    prev_output_fa = out_dir(final_iter-1) + "output.fa"
+    fasta = open(prev_output_fa, "r")
+    seqs = {}
+    for iter_line, line in enumerate(fasta):
+        if iter_line % 2 == 0:
+            if args.algorithm == 'primer':
+                line_clear = re.sub(r'(_LEFT|_RIGHT)$', '', line[1:-1])
+            elif args.algorithm == 'FISH':
+                line_clear = line[1:-1]
+            if np.isin(hash(line_clear), probe_list_hash):
+                keep = True
+                line_name = line[1:-1]
+            else:
+                keep = False
+        else:
+            if keep:
+                seqs[line_name] = line[:-1]
+    fasta.close()
+    
+    print(f"Using {len(seqs)} probes from iteration {final_iter-1} filtered by iteration {final_iter}.")
+else:
+    # We completed all iterations - seqs and probe_vals are already set from the last iteration
+    print(f"\nCompleted all {args.iterations} iterations. Using final results.")
 
 fasta = open(args.output + "/output.fa", "w")
 for fname in sorted(seqs.keys()):

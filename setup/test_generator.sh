@@ -71,46 +71,36 @@ prepare () {
         "$PROJECT_ROOT/data/test/general/fasta_base/false_base_2"/*
 }
 
-# Execute the preparation function
-prepare
-
-echo -e "All BLASTn database created" 
-
 # Change to project root for running pipeline
 cd "$PROJECT_ROOT"
 
 # Execute the Python pipeline for probe generation and analysis (using Primer3)
-echo "Running pipeline with Primer3..."
-$PYTHON_CMD pipeline.py \
-    -i data/test/general/test.fna \
-    -o data/test/general/output \
-    -tb data/test/general/blastn_base/true_base \
-    -fb data/test/general/blastn_base/false_base_1 \
-    data/test/general/blastn_base/false_base_2 \
-    -c data/test/general/contigs \
-    -a FISH \
-    --PRIMER_PICK_PRIMER 1 \
-    --PRIMER_NUM_RETURN 1
+
+test1(){
+    echo "Running pipeline with Primer3..."
+    $PYTHON_CMD pipeline.py \
+        -i data/test/general/test.fna \
+        -o data/test/general/output \
+        -tb data/test/general/blastn_base/true_base \
+        -fb data/test/general/blastn_base/false_base_1 \
+        data/test/general/blastn_base/false_base_2 \
+        -c data/test/general/contigs \
+        -a FISH \
+        --PRIMER_PICK_PRIMER 1 \
+        --PRIMER_NUM_RETURN 1
+}
 
 # Test with OligoMiner (now obligatory, should be in PROJECT_ROOT/OligoMiner)
-OLIGOMINER_DIR=""
+test2(){
+    OLIGOMINER_DIR=""
+    # Check if OLIGOMINER_PATH environment variable is set (from conda environment)
+    if [ -n "$OLIGOMINER_PATH" ] && [ -d "$OLIGOMINER_PATH" ]; then
+        OLIGOMINER_DIR="$OLIGOMINER_PATH"
+    # Check for OligoMiner in project root (standard location)
+    elif [ -d "$PROJECT_ROOT/OligoMiner" ]; then
+        OLIGOMINER_DIR="$PROJECT_ROOT/OligoMiner"
+    fi
 
-# Check if OLIGOMINER_PATH environment variable is set (from conda environment)
-if [ -n "$OLIGOMINER_PATH" ] && [ -d "$OLIGOMINER_PATH" ]; then
-    OLIGOMINER_DIR="$OLIGOMINER_PATH"
-# Check for OligoMiner in project root (standard location)
-elif [ -d "$PROJECT_ROOT/OligoMiner" ]; then
-    OLIGOMINER_DIR="$PROJECT_ROOT/OligoMiner"
-fi
-
-if [ -n "$OLIGOMINER_DIR" ] && [ -d "$OLIGOMINER_DIR" ]; then
-    echo -e "\n---- Testing with OligoMiner ----\n"
-    echo "Using OligoMiner at: $OLIGOMINER_DIR"
-    
-    # Clean up previous OligoMiner output
-    rm -rf "$PROJECT_ROOT/data/test/general/output_oligominer"
-    
-    # Execute the Python pipeline with OligoMiner
     echo "Running pipeline with OligoMiner..."
     $PYTHON_CMD pipeline.py \
         -i data/test/general/test.fna \
@@ -124,11 +114,13 @@ if [ -n "$OLIGOMINER_DIR" ] && [ -d "$OLIGOMINER_DIR" ]; then
         --oligominer_path "$OLIGOMINER_DIR" \
         --oligominer_probe_length 25 \
         --oligominer_temperature 58
-    
-    echo -e "\nOligoMiner test completed"
-else
-    echo -e "\nWarning: OligoMiner not found at $PROJECT_ROOT/OligoMiner"
-    echo "  OligoMiner should be automatically installed by setup/install.sh"
-    echo "  If missing, re-run: bash setup/install.sh"
-fi
+}
 
+
+
+# Execute the preparation function
+prepare
+
+echo -e "All BLASTn database created" 
+#test1
+test2
