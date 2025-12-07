@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import torch
 from sklearn.model_selection import train_test_split
 from PROBESt.AI import LogisticRegressionModel, DeepNeuralNetworkModel, TorchClassifier
 from PROBESt.filtration import (
@@ -352,8 +353,18 @@ def main():
         print(f"{'='*60}")
         X_train = train_data.drop(columns=['type'])
         y_train = train_data['type']
-        best_model.train(X_train, y_train, epochs=300, batch_size=32, 
+        best_model.train(X_train, y_train, epochs=150, batch_size=32, 
                         val_data=val_data, track_curves=True)
+        
+        # Save the model
+        os.makedirs('data', exist_ok=True)
+        torch.save({
+            'model_state_dict': best_model.model.state_dict(),
+            'scaler': best_model.scaler,
+            'learning_rate': best_model.learning_rate,
+            'weight_pos': best_model.criterion.pos_weight.item() if hasattr(best_model.criterion, 'pos_weight') else None
+        }, 'data/GAIL.pt')
+        print(f"Model saved to data/GAIL.pt")
         
         # Re-validate after extended training
         final_val_metrics = validate_filtration_AI(
