@@ -3,7 +3,7 @@
 # PROBEst
 ### St. Petersburg tool for generating nucleotide probes with specified properties
 
-[![python package](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml)
+[![conda build](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml)
 
 **PROBEst** is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
 
@@ -66,19 +66,6 @@ python pipeline.py \
 - `-t THREADS`: Number of threads to use.
 - `-a ALGORITHM`: Algorithm for probe generation (`FISH` or `primer`).
 - `--initial_generator`: Tool for initial probe set generation (`primer3` or `oligominer`, default: `primer3`).
-- `--oligominer_path`: Path to OligoMiner installation directory (required when using `oligominer`).
-- `--oligominer_python`: Python interpreter for OligoMiner scripts (e.g., `python2`, `python2.7`). Auto-detected if not specified. **Note:** OligoMiner requires Python 2 with Biopython installed.
-- `--oligominer_probe_length`: Probe length in nucleotides for OligoMiner (default: 25).
-- `--oligominer_temperature`: Melting temperature in Celsius for OligoMiner (default: 58).
-
-**Important:** When using OligoMiner, ensure that Biopython 1.76 (the last version supporting Python 2.7) is installed in your Python 2 environment:
-```bash
-# If using system Python 2
-python2 -m pip install biopython==1.76
-
-# If using conda with Python 2 (separate environment created automatically)
-# The installation script creates a separate environment 'probest_oligominer' with Python 2.7 and Biopython 1.76
-```
 
 For a full list of arguments, run:
 
@@ -96,14 +83,6 @@ python test_parameters.py \
 ### Web Application
 
 PROBEst includes a user-friendly web interface for probe generation. The web app provides:
-
-- **Easy file upload**: Upload archives (.zip or .tar.gz) containing FASTA files
-- **Automatic preprocessing**: Archives are automatically extracted and preprocessed using `prep_db.sh` to create BLAST databases
-- **Interactive parameter configuration**: Access all pipeline parameters through a web form
-- **Real-time results**: View top 5 best probes with hit counts and sequences
-- **Download results**: Download complete results as a ZIP file
-
-#### Running the Web Application
 
 ```bash
 python app/app.py

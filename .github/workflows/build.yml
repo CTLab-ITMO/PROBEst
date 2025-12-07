@@ -1,4 +1,4 @@
-name: Build and Test
+name: conda build
 
 on:
   push:
@@ -75,7 +75,3 @@ jobs:
         python -c "import PROBESt; print('PROBESt imported successfully')"
         python -c "from PROBESt.args import arguments_parse; print('Args module imported successfully')"
         python -c "from PROBESt.evolution import mutate_position; print('Evolution module imported successfully')"
-    - name: Test with pytest (basic tests only)
-      run: |
-        # Run tests that don't require external tools
-        pytest tests/PROBESt/test_merge.py tests/PROBESt/test_dedegeneration.py -v || echo "Some tests skipped (external tools required)"

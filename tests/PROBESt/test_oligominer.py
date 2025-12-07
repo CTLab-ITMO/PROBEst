@@ -24,11 +24,18 @@ def mock_args(monkeypatch):
 def test_dir(tmp_path):
     """Create a temporary test directory with test files."""
     # Create a sample FASTQ file
+    # Note: Quality scores must match sequence length exactly
     fastq_file = tmp_path / "test_probes.fastq"
     with open(fastq_file, "w") as f:
-        f.write("@seq1:0-25\nATGCATGCATGCATGCATGCATGCA\n+\n~~~~~~~~~~~~~~~~~~~~~~~~~\n")
-        f.write("@seq1:5-30\nTGCATGCATGCATGCATGCATGC\n+\n~~~~~~~~~~~~~~~~~~~~~~\n")
-        f.write("@seq2:0-25\nCGTAACGTAACGTAACGTAACGTAA\n+\n~~~~~~~~~~~~~~~~~~~~~~~~~\n")
+        # seq1:0-25 = 25 chars, quality = 25 chars
+        seq1_25 = "ATGCATGCATGCATGCATGCATGCA"
+        f.write(f"@seq1:0-25\n{seq1_25}\n+\n{'~' * len(seq1_25)}\n")
+        # seq1:5-30 = 23 chars (seq1 is only 28 chars, so 5-30 becomes 5-28 = 23), quality = 23 chars
+        seq1_23 = "TGCATGCATGCATGCATGCATGC"
+        f.write(f"@seq1:5-30\n{seq1_23}\n+\n{'~' * len(seq1_23)}\n")
+        # seq2:0-25 = 25 chars, quality = 25 chars
+        seq2_25 = "CGTAACGTAACGTAACGTAACGTAA"
+        f.write(f"@seq2:0-25\n{seq2_25}\n+\n{'~' * len(seq2_25)}\n")
     
     return {
         "fastq_file": str(fastq_file),
