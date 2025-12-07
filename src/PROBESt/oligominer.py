@@ -165,6 +165,129 @@ def initial_set_generation(args, out_dir: str) -> None:
     if not oligominer_path:
         raise ValueError("OligoMiner path not specified. Please set --oligominer_path.")
     
+    # Determine Python interpreter for OligoMiner (Python 2 required)
+    python_cmd = args.oligominer_python
+    use_conda_run = False
+    oligominer_env_name = None
+    
+    # Check if OLIGOMINER_PYTHON environment variable is set (from conda activation script)
+    if not python_cmd:
+        python_cmd = os.environ.get('OLIGOMINER_PYTHON', None)
+        if python_cmd and '/envs/' in python_cmd:
+            # Extract environment name from path
+            parts = python_cmd.split('/envs/')
+            if len(parts) > 1:
+                oligominer_env_name = parts[1].split('/')[0]
+    
+    # Try to detect conda environment for OligoMiner
+    if not oligominer_env_name:
+        current_env = os.environ.get('CONDA_DEFAULT_ENV', '')
+        if 'oligominer' in current_env.lower():
+            # We're already in the OligoMiner environment
+            python_cmd = "python"
+            oligominer_env_name = current_env
+        else:
+            # Try to find the separate OligoMiner conda environment
+            main_env_name = current_env or 'probest'
+            oligominer_env_name = f"{main_env_name}_oligominer"
+            
+            # Check if the environment exists
+            env_check = subprocess.run(
+                f"conda env list | grep -q '^{oligominer_env_name} '",
+                shell=True,
+                capture_output=True
+            )
+            if env_check.returncode == 0:
+                # Environment exists, use conda run
+                use_conda_run = True
+                python_cmd = f"conda run -n {oligominer_env_name} python"
+                print(f"Found OligoMiner conda environment: {oligominer_env_name}")
+            elif not python_cmd:
+                # Try to find the Python executable directly
+                conda_base = os.environ.get('CONDA_PREFIX', '').replace(f'/envs/{main_env_name}', '')
+                if not conda_base:
+                    # Try to get conda base from conda info
+                    conda_info = subprocess.run("conda info --base", shell=True, capture_output=True, text=True)
+                    if conda_info.returncode == 0:
+                        conda_base = conda_info.stdout.strip()
+                
+                if conda_base:
+                    oligominer_python = f"{conda_base}/envs/{oligominer_env_name}/bin/python2.7"
+                    if os.path.exists(oligominer_python):
+                        python_cmd = oligominer_python
+                        print(f"Found OligoMiner Python at: {oligominer_python}")
+    
+    if not python_cmd:
+        # Try to auto-detect Python 2
+        python2_found = False
+        for py_cmd in ['python2.7', 'python2', 'python']:
+            result = subprocess.run(f"which {py_cmd}", shell=True, capture_output=True)
+            if result.returncode == 0:
+                # Check if it's actually Python 2
+                version_check = subprocess.run(
+                    f"{py_cmd} -c 'import sys; exit(0 if sys.version_info[0] == 2 else 1)'",
+                    shell=True,
+                    capture_output=True
+                )
+                if version_check.returncode == 0:
+                    python_cmd = py_cmd
+                    python2_found = True
+                    break
+        
+        if not python2_found:
+            raise RuntimeError(
+                "Python 2 not found for OligoMiner. OligoMiner requires Python 2. "
+                "Please install Python 2 (e.g., 'python2' or 'python2.7') or specify it using "
+                "--oligominer_python argument. The installation script creates a separate "
+                "conda environment 'probest_oligominer' with Python 2.7 and Biopython."
+            )
+    
+    # Verify the specified Python is actually Python 2
+    if python_cmd and not use_conda_run:
+        version_check = subprocess.run(
+            f"{python_cmd} -c 'import sys; exit(0 if sys.version_info[0] == 2 else 1)'",
+            shell=True,
+            capture_output=True
+        )
+        if version_check.returncode != 0:
+            raise RuntimeError(
+                f"Specified Python interpreter '{python_cmd}' is not Python 2. "
+                "OligoMiner requires Python 2. Please specify a Python 2 interpreter using "
+                "--oligominer_python (e.g., 'python2' or 'python2.7')."
+            )
+    
+    # Check if Biopython is installed in Python 2 environment
+    if use_conda_run:
+        # Use conda run to check Biopython
+        biopython_check = subprocess.run(
+            f"conda run -n {oligominer_env_name} python -c 'from Bio.SeqUtils import MeltingTemp'",
+            shell=True,
+            capture_output=True
+        )
+    else:
+        # Direct Python command
+        biopython_check = subprocess.run(
+            f"{python_cmd} -c 'from Bio.SeqUtils import MeltingTemp'",
+            shell=True,
+            capture_output=True
+        )
+    
+    if biopython_check.returncode != 0:
+        error_msg = biopython_check.stderr.decode('utf-8', errors='ignore') if biopython_check.stderr else "Unknown error"
+        if use_conda_run:
+            install_cmd = f"conda activate {oligominer_env_name} && pip install biopython==1.76"
+        else:
+            install_cmd = f"{python_cmd} -m pip install biopython==1.76"
+        
+        raise RuntimeError(
+            f"Biopython is not installed in the Python 2 environment ({python_cmd}). "
+            "OligoMiner requires Biopython 1.76 for Python 2. Please install it using:\n"
+            f"  {install_cmd}\n"
+            f"Error: {error_msg[:200]}"
+        )
+    
+    print(f"Using Python interpreter for OligoMiner: {python_cmd}")
+    
     # Check if required tools are available
     for tool in ['bowtie2-build', 'bowtie2', 'bedtools']:
         result = subprocess.run(f"which {tool}", shell=True, capture_output=True)
@@ -202,19 +325,42 @@ def initial_set_generation(args, out_dir: str) -> None:
         
         # Step 1: Run blockParse.py
         # blockParse.py generates a FASTQ file with candidate probes
+        blockparse_log = os.path.join(oligominer_tmp, f'{prefix}_blockparse.log')
         blockparse_cmd = (
-            f"python {os.path.join(oligominer_path, 'blockParse.py')} "
+            f"{python_cmd} {os.path.join(oligominer_path, 'blockParse.py')} "
             f"-l {args.oligominer_probe_length} "
             f"-T {args.oligominer_temperature} "
             f"-f {seq_fasta} "
-            f"&> {os.path.join(oligominer_tmp, f'{prefix}_blockparse.log')}"
+            f"&> {blockparse_log}"
         )
-        subprocess.run(blockparse_cmd, shell=True, executable="/bin/bash")
+        result = subprocess.run(blockparse_cmd, shell=True, executable="/bin/bash")
+        
+        # Check for errors in blockParse
+        if result.returncode != 0:
+            # Read log to see what went wrong
+            if os.path.exists(blockparse_log):
+                with open(blockparse_log, 'r') as f:
+                    log_content = f.read()
+                    if 'SyntaxError' in log_content or 'print' in log_content.lower():
+                        raise RuntimeError(
+                            f"OligoMiner blockParse.py failed with Python version error for {record.id}. "
+                            f"OligoMiner requires Python 2. Please set --oligominer_python to a Python 2 interpreter "
+                            f"(e.g., 'python2' or 'python2.7'). Error: {log_content[:500]}"
+                        )
+            print(f"Warning: blockParse.py failed for {record.id} (exit code {result.returncode}), skipping...")
+            continue
         
         # Check if FASTQ was generated
         fastq_file = seq_fasta.replace('.fasta', '.fastq')
         if not os.path.exists(fastq_file):
-            print(f"Warning: No FASTQ file generated for {record.id}, skipping...")
+            # Check log for errors
+            error_msg = ""
+            if os.path.exists(blockparse_log):
+                with open(blockparse_log, 'r') as f:
+                    log_content = f.read()
+                    if log_content.strip():
+                        error_msg = f" Log: {log_content[:200]}"
+            print(f"Warning: No FASTQ file generated for {record.id}, skipping...{error_msg}")
             continue
         
         # Step 2: Build bowtie2 index
@@ -237,12 +383,17 @@ def initial_set_generation(args, out_dir: str) -> None:
         subprocess.run(bowtie2_cmd, shell=True, executable="/bin/bash")
         
         # Step 4: Run outputClean.py
+        outputclean_log = os.path.join(oligominer_tmp, f'{prefix}_outputclean.log')
         outputclean_cmd = (
-            f"python {os.path.join(oligominer_path, 'outputClean.py')} "
+            f"{python_cmd} {os.path.join(oligominer_path, 'outputClean.py')} "
             f"-f {sam_file} -u "
-            f"&> {os.path.join(oligominer_tmp, f'{prefix}_outputclean.log')}"
+            f"&> {outputclean_log}"
         )
-        subprocess.run(outputclean_cmd, shell=True, executable="/bin/bash")
+        result = subprocess.run(outputclean_cmd, shell=True, executable="/bin/bash")
+        
+        if result.returncode != 0:
+            print(f"Warning: outputClean.py failed for {record.id} (exit code {result.returncode}), skipping...")
+            continue
         
         # Check for generated BED file
         bed_file = os.path.join(oligominer_tmp, f"aligned_{prefix}_probes.bed")

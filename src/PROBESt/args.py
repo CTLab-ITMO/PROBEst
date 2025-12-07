@@ -148,6 +148,11 @@ def arguments_parse():
                         default=None,
                         help="Path to the OligoMiner installation directory. Required when --initial_generator=oligominer.")
 
+    parser.add_argument("--oligominer_python",
+                        required=False,
+                        default=None,
+                        help="Python interpreter to use for OligoMiner scripts (e.g., 'python2', 'python2.7', or path to Python 2). If not specified, will try to auto-detect Python 2, then fall back to 'python'.")
+
     parser.add_argument("--oligominer_probe_length",
                         required=False,
                         default=25,
@@ -157,7 +162,7 @@ def arguments_parse():
     parser.add_argument("--oligominer_temperature",
                         required=False,
                         default=58,
-                        type=float,
+                        type=int,
                         help="OligoMiner option: Melting temperature in Celsius. Default is 58.")
 
     parser.add_argument("--oligominer_insert_coords",

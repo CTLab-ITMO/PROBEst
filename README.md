@@ -67,8 +67,18 @@ python pipeline.py \
 - `-a ALGORITHM`: Algorithm for probe generation (`FISH` or `primer`).
 - `--initial_generator`: Tool for initial probe set generation (`primer3` or `oligominer`, default: `primer3`).
 - `--oligominer_path`: Path to OligoMiner installation directory (required when using `oligominer`).
+- `--oligominer_python`: Python interpreter for OligoMiner scripts (e.g., `python2`, `python2.7`). Auto-detected if not specified. **Note:** OligoMiner requires Python 2 with Biopython installed.
 - `--oligominer_probe_length`: Probe length in nucleotides for OligoMiner (default: 25).
 - `--oligominer_temperature`: Melting temperature in Celsius for OligoMiner (default: 58).
+
+**Important:** When using OligoMiner, ensure that Biopython 1.76 (the last version supporting Python 2.7) is installed in your Python 2 environment:
+```bash
+# If using system Python 2
+python2 -m pip install biopython==1.76
+
+# If using conda with Python 2 (separate environment created automatically)
+# The installation script creates a separate environment 'probest_oligominer' with Python 2.7 and Biopython 1.76
+```
 
 For a full list of arguments, run:
 
