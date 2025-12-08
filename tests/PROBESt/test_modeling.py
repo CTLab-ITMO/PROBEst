@@ -194,12 +194,13 @@ def test_extract_best_hits(tmp_dir, input_fasta, blast_output_content):
     assert isinstance(results, pd.DataFrame)
     assert len(results) == 2  # Should have one row per unique probe
     expected_columns = [
-        "probe_seq", "target_seq", "target_seq_reverse_complement",
+        "probe_id", "probe_seq", "target_seq", "target_seq_reverse_complement",
         "vienna_rna_mfe", "dna_dna_duplex_dg", "dna_rna_duplex_dg", "rna_rna_duplex_dg"
     ]
     for col in expected_columns:
         assert col in results.columns
-    assert "probe1" in results["probe_seq"].values or "AUGCAUGCAUGC" in results["probe_seq"].values
+    assert "probe1" in results["probe_id"].values
+    assert "AUGCAUGCAUGC" in results["probe_seq"].values
     # Verify reverse complement column is present and not empty
     assert all(results["target_seq_reverse_complement"].str.len() > 0)
 
@@ -215,7 +216,7 @@ def test_extract_best_hits_empty_file(tmp_dir, input_fasta):
     assert isinstance(results, pd.DataFrame)
     assert len(results) == 0
     expected_columns = [
-        "probe_seq", "target_seq", "target_seq_reverse_complement",
+        "probe_id", "probe_seq", "target_seq", "target_seq_reverse_complement",
         "vienna_rna_mfe", "dna_dna_duplex_dg", "dna_rna_duplex_dg", "rna_rna_duplex_dg"
     ]
     assert list(results.columns) == expected_columns
@@ -230,7 +231,7 @@ def test_extract_best_hits_nonexistent_file(tmp_dir, input_fasta):
     assert isinstance(results, pd.DataFrame)
     assert len(results) == 0
     expected_columns = [
-        "probe_seq", "target_seq", "target_seq_reverse_complement",
+        "probe_id", "probe_seq", "target_seq", "target_seq_reverse_complement",
         "vienna_rna_mfe", "dna_dna_duplex_dg", "dna_rna_duplex_dg", "rna_rna_duplex_dg"
     ]
     assert list(results.columns) == expected_columns
@@ -262,6 +263,7 @@ def test_run_modeling(
     mock_create_visualizations.return_value = os.path.join(tmp_dir, "visualizations")
     
     mock_df = pd.DataFrame({
+        "probe_id": ["probe1", "probe2"],
         "probe_seq": ["ATGCATGCATGC", "GCTAGCTAGCTA"],
         "target_seq": ["ATGCATGCATGCATGCATGCATGC", "GCTAGCTAGCTAGCTAGCTAGCTA"]
     })
@@ -309,6 +311,7 @@ def test_integration_modeling(tmp_dir, input_fasta, output_fasta, mock_args):
         
         assert isinstance(results, pd.DataFrame)
         assert len(results) > 0
+        assert "probe_id" in results.columns
         assert "probe_seq" in results.columns
         assert "target_seq" in results.columns
 
