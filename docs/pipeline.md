@@ -2,7 +2,7 @@
 
 ## Overview
 
-The PROBEst probe generation tool (`pipeline.py`) is the main executable script for generating and optimizing nucleotide probes. It implements a sophisticated workflow that combines initial probe generation, evolutionary optimization, and quality control steps.
+The PROBEst probe generation tool (`pipeline.py`) is the main executable script for generating and optimizing nucleotide probes. It implements a workflow that combines initial probe generation, evolutionary optimization, AI-assisted filtration, de-degeneration, and quality control.
 
 ## Workflow
 
@@ -15,6 +15,7 @@ The pipeline follows these main steps:
 
 2. **Evolutionary Algorithm Loop**
    - Performs BLASTn searches against reference databases
+   - Applies AI filtration to BLASTn hits (enabled by default)
    - Detects and filters multimapping probes
    - Matches and evaluates probe performance
    - Applies mutations for optimization (if not final iteration)
@@ -22,6 +23,14 @@ The pipeline follows these main steps:
 3. **Output Generation**
    - Creates final FASTA file with optimized probes
    - Generates statistics report
+
+4. **De-degeneration (optional)**
+   - Performs iterative de-degeneration to remove degeneracy from probes
+   - Produces a de-degenerated FASTA suitable for downstream modeling
+
+5. **Modeling and Visualization**
+   - Runs modeling against the combined input FASTA
+   - Generates modeling results for the final (optionally de-degenerated) probes
 
 ## Usage
 
@@ -137,17 +146,22 @@ For each iteration:
    - Searches against false base databases
    - Generates hit statistics
 
-2. **Probe Filtering**
+2. **AI Filtration (default: on)**
+   - Uses the trained model at `data/AIL.pt`
+   - Filters positive BLAST hits to reduce false positives
+   - Controlled by `--AI/--no-AI` in arguments; auto-detects architecture
+
+3. **Probe Filtering**
    - Detects multimapping probes
    - Filters based on specificity criteria
    - Calculates hit statistics
 
-3. **Probe Matching**
+4. **Probe Matching**
    - Matches probes with their performance metrics
    - Calculates maximum and mean hits
    - Updates statistics
 
-4. **Mutation (if not final iteration)**
+5. **Mutation (if not final iteration)**
    - Applies mutations to selected probes
    - Generates new probe variants
    - Merges and processes mutated probes
@@ -159,11 +173,26 @@ The pipeline produces:
 - Statistics report with performance metrics
 - Temporary files for debugging (if needed)
 
+### 4. De-degeneration
+
+If `--dedegeneration_iterations` is set above zero, the pipeline:
+- Runs the de-degeneration module on `output.fa`
+- Produces `output_dedegenerated.fa`
+- Uses the de-degenerated probes for modeling
+
+### 5. Modeling and Visualization
+
+- Concatenates all input FASTA files into a temporary combined FASTA
+- Runs modeling on the final (optionally de-degenerated) probes
+- Writes results to `modeling_results.tsv`
+
 ## Output Files
 
 ### Main Output
 - `output.fa`: Final FASTA file containing optimized probes
 - `stats.json`: Statistics report with performance metrics
+- `output_dedegenerated.fa`: De-degenerated probes (present if de-degeneration ran)
+- `modeling_results.tsv`: Modeling results for the final probes
 
 ### Temporary Files (in output_tmp directory)
 - `{iteration}/output.fa`: Probes for each iteration

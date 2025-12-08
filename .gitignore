@@ -8,6 +8,7 @@ data/param_search
 src/PROBESt/__pycache__
 tests/PROBESt/__pycache__
 tests_outs/
+test_outs/
 test_download/
 data/databases/open/probeBase_false_formatted.csv
 data/databases/open/probeBase_false_genome_results.csv
