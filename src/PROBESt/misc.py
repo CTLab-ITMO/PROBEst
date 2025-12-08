@@ -4,7 +4,10 @@ import subprocess
 import glob
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from argparse import Namespace
 
 
 def write_stats(stats: dict, output_dir: str):
