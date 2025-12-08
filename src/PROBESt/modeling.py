@@ -323,7 +323,7 @@ def extract_best_hits(
     
     # Expected output columns
     output_columns = [
-        "probe_seq", "target_seq", "target_seq_reverse_complement",
+        "probe_id", "probe_seq", "target_seq", "target_seq_reverse_complement",
         "vienna_rna_mfe", "dna_dna_duplex_dg", "dna_rna_duplex_dg", "rna_rna_duplex_dg"
     ]
     
@@ -343,6 +343,7 @@ def extract_best_hits(
     # Extract extended sequences
     results = []
     for _, row in best_hits.iterrows():
+        probe_id = row["qseqid"]
         probe_seq = row["qseq"]
         sseqid = row["sseqid"]
         sstart = int(row["sstart"])
@@ -446,6 +447,7 @@ def extract_best_hits(
                 rna_rna_duplex_dg = 0.0
         
         results.append({
+            "probe_id": probe_id,
             "probe_seq": probe_seq_rna,  # RNA
             "target_seq": target_seq_dna,  # DNA
             "target_seq_reverse_complement": target_seq_rev_comp_dna,  # DNA
@@ -458,7 +460,7 @@ def extract_best_hits(
     return pd.DataFrame(results)
 
 
-def run_modeling(args, input_fasta: str, output_fa: str, output_table: str) -> str:
+def run_modeling(args, input_fasta: str, output_fa: str, output_table: str, probe_hits: Dict[str, Dict[str, int]] = None) -> str:
     """
     Main function to run the modeling pipeline.
     
@@ -494,6 +496,16 @@ def run_modeling(args, input_fasta: str, output_fa: str, output_table: str) -> s
     # Step 3: Extract best hits
     print("Extracting best hits...")
     results_df = extract_best_hits(blast_output, input_fasta, extend_nuc=10)
+    
+    # Add per-probe hit counts (true/false databases) if provided
+    if probe_hits is None:
+        probe_hits = dict()
+    results_df["true_db_hits"] = results_df["probe_id"].map(
+        lambda pid: probe_hits.get(pid, {}).get("true_hits", 0)
+    )
+    results_df["false_db_hits"] = results_df["probe_id"].map(
+        lambda pid: probe_hits.get(pid, {}).get("false_hits", 0)
+    )
     
     # Step 4: Output table
     print(f"Writing results to {output_table}...")

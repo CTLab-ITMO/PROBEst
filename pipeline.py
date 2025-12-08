@@ -387,6 +387,45 @@ if args.dedegeneration_iterations > 0:
 else:
     final_output_fa = args.output + "/output.fa"
 
+# Collect per-probe hit counts from the last stage (evolutionary or de-degeneration)
+def _count_hits(path: str):
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        return dict()
+    try:
+        df = pd.read_csv(path, sep="\t", header=None)
+        if df.empty:
+            return dict()
+        return df.iloc[:, 0].value_counts().to_dict()
+    except Exception:
+        return dict()
+
+if args.dedegeneration_iterations > 0:
+    hits_dir = os.path.join(args.output_tmp, "dedegeneration", str(args.dedegeneration_iterations))
+else:
+    hits_dir = out_dir(final_iter)
+
+true_hits_map = _count_hits(os.path.join(hits_dir, "positive_hits.tsv"))
+false_hits_map = _count_hits(os.path.join(hits_dir, "negative_hits.tsv"))
+
+probe_hits = dict()
+try:
+    with open(final_output_fa, "r") as fasta_hits:
+        for line in fasta_hits:
+            if not line.startswith(">"):
+                continue
+            header = line[1:].strip()
+            # Strip leading hit prefix if present (H{num}_...)
+            remainder = header.split("_", 1)[1] if header.startswith("H") and "_" in header else header
+            probe_id = remainder  # This is what modeling module will use as qseqid
+            # For de-degenerated outputs, remove degenerate-count prefix (D{num}_...) to recover original name
+            base_name = remainder.split("_", 1)[1] if remainder.startswith("D") and "_" in remainder else remainder
+            probe_hits[probe_id] = {
+                "true_hits": int(true_hits_map.get(base_name, 0)),
+                "false_hits": int(false_hits_map.get(base_name, 0))
+            }
+except FileNotFoundError:
+    probe_hits = dict()
+
 # 8. Modeling and visualization ----
 # Create combined input FASTA for modeling (from all input files)
 combined_input_fa = os.path.join(args.output, ".tmp", "combined_input.fa")
@@ -402,4 +441,4 @@ with open(combined_input_fa, 'w') as outfile:
                 outfile.write(infile.read())
 
 modeling_output = os.path.join(args.output, "modeling_results.tsv")
-run_modeling(args, combined_input_fa, final_output_fa, modeling_output)
+run_modeling(args, combined_input_fa, final_output_fa, modeling_output, probe_hits=probe_hits)
