@@ -280,6 +280,12 @@ def arguments_parse():
                         type=bool,
                         help="Whether to create visualizations for probe-target pairs. Default is False.")
 
+    parser.add_argument("--AI",
+                        required=False,
+                        default=True,
+                        type=bool,
+                        help="Whether to apply AI-based filtration to probes. Default is True. Set to False to disable AI filtration.")
+
     args = parser.parse_args()
     
     # Correct args

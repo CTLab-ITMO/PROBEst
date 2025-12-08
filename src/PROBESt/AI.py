@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 import torch
 import torch.nn as nn
-from typing import Tuple, Any, Dict
+from typing import Tuple, Any, Dict, Optional
 
 class BaseAIModel:
     def __init__(self):
@@ -295,3 +295,363 @@ class DeepNeuralNetworkModel(BaseAIModel):
         with torch.no_grad():
             predictions = self.model(X_tensor)
         return predictions.numpy()
+
+
+def detect_architecture_from_state_dict(state_dict: Dict, input_size: int) -> str:
+    """
+    Detect model architecture from state_dict shapes.
+    
+    Args:
+        state_dict: Model state dictionary
+        input_size: Input size of the model
+    
+    Returns:
+        str: Detected architecture name
+    """
+    # Get the first layer weight shape to determine architecture
+    if 'model_state_dict' in state_dict:
+        first_layer_key = 'model_state_dict.net.0.weight'
+        if first_layer_key not in state_dict['model_state_dict']:
+            first_layer_key = 'model_state_dict.net.0.weight'
+        weights = state_dict['model_state_dict']
+    else:
+        weights = state_dict
+    
+    # Find first linear layer
+    first_layer_shape = None
+    for key in weights.keys():
+        if 'net.0.weight' in key or '0.weight' in key:
+            first_layer_shape = weights[key].shape
+            break
+    
+    if first_layer_shape is None:
+        raise ValueError("Could not detect architecture from state_dict")
+    
+    hidden1 = first_layer_shape[0]
+    
+    # Find second layer to determine hidden2
+    hidden2 = None
+    for key in weights.keys():
+        if 'net.2.weight' in key or '2.weight' in key:
+            hidden2 = weights[key].shape[0]
+            break
+    
+    # Find third layer to determine if it's a 3-layer architecture
+    has_third_layer = False
+    for key in weights.keys():
+        if 'net.4.weight' in key or '4.weight' in key:
+            if 'net.6.weight' in str(weights.keys()) or '6.weight' in str(weights.keys()):
+                has_third_layer = True
+            break
+    
+    # Map to architecture based on layer sizes
+    # GAILDiscriminator: [256, 128]
+    # GAILWide: [512, 256]
+    # GAILWideExtra: [768, 384]
+    # GAILNarrow: [128, 64]
+    # GAILDeep: [256, 128, 64]
+    # GAILWideDeep: [512, 256, 128]
+    # GAILWideBalanced: [512, 256, 128]
+    
+    if hidden1 == 768 and hidden2 == 384:
+        return "GAILWideExtra"
+    elif hidden1 == 512 and hidden2 == 256:
+        if has_third_layer:
+            # Check if it's WideDeep or WideBalanced by checking for dropout/norm
+            has_dropout = any('dropout' in str(k).lower() for k in weights.keys())
+            has_norm = any('norm' in str(k).lower() for k in weights.keys())
+            if has_dropout:
+                return "GAILWideDropout"
+            elif has_norm:
+                return "GAILWideBatchNorm"
+            else:
+                return "GAILWideDeep"  # Default to WideDeep for 3-layer
+        else:
+            return "GAILWide"
+    elif hidden1 == 256 and hidden2 == 128:
+        if has_third_layer:
+            return "GAILDeep"
+        else:
+            return "GAILDiscriminator"
+    elif hidden1 == 128 and hidden2 == 64:
+        return "GAILNarrow"
+    else:
+        # Try to match based on common patterns
+        if hidden1 == 256 and hidden2 == 128:
+            return "GAILDiscriminator"
+        elif hidden1 >= 512:
+            return "GAILWide"
+        else:
+            return "GAILDiscriminator"  # Default fallback
+
+
+def load_torch_classifier(model_path: str, input_size: int, model_architecture: Optional[str] = None) -> TorchClassifier:
+    """
+    Load a saved TorchClassifier model from file.
+    
+    Args:
+        model_path (str): Path to saved model file (.pt)
+        input_size (int): Input size (number of features)
+        model_architecture (Optional[str]): Model architecture name. If None, will be auto-detected.
+            Options: "GAILDiscriminator", "GAILWide", "GAILDeep", "GAILNarrow", 
+            "GAILWithDropout", "GAILWideDeep", "GAILWideDropout", 
+            "GAILWideBatchNorm", "GAILWideExtra", "GAILWideBalanced"
+    
+    Returns:
+        TorchClassifier: Loaded and initialized model
+    """
+    from PROBESt.models_registry import (
+        GAILDiscriminator, GAILWide, GAILDeep, GAILNarrow, GAILWithDropout,
+        GAILWideDeep, GAILWideDropout, GAILWideBatchNorm, GAILWideExtra, GAILWideBalanced
+    )
+    
+    # Map architecture names to classes
+    architecture_map = {
+        "GAILDiscriminator": GAILDiscriminator,
+        "GAILWide": GAILWide,
+        "GAILDeep": GAILDeep,
+        "GAILNarrow": GAILNarrow,
+        "GAILWithDropout": GAILWithDropout,
+        "GAILWideDeep": GAILWideDeep,
+        "GAILWideDropout": GAILWideDropout,
+        "GAILWideBatchNorm": GAILWideBatchNorm,
+        "GAILWideExtra": GAILWideExtra,
+        "GAILWideBalanced": GAILWideBalanced,
+    }
+    
+    # Load saved model data (weights_only=False to allow loading StandardScaler)
+    checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
+    
+    # Auto-detect architecture if not provided
+    if model_architecture is None:
+        # First try to get from checkpoint
+        if 'model_architecture' in checkpoint:
+            model_architecture = checkpoint['model_architecture']
+            #print(f"Using saved architecture: {model_architecture}")
+        else:
+            # Auto-detect from state_dict
+            state_dict = checkpoint.get('model_state_dict', checkpoint)
+            model_architecture = detect_architecture_from_state_dict(state_dict, input_size)
+            #print(f"Auto-detected architecture: {model_architecture}")
+    
+    if model_architecture not in architecture_map:
+        raise ValueError(f"Unknown model architecture: {model_architecture}")
+    
+    # Create model instance
+    model_class = architecture_map[model_architecture]
+    torch_model = model_class(input_size)
+    
+    # Load state dict
+    if 'model_state_dict' in checkpoint:
+        torch_model.load_state_dict(checkpoint['model_state_dict'])
+    else:
+        # Fallback: try loading directly
+        torch_model.load_state_dict(checkpoint)
+    
+    # Create TorchClassifier wrapper
+    weight_pos = checkpoint.get('weight_pos', 5.0)
+    if weight_pos is None:
+        weight_pos = 5.0
+    
+    classifier = TorchClassifier(torch_model, 
+                                learning_rate=checkpoint.get('learning_rate', 0.001),
+                                weight_pos=weight_pos)
+    
+    # Load scaler
+    if 'scaler' in checkpoint:
+        classifier.scaler = checkpoint['scaler']
+    
+    return classifier
+
+
+def apply_ai_filtration(
+    blast_df: pd.DataFrame,
+    model_path: str,
+    input_size: int,
+    model_architecture: str = "GAILDiscriminator",
+    fasta_file: Optional[str] = None
+) -> pd.DataFrame:
+    """
+    Apply AI model to BLAST results and calculate sum scores per probe.
+    
+    Args:
+        blast_df (pd.DataFrame): BLAST output DataFrame (should be extended with parameters)
+        model_path (str): Path to saved AI model
+        input_size (int): Input size for the model
+        model_architecture (str): Model architecture name
+        fasta_file (Optional[str]): Path to FASTA file (if blast_df needs extension)
+        
+    Returns:
+        pd.DataFrame: DataFrame with AI scores added, including sum_score per probe
+    """
+    from PROBESt.misc import extend_blast_output_with_parameters
+    
+    # Extend BLAST output if needed
+    if fasta_file and 'sseq' not in blast_df.columns:
+        blast_df = extend_blast_output_with_parameters(blast_df, fasta_file)
+    
+    # Load model
+    model = load_torch_classifier(model_path, input_size, model_architecture)
+    
+    # Prepare features (same columns as training data, excluding 'type')
+    # Note: Training data drops non-numeric columns, so we only use numeric features
+    numeric_feature_columns = [
+        'Formamide', 'GCcontent', 'Lengthnt', 'evalue', 'mismatches', 'length',
+        'bitscore', 'identity', 'score', 'hairpin_prob',
+        'dimer_DNA', 'dimer_DNA_flank', 'dimer_probe', 'dimer_probe_DNA'
+    ]
+    
+    # Create feature DataFrame with only numeric columns
+    X = pd.DataFrame()
+    
+    # Add numeric features
+    for col in numeric_feature_columns:
+        if col in blast_df.columns:
+            X[col] = pd.to_numeric(blast_df[col], errors='coerce').fillna(0.0)
+        else:
+            X[col] = 0.0
+    
+    # Ensure correct order
+    X = X[numeric_feature_columns]
+    
+    # Get predictions (probabilities)
+    predictions = model.predict_proba(X)
+    
+    # Add AI score to DataFrame
+    blast_df['ai_score'] = predictions.flatten()
+    
+    # Calculate sum score per probe (group by qseqid)
+    if 'qseqid' in blast_df.columns:
+        probe_scores = blast_df.groupby('qseqid')['ai_score'].sum().reset_index()
+        probe_scores.columns = ['qseqid', 'sum_score']
+        blast_df = blast_df.merge(probe_scores, on='qseqid', how='left')
+    else:
+        # Fallback: use first column as probe identifier
+        probe_id_col = blast_df.columns[0]
+        probe_scores = blast_df.groupby(probe_id_col)['ai_score'].sum().reset_index()
+        probe_scores.columns = [probe_id_col, 'sum_score']
+        blast_df = blast_df.merge(probe_scores, on=probe_id_col, how='left')
+    
+    return blast_df
+
+
+def apply_ai_filtration_to_blast_file(
+    positive_hits_path: str,
+    model_path: str,
+    fasta_file: str,
+    input_size: int = 14,
+    model_architecture: Optional[str] = None,
+    threshold_method: str = "median"
+) -> bool:
+    """
+    Apply AI filtration to BLAST output file and filter probes based on sum scores.
+    
+    This function:
+    1. Reads BLAST output from positive_hits_path
+    2. Extends it with calculated parameters
+    3. Applies AI model to get scores
+    4. Filters probes with lower sum scores (better probes)
+    5. Writes filtered results back to positive_hits_path
+    
+    Args:
+        positive_hits_path (str): Path to BLAST positive hits file
+        model_path (str): Path to saved AI model file
+        fasta_file (str): Path to FASTA file containing probe sequences
+        input_size (int): Input size for the model (default: 14)
+        model_architecture (str): Model architecture name (default: "GAILDiscriminator")
+        threshold_method (str): Method for threshold calculation - "median" or "mean" (default: "median")
+    
+    Returns:
+        bool: True if filtration was successful, False otherwise
+    """
+    import os
+    
+    try:
+        # Check if files exist
+        if not os.path.exists(positive_hits_path) or os.path.getsize(positive_hits_path) == 0:
+            print("Warning: positive_hits.tsv is empty or doesn't exist, skipping AI filtration")
+            return False
+        
+        if not os.path.exists(model_path):
+            print(f"AI model not found at {model_path}, skipping AI filtration")
+            return False
+        
+        if not os.path.exists(fasta_file):
+            print(f"FASTA file not found at {fasta_file}, skipping AI filtration")
+            return False
+        
+        print("Applying AI filtration...")
+        
+        # Read BLAST output
+        # Try tab separator first, then space
+        try:
+            blast_df = pd.read_table(positive_hits_path, sep='\t', header=None)
+        except:
+            blast_df = pd.read_table(positive_hits_path, sep=' ', header=None)
+        
+        if blast_df.empty:
+            print("Warning: BLAST output is empty, skipping AI filtration")
+            return False
+        
+        # Apply AI filtration
+        blast_df_with_scores = apply_ai_filtration(
+            blast_df=blast_df,
+            model_path=model_path,
+            input_size=input_size,
+            model_architecture=model_architecture,
+            fasta_file=fasta_file
+        )
+        
+        # Filter probes with lower sum scores (better probes)
+        if 'sum_score' not in blast_df_with_scores.columns:
+            print("Warning: Could not calculate sum scores, skipping AI filtration")
+            return False
+        
+        # Calculate threshold
+        if threshold_method == "median":
+            threshold = blast_df_with_scores['sum_score'].median()
+        elif threshold_method == "mean":
+            threshold = blast_df_with_scores['sum_score'].mean()
+        else:
+            print(f"Warning: Unknown threshold method '{threshold_method}', using median")
+            threshold = blast_df_with_scores['sum_score'].median()
+        
+        # Filter to keep only rows from probes with sum_score <= threshold
+        good_probes = blast_df_with_scores[
+            blast_df_with_scores['sum_score'] <= threshold
+        ]['qseqid'].unique()
+        
+        # Filter BLAST results to only include good probes
+        blast_df_filtered = blast_df_with_scores[
+            blast_df_with_scores['qseqid'].isin(good_probes)
+        ]
+        
+        # Keep only original BLAST columns for probe_check (first 7 columns)
+        # Select columns: qseqid, sseqid, evalue, sstart, send, ppos, mismatch
+        # Get original number of columns from the input
+        original_num_cols = len(blast_df.columns)
+        if len(blast_df_filtered.columns) >= 7:
+            blast_df_output = blast_df_filtered.iloc[:, :7].copy()
+        else:
+            blast_df_output = blast_df_filtered.iloc[:, :min(original_num_cols, len(blast_df_filtered.columns))].copy()
+        
+        # Write filtered BLAST output (space-separated to match original format)
+        blast_df_output.to_csv(
+            positive_hits_path, 
+            sep=' ', 
+            header=False, 
+            index=False
+        )
+        
+        total_probes = len(blast_df_with_scores['qseqid'].unique())
+        kept_probes = len(good_probes)
+        print(f"AI filtration: Kept {kept_probes} probes out of {total_probes} total")
+        
+        return True
+        
+    except Exception as e:
+        print(f"Warning: AI filtration failed: {e}")
+        print("Continuing with standard filtration...")
+        import traceback
+        traceback.print_exc()
+        return False

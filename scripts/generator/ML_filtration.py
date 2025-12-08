@@ -358,13 +358,29 @@ def main():
         
         # Save the model
         os.makedirs('data', exist_ok=True)
+        # Determine model architecture name from best_model_name
+        model_architecture = best_model_name
+        # Map common names to architecture names
+        if "GAIL_Wide_Extra" in best_model_name or "GAILWideExtra" in best_model_name:
+            model_architecture = "GAILWideExtra"
+        elif "GAIL_Wide" in best_model_name:
+            model_architecture = "GAILWide"
+        elif "GAIL_Deep" in best_model_name:
+            model_architecture = "GAILDeep"
+        elif "GAIL_Narrow" in best_model_name:
+            model_architecture = "GAILNarrow"
+        elif "GAIL" in best_model_name:
+            model_architecture = "GAILDiscriminator"
+        
         torch.save({
             'model_state_dict': best_model.model.state_dict(),
             'scaler': best_model.scaler,
             'learning_rate': best_model.learning_rate,
-            'weight_pos': best_model.criterion.pos_weight.item() if hasattr(best_model.criterion, 'pos_weight') else None
+            'weight_pos': best_model.criterion.pos_weight.item() if hasattr(best_model.criterion, 'pos_weight') else None,
+            'model_architecture': model_architecture,
+            'model_name': best_model_name
         }, 'data/GAIL.pt')
-        print(f"Model saved to data/GAIL.pt")
+        print(f"Model saved to data/GAIL.pt (architecture: {model_architecture})")
         
         # Re-validate after extended training
         final_val_metrics = validate_filtration_AI(

@@ -42,6 +42,7 @@ from PROBESt.args import arguments_parse
 from PROBESt.modeling import run_modeling
 from PROBESt.dedegeneration import run_dedegeneration
 from PROBESt.prepare_blast import prepare_bases_if_needed
+from PROBESt.AI import apply_ai_filtration_to_blast_file
 
 # Functions
 
@@ -162,6 +163,23 @@ for iter in range(1, args.iterations+1):
         subprocess.run(blastn_db, shell=True)
 
     print("Negative hits counted")
+
+    # 2.5. like domain supersecondary organization ----
+    if getattr(args, 'AI', True):  # Default to True if not set
+        model_path = 'data/AIL.pt'
+        positive_hits_path = out_dir(iter) + "positive_hits.tsv"
+        input_size = 14
+        
+        # Apply AI filtration (function handles all error checking and logging)
+        # model_architecture=None will auto-detect from saved model
+        apply_ai_filtration_to_blast_file(
+            positive_hits_path=positive_hits_path,
+            model_path=model_path,
+            fasta_file=prev_merged_fa,
+            input_size=input_size,
+            model_architecture=None,  # Auto-detect from saved model
+            threshold_method="median"
+        )
 
     # 3. multimapping detection and filtering ----
     probe_check_iter = probe_check + \

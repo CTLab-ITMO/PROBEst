@@ -75,4 +75,56 @@ def test_deep_neural_network(sample_data):
     with torch.no_grad():
         eval_predictions = model.predict(X)
     assert len(eval_predictions) == len(y)
-    assert all(pred in [0, 1] for pred in eval_predictions) 
+    assert all(pred in [0, 1] for pred in eval_predictions)
+
+
+def test_calculate_gc_content():
+    from PROBESt.misc import calculate_gc_content
+    
+    # Test with GC-rich sequence
+    assert calculate_gc_content("GCGCGC") == 100.0
+    # Test with AT-rich sequence
+    assert calculate_gc_content("ATATAT") == 0.0
+    # Test with mixed sequence
+    assert abs(calculate_gc_content("ATGC") - 50.0) < 0.1
+    # Test with empty sequence
+    assert calculate_gc_content("") == 0.0
+
+
+def test_extend_blast_output_with_parameters(tmp_path):
+    from PROBESt.misc import extend_blast_output_with_parameters
+    import pandas as pd
+    
+    # Create a test FASTA file
+    fasta_file = tmp_path / "test.fa"
+    with open(fasta_file, 'w') as f:
+        f.write(">probe1\nATGCATGC\n")
+        f.write(">probe2\nGCGCGCGC\n")
+    
+    # Create a test BLAST DataFrame
+    blast_df = pd.DataFrame({
+        0: ['probe1', 'probe2'],
+        1: ['seq1', 'seq2'],
+        2: [0.001, 0.01],
+        3: [1, 10],
+        4: [8, 17],
+        5: [100, 90],
+        6: [0, 1]
+    })
+    
+    # Extend with parameters
+    extended_df = extend_blast_output_with_parameters(blast_df, str(fasta_file))
+    
+    # Check that new columns were added
+    assert 'sseq' in extended_df.columns
+    assert 'GCcontent' in extended_df.columns
+    assert 'Lengthnt' in extended_df.columns
+    assert 'hairpin_prob' in extended_df.columns
+    
+    # Check that sequences were loaded
+    assert extended_df.loc[0, 'sseq'] == 'ATGCATGC'
+    assert extended_df.loc[1, 'sseq'] == 'GCGCGCGC'
+    
+    # Check GC content calculation
+    assert abs(extended_df.loc[0, 'GCcontent'] - 50.0) < 0.1
+    assert extended_df.loc[1, 'GCcontent'] == 100.0 

@@ -2,7 +2,9 @@ import os
 import re
 import subprocess
 import glob
-from typing import List
+import pandas as pd
+import numpy as np
+from typing import List, Dict, Optional
 
 
 def write_stats(stats: dict, output_dir: str):
@@ -227,3 +229,246 @@ def process_multiple_inputs(
                         outfile.write(infile.read())
     
     return final_output_fa
+
+
+def calculate_gc_content(sequence: str) -> float:
+    """
+    Calculate GC content percentage of a DNA/RNA sequence.
+    
+    Args:
+        sequence (str): DNA/RNA sequence
+        
+    Returns:
+        float: GC content as percentage (0-100)
+    """
+    if not sequence or len(sequence) == 0:
+        return 0.0
+    
+    seq_upper = sequence.upper()
+    gc_count = seq_upper.count('G') + seq_upper.count('C')
+    total_valid = sum(seq_upper.count(base) for base in 'ATGCU')
+    
+    if total_valid == 0:
+        return 0.0
+    
+    return (gc_count / total_valid) * 100
+
+
+def get_sequence_from_fasta(probe_name: str, fasta_file: str) -> Optional[str]:
+    """
+    Extract sequence from FASTA file by probe name.
+    
+    Args:
+        probe_name (str): Name of the probe (header without '>')
+        fasta_file (str): Path to FASTA file
+        
+    Returns:
+        Optional[str]: Sequence if found, None otherwise
+    """
+    try:
+        with open(fasta_file, 'r') as f:
+            current_name = None
+            for line in f:
+                line = line.strip()
+                if line.startswith('>'):
+                    # Extract name, handling potential prefixes like "H1_"
+                    current_name = line[1:].strip()
+                    # Remove hit count prefix if present (e.g., "H1_probe_name" -> "probe_name")
+                    if re.match(r'^H\d+_', current_name):
+                        current_name = re.sub(r'^H\d+_', '', current_name)
+                    # Remove LEFT/RIGHT suffix for primer algorithm
+                    if '_LEFT' in current_name or '_RIGHT' in current_name:
+                        current_name = re.sub(r'(_LEFT|_RIGHT)$', '', current_name)
+                else:
+                    if current_name:
+                        # Check if this is the probe we're looking for
+                        name_to_check = current_name
+                        if re.match(r'^H\d+_', name_to_check):
+                            name_to_check = re.sub(r'^H\d+_', '', name_to_check)
+                        if '_LEFT' in name_to_check or '_RIGHT' in name_to_check:
+                            name_to_check = re.sub(r'(_LEFT|_RIGHT)$', '', name_to_check)
+                        
+                        if name_to_check == probe_name or current_name == probe_name:
+                            return line.upper()
+        return None
+    except Exception as e:
+        print(f"Error reading FASTA file {fasta_file}: {e}")
+        return None
+
+
+def load_sequences_from_fasta(fasta_file: str) -> Dict[str, str]:
+    """
+    Load all sequences from a FASTA file into a dictionary.
+    
+    Args:
+        fasta_file (str): Path to FASTA file
+        
+    Returns:
+        Dict[str, str]: Dictionary mapping probe names to sequences
+    """
+    sequences = {}
+    try:
+        with open(fasta_file, 'r') as f:
+            current_name = None
+            for line in f:
+                line = line.strip()
+                if line.startswith('>'):
+                    current_name = line[1:].strip()
+                else:
+                    if current_name:
+                        # Store with original name
+                        sequences[current_name] = line.upper()
+                        # Also store without H prefix and LEFT/RIGHT suffix for easier lookup
+                        name_clean = current_name
+                        if re.match(r'^H\d+_', name_clean):
+                            name_clean = re.sub(r'^H\d+_', '', name_clean)
+                        if '_LEFT' in name_clean or '_RIGHT' in name_clean:
+                            name_clean = re.sub(r'(_LEFT|_RIGHT)$', '', name_clean)
+                        if name_clean != current_name:
+                            sequences[name_clean] = line.upper()
+        return sequences
+    except Exception as e:
+        print(f"Error reading FASTA file {fasta_file}: {e}")
+        return {}
+
+
+def extend_blast_output_with_parameters(
+    blast_df: pd.DataFrame,
+    fasta_file: str,
+    model_path: Optional[str] = None
+) -> pd.DataFrame:
+    """
+    Extend BLAST output DataFrame with calculated parameters needed for AI model.
+    
+    BLAST format expected: qseqid, sseqid, evalue, sstart, send, ppos, mismatch
+    
+    Args:
+        blast_df (pd.DataFrame): BLAST output DataFrame
+        fasta_file (str): Path to FASTA file containing probe sequences
+        model_path (Optional[str]): Path to saved AI model (if None, only calculates parameters)
+        
+    Returns:
+        pd.DataFrame: Extended DataFrame with all calculated parameters
+    """
+    # Load sequences from FASTA
+    sequences = load_sequences_from_fasta(fasta_file)
+    
+    # Rename columns if needed (BLAST output format: qseqid sseqid evalue sstart send ppos mismatch)
+    if len(blast_df.columns) >= 7:
+        blast_df.columns = ['qseqid', 'sseqid', 'evalue', 'sstart', 'send', 'ppos', 'mismatch'] + list(blast_df.columns[7:])
+    
+    # Create mismatches column to match training data format (from mismatch column)
+    if 'mismatch' in blast_df.columns and 'mismatches' not in blast_df.columns:
+        blast_df['mismatches'] = blast_df['mismatch']
+    
+    # Initialize new columns
+    blast_df['sseq'] = None
+    blast_df['qseq'] = None
+    blast_df['left_flank'] = ''
+    blast_df['right_flank'] = ''
+    blast_df['Formamide'] = 0.0
+    blast_df['GCcontent'] = 0.0
+    blast_df['Lengthnt'] = 0
+    blast_df['Modifiedversions'] = ''
+    blast_df['length'] = blast_df['send'] - blast_df['sstart'] + 1
+    blast_df['bitscore'] = 0.0  # Will be calculated if needed
+    blast_df['identity'] = 0.0
+    blast_df['qseq_aln'] = None
+    blast_df['sseq_aln'] = None
+    blast_df['score'] = 0.0
+    blast_df['hairpin_prob'] = 0.0
+    blast_df['dimer_DNA'] = 0.0
+    blast_df['dimer_DNA_flank'] = 0.0
+    blast_df['dimer_probe'] = 0.0
+    blast_df['dimer_probe_DNA'] = 0.0
+    
+    # Import RNA structure functions
+    try:
+        from PROBESt.rna_structure import calculate_hairpin_prob, calculate_dimer_G
+    except ImportError:
+        print("Warning: Could not import RNA structure functions. Some parameters will be set to 0.")
+        calculate_hairpin_prob = lambda x: 0.0
+        calculate_dimer_G = lambda x, y=None, type1="DNA", type2=None: 0.0
+    
+    # Process each row
+    for idx, row in blast_df.iterrows():
+        probe_name = str(row['qseqid'])
+        
+        # Get sequence from FASTA
+        seq = sequences.get(probe_name)
+        if seq is None:
+            # Try without H prefix
+            if re.match(r'^H\d+_', probe_name):
+                probe_name_clean = re.sub(r'^H\d+_', '', probe_name)
+                seq = sequences.get(probe_name_clean)
+            if seq is None:
+                # Try with LEFT/RIGHT removal
+                probe_name_clean = re.sub(r'(_LEFT|_RIGHT)$', '', probe_name)
+                seq = sequences.get(probe_name_clean)
+        
+        if seq:
+            blast_df.at[idx, 'sseq'] = seq
+            blast_df.at[idx, 'qseq'] = seq  # For now, use same sequence
+            blast_df.at[idx, 'GCcontent'] = calculate_gc_content(seq)
+            blast_df.at[idx, 'Lengthnt'] = len(seq)
+            
+            # Calculate identity from mismatch and length
+            mismatch_val = row.get('mismatch', row.get('mismatches', 0))
+            if pd.notna(mismatch_val) and pd.notna(row['length']):
+                mismatches = int(mismatch_val)
+                length = int(row['length'])
+                if length > 0:
+                    identity = ((length - mismatches) / length) * 100
+                    blast_df.at[idx, 'identity'] = identity
+            
+            # Calculate hairpin probability
+            try:
+                blast_df.at[idx, 'hairpin_prob'] = calculate_hairpin_prob(seq)
+            except:
+                blast_df.at[idx, 'hairpin_prob'] = 0.0
+            
+            # Calculate dimer energies
+            try:
+                blast_df.at[idx, 'dimer_DNA'] = calculate_dimer_G(seq, type1="DNA", type2="DNA")
+            except:
+                blast_df.at[idx, 'dimer_DNA'] = 0.0
+            
+            try:
+                # For dimer_DNA_flank, we'd need flanking sequences, but we don't have them
+                # So we'll use the same as dimer_DNA for now
+                blast_df.at[idx, 'dimer_DNA_flank'] = blast_df.at[idx, 'dimer_DNA']
+            except:
+                blast_df.at[idx, 'dimer_DNA_flank'] = 0.0
+            
+            try:
+                blast_df.at[idx, 'dimer_probe'] = calculate_dimer_G(seq, type1="RNA", type2="RNA")
+            except:
+                blast_df.at[idx, 'dimer_probe'] = 0.0
+            
+            try:
+                blast_df.at[idx, 'dimer_probe_DNA'] = calculate_dimer_G(seq, seq, type1="RNA", type2="DNA")
+            except:
+                blast_df.at[idx, 'dimer_probe_DNA'] = 0.0
+            
+            # Set alignment sequences (same as original for now)
+            blast_df.at[idx, 'qseq_aln'] = seq
+            blast_df.at[idx, 'sseq_aln'] = seq
+            
+            # Calculate score (simplified - could be improved)
+            blast_df.at[idx, 'score'] = float(row['evalue']) if pd.notna(row['evalue']) else 0.0
+        else:
+            # If sequence not found, set defaults
+            blast_df.at[idx, 'sseq'] = ''
+            blast_df.at[idx, 'qseq'] = ''
+            blast_df.at[idx, 'GCcontent'] = 0.0
+            blast_df.at[idx, 'Lengthnt'] = 0
+    
+    # Ensure numeric columns are numeric
+    numeric_cols = ['evalue', 'mismatch', 'mismatches', 'length', 'identity', 'GCcontent', 'Lengthnt', 
+                    'score', 'hairpin_prob', 'dimer_DNA', 'dimer_DNA_flank', 
+                    'dimer_probe', 'dimer_probe_DNA', 'Formamide']
+    for col in numeric_cols:
+        if col in blast_df.columns:
+            blast_df[col] = pd.to_numeric(blast_df[col], errors='coerce').fillna(0.0)
+    
+    return blast_df
