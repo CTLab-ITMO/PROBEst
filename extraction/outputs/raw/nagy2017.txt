@@ -1,0 +1,308 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1038/srep41392",
+            "sample_group": [
+                {
+                    "id_group": "1",
+                    "experiment_ids": ["1", "2"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": "1",
+                                "outcome": "true",
+                                "fluorescence": "45"
+                            },
+                            {
+                                "id_exp": "2",
+                                "outcome": "true",
+                                "fluorescence": "50"
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": ["AAGTGTCCCGGTTG", "ATGGCTACAGTG"]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": "1",
+                                        "probe_sequence": "AAGTGTCCCGGTTG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": "5",
+                                                "modification_type": "LNA"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["ATGGCTACAGTG"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": "2",
+                                        "probe_sequence": "ATGGCTACAGTG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": "3",
+                                                "modification_type": "MGB"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["AAGTGTCCCGGTTG"]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "id_group": "2",
+                    "experiment_ids": ["3", "4"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": "3",
+                                "outcome": "true",
+                                "fluorescence": "55"
+                            },
+                            {
+                                "id_exp": "4",
+                                "outcome": "true",
+                                "fluorescence": "60"
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": ["GCTACAGTG", "TGTCCCGGTT"]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": "3",
+                                        "probe_sequence": "GCTACAGTG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": "2",
+                                                "modification_type": "LNA"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["TGTCCCGGTT"]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": "4",
+                                        "probe_sequence": "TGTCCCGGTT",
+                                        "modification": [
+                                            {
+                                                "modification_pos": "1",
+                                                "modification_type": "MGB"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": ["GCTACAGTG"]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "10.1038/srep41392",
+            "experiment": [
+                {
+                    "id_exp": "1",
+                    "raw_description": "TaqMan qPCR using two identically labelled hydrolysis probes in opposite orientation.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Canine parvovirus 2 (CPV-2)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "1",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": "2e-6"
+                            },
+                            {
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "2",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": "2e-6"
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": "2",
+                    "raw_description": "TaqMan qPCR using two identically labelled hydrolysis probes in tandem orientation.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Equine arteritis virus (EAV)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "3",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": "2e-6"
+                            },
+                            {
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "4",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": "2e-6"
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": "3",
+                    "raw_description": "TaqMan qPCR using single hydrolysis probe.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Canine parvovirus 2 (CPV-2)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "1",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": "2e-6"
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": "4",
+                    "raw_description": "TaqMan qPCR using single hydrolysis probe.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Equine arteritis virus (EAV)",
+                    "rna_impurities": "false",
+                    "annealing": "true",
+                    "ph": "7.4",
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "0.2 μM",
+                                "id_probe": "3",
+                                "concentration_article": "0.2 μM",
+                                "concentration_si": "2e-6"
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "95 °C",
+                                "tris": "10 mM",
+                                "na": "500 mM",
+                                "k": "5 mM",
+                                "mg": "3 mM",
+                                "dmso": "0.01%"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 95,
+                                "tris": 10,
+                                "na": 500,
+                                "k": 5,
+                                "mg": 3,
+                                "dmso": 1
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

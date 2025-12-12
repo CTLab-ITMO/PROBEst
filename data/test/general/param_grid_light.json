@@ -1,0 +1,19 @@
+{
+    "input": ["./data/test/general/test.fna"],
+    "true_base": ["./data/test/general/blastn_base/true_base"],
+    "false_base": [
+        [
+            "./data/test/general/blastn_base/false_base_1",
+            "./data/test/general/blastn_base/false_base_2"
+    ]
+    ],
+    "contig_table": ["./data/test/general/contigs"],
+    "algorithm": ["FISH"],
+    "iterations": [10],
+    "top": [5, 10],
+    "mutation_rate": [0.05, 0.1, 0.5],
+    "set_size": [10],
+    "append": [true, false],
+    "PRIMER_PICK_PRIMER": [3],
+    "PRIMER_NUM_RETURN": [3]
+}

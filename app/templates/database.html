@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROBESt Database</title>
+    <link rel="icon" href="{{ url_for('static', filename='probe_icon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- FORNA for RNA structure visualization -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fornac@1.1.8/dist/fornac.css">
+    <script>
+        // Track script loading
+        window.scriptLoadStatus = {
+            d3: false,
+            fornac: false
+        };
+        
+        function checkScriptsLoaded() {
+            window.scriptLoadStatus.d3 = typeof d3 !== 'undefined';
+            window.scriptLoadStatus.fornac = typeof FornaContainer !== 'undefined';
+            console.log('Script load status:', window.scriptLoadStatus);
+        }
+        
+        // Check after a delay
+        window.addEventListener('load', function() {
+            setTimeout(checkScriptsLoaded, 1000);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@3.5.17/d3.min.js" 
+            onload="window.scriptLoadStatus.d3 = true; console.log('d3.js loaded');" 
+            onerror="console.error('Failed to load d3.js');"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fornac@1.1.8/dist/fornac.min.js" 
+            onload="window.scriptLoadStatus.fornac = true; console.log('fornac.js loaded');" 
+            onerror="console.error('Failed to load fornac.js');"></script>
+    <style>
+        .search-container {
+            padding: 40px;
+            background: white;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #127ed1;
+        }
+        
+        .search-type-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .search-type-selector label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .search-type-selector input[type="radio"] {
+            margin: 0;
+        }
+        
+        .search-type-selector input[type="radio"]:checked + span {
+            color: #127ed1;
+            font-weight: bold;
+        }
+        
+        .search-type-selector label:hover {
+            background: #f5f5f5;
+        }
+        
+        .btn-search {
+            padding: 12px 32px;
+            background: #127ed1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-search:hover {
+            background: #0f5390;
+        }
+        
+        .btn-search:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .results-container {
+            display: none;
+            padding: 40px;
+        }
+        
+        .results-header {
+            margin-bottom: 20px;
+        }
+        
+        .results-header h2 {
+            color: #127ed1;
+            margin-bottom: 8px;
+        }
+        
+        .results-count {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .results-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+        
+        @media (max-width: 968px) {
+            .results-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .properties-panel {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 24px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .properties-panel h3 {
+            color: #127ed1;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #127ed1;
+            padding-bottom: 8px;
+        }
+        
+        .properties-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .properties-table tr {
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .properties-table td {
+            padding: 12px;
+            vertical-align: top;
+        }
+        
+        .properties-table td:first-child {
+            font-weight: bold;
+            color: #555;
+            width: 40%;
+        }
+        
+        .properties-table td:last-child {
+            color: #333;
+            word-break: break-word;
+        }
+        
+        .visualization-panel {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 400px;
+        }
+        
+        .visualization-panel h3 {
+            color: #127ed1;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #127ed1;
+            padding-bottom: 8px;
+        }
+        
+        .visualization-container {
+            width: 100%;
+            height: 500px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .visualization-placeholder {
+            color: #999;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .sequence-display {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            word-break: break-all;
+            margin-bottom: 16px;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px solid #fcc;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #127ed1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .probe-list {
+            margin-top: 20px;
+        }
+        
+        .probe-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .probe-item:hover {
+            border-color: #127ed1;
+            box-shadow: 0 2px 8px rgba(18, 126, 209, 0.2);
+        }
+        
+        .probe-item.selected {
+            border-color: #127ed1;
+            background: #f0f7ff;
+        }
+        
+        .probe-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .probe-item-name {
+            font-weight: bold;
+            color: #127ed1;
+        }
+        
+        .probe-item-sequence {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-inner">
+                <div class="logo-title">
+                    <img src="{{ url_for('static', filename='ctlab_probest_white.png') }}" alt="PROBESt" style="width: 30vw;">
+                    <div>
+                        <h1>PROBESt Database</h1>
+                        <p class="subtitle">Search nucleotide probe database</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-container">
+            <div class="search-type-selector">
+                <label>
+                    <input type="radio" name="searchType" value="sequence" checked>
+                    <span>Search by Sequence</span>
+                </label>
+                <label>
+                    <input type="radio" name="searchType" value="target">
+                    <span>Search by Target</span>
+                </label>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="searchQuery" placeholder="Enter sequence (e.g., ATGCG...) or target name..." autocomplete="off">
+                <button class="btn-search" id="searchBtn" onclick="performSearch()">Search</button>
+            </div>
+            
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">
+                <h2>Search Results</h2>
+                <div class="results-count" id="resultsCount"></div>
+            </div>
+            
+            <div id="probeList" class="probe-list"></div>
+            
+            <div class="results-layout" id="resultsLayout" style="display: none;">
+                <div class="properties-panel">
+                    <h3>Probe Properties</h3>
+                    <div id="propertiesTable"></div>
+                </div>
+                
+                <div class="visualization-panel">
+                    <h3>Structure Visualization</h3>
+                    <div class="sequence-display" id="sequenceDisplay"></div>
+                    <div id="visualizationTabs" class="visualization-tabs" style="display: none;">
+                        <button class="visualization-tab active" onclick="switchTab('2.5d')">2.5D Structure</button>
+                        <button class="visualization-tab" onclick="switchTab('info')">Information</button>
+                    </div>
+                    <div class="visualization-panel-content active" id="tab-2.5d">
+                        <div class="visualization-container" id="visualizationContainer">
+                            <div class="visualization-placeholder">
+                                <p>Select a probe to view structure</p>
+                                <p style="font-size: 12px; color: #999; margin-top: 8px;">
+                                    Visualization will be generated using FORNA and rnaglib
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="visualization-panel-content" id="tab-info">
+                        <div id="structureInfo" style="padding: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p><a href="https://github.com/CTLab-ITMO/PROBESt">PROBESt</a> | <a href="https://www.itmo.ru">ITMO University</a></p>
+            <p>Contact: <a href="mailto:dvsmutin@itmo.ru">dvsmutin@itmo.ru</a></p>
+            <p>Funding: ITMO University, НИРСИИ №640102</p>
+        </footer>
+    </div>
+
+    <script>
+        let currentProbe = null;
+        let fornaContainer = null;
+        
+        // Check if FORNA is available
+        function checkFornaAvailable() {
+            const d3Available = typeof d3 !== 'undefined';
+            const fornacAvailable = typeof FornaContainer !== 'undefined';
+            console.log('FORNA check - d3:', d3Available, 'fornac:', fornacAvailable);
+            return d3Available && fornacAvailable;
+        }
+        
+        // Wait for libraries to load
+        function waitForForna(maxAttempts = 10, delay = 200) {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const check = () => {
+                    attempts++;
+                    if (checkFornaAvailable()) {
+                        resolve(true);
+                    } else if (attempts >= maxAttempts) {
+                        reject(new Error('FORNA libraries failed to load after ' + (maxAttempts * delay) + 'ms'));
+                    } else {
+                        setTimeout(check, delay);
+                    }
+                };
+                check();
+            });
+        }
+        
+        // Handle Enter key in search box
+        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        async function performSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const searchBtn = document.getElementById('searchBtn');
+            
+            if (!query) {
+                errorDiv.textContent = 'Please enter a search query';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            errorDiv.style.display = 'none';
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            resultsContainer.style.display = 'block';
+            document.getElementById('resultsLayout').style.display = 'none';
+            document.getElementById('probeList').innerHTML = '<div class="loading-spinner"></div>';
+            
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        type: searchType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Search failed');
+                }
+                
+                displayResults(data.results, data.count);
+                
+            } catch (error) {
+                errorDiv.textContent = 'Error: ' + error.message;
+                errorDiv.style.display = 'block';
+                document.getElementById('probeList').innerHTML = '';
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
+            }
+        }
+        
+        function displayResults(results, count) {
+            const resultsCount = document.getElementById('resultsCount');
+            const probeList = document.getElementById('probeList');
+            
+            resultsCount.textContent = `Found ${count} probe${count !== 1 ? 's' : ''}`;
+            
+            if (results.length === 0) {
+                probeList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No probes found</p>';
+                return;
+            }
+            
+            let html = '';
+            results.forEach((probe, index) => {
+                const name = probe.Name || probe.id || `Probe ${index + 1}`;
+                const sequence = probe.Sequence || '';
+                const length = probe['Length [nt]'] || sequence.length;
+                
+                html += `
+                    <div class="probe-item" onclick="selectProbe(${index})" data-index="${index}">
+                        <div class="probe-item-header">
+                            <div class="probe-item-name">${name}</div>
+                            <div style="color: #666; font-size: 12px;">${length} nt</div>
+                        </div>
+                        <div class="probe-item-sequence">${sequence.substring(0, 50)}${sequence.length > 50 ? '...' : ''}</div>
+                    </div>
+                `;
+            });
+            
+            probeList.innerHTML = html;
+            
+            // Store results globally
+            window.searchResults = results;
+        }
+        
+        async function selectProbe(index) {
+            const probe = window.searchResults[index];
+            currentProbe = probe;
+            
+            // Update selected state
+            document.querySelectorAll('.probe-item').forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            // Show results layout
+            document.getElementById('resultsLayout').style.display = 'grid';
+            
+            // Display properties
+            displayProperties(probe);
+            
+            // Generate visualization
+            await generateVisualization(probe.Sequence || '');
+        }
+        
+        function displayProperties(probe) {
+            const tableDiv = document.getElementById('propertiesTable');
+            
+            let html = '<table class="properties-table">';
+            
+            // Display important fields first
+            const importantFields = [
+                'Name', 'id', 'Sequence', 'Length [nt]', 'Accession no.',
+                'Category', 'Specificity', 'Target rRNA', 'Taxonomy',
+                'Formamide [%]', 'G+C content [%]', 'Position', 'References',
+                'Remarks', 'Test', 'Used in Microarray', 'Source',
+                'fluorophore', 'quencher', 'sense_antisense'
+            ];
+            
+            const displayedFields = new Set();
+            
+            // Add important fields
+            importantFields.forEach(field => {
+                if (probe[field]) {
+                    html += `<tr><td>${field}</td><td>${probe[field]}</td></tr>`;
+                    displayedFields.add(field);
+                }
+            });
+            
+            // Add remaining fields
+            Object.keys(probe).forEach(key => {
+                if (!displayedFields.has(key) && probe[key]) {
+                    html += `<tr><td>${key}</td><td>${probe[key]}</td></tr>`;
+                }
+            });
+            
+            html += '</table>';
+            tableDiv.innerHTML = html;
+        }
+        
+        async function generateVisualization(sequence) {
+            const sequenceDisplay = document.getElementById('sequenceDisplay');
+            const visualizationContainer = document.getElementById('visualizationContainer');
+            
+            if (!sequence) {
+                visualizationContainer.innerHTML = '<div class="visualization-placeholder">No sequence available</div>';
+                return;
+            }
+            
+            sequenceDisplay.textContent = `Sequence: ${sequence}`;
+            visualizationContainer.innerHTML = '<div class="loading-spinner"></div>';
+            
+            try {
+                const response = await fetch('/visualize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sequence: sequence })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Visualization failed');
+                }
+                
+                // Display visualization
+                const viz = data.visualization;
+                if (viz.has_structure && viz.structure) {
+                    // Show tabs
+                    document.getElementById('visualizationTabs').style.display = 'flex';
+                    
+                    // Clear and prepare visualization container
+                    const container = document.getElementById('visualizationContainer');
+                    container.innerHTML = '<div id="forna-container"></div>';
+                    
+                    // Display FORNA 2.5D visualization
+                    // Wait for libraries to load, then initialize
+                    waitForForna(15, 200).then(() => {
+                        try {
+                            // Clear any existing container
+                            if (fornaContainer) {
+                                try {
+                                    fornaContainer.removeAll();
+                                } catch (e) {
+                                    // Ignore errors when removing
+                                }
+                            }
+                            
+                            // Initialize FORNA container
+                            const fornaOptions = {
+                                'applyForce': false,
+                                'allowPanningAndZooming': true,
+                                'initialSize': [container.offsetWidth, container.offsetHeight]
+                            };
+                            
+                            // Wait a bit for DOM to be ready
+                            setTimeout(() => {
+                                try {
+                                    fornaContainer = new FornaContainer('#forna-container', fornaOptions);
+                                    
+                                    // Add RNA structure - FORNA expects structure first, then options
+                                    fornaContainer.addRNA(viz.structure, {
+                                        'sequence': viz.sequence,
+                                        'name': 'Probe Structure'
+                                    });
+                                } catch (initError) {
+                                    console.error('FORNA initialization error:', initError);
+                                    container.innerHTML = `
+                                        <div class="visualization-placeholder">
+                                            <p>Error initializing FORNA: ${initError.message}</p>
+                                            <p style="font-size: 12px; color: #999; margin-top: 8px;">
+                                                Check browser console (F12) for details
+                                            </p>
+                                        </div>
+                                    `;
+                                }
+                            }, 100);
+                            
+                        } catch (error) {
+                            console.error('FORNA error:', error);
+                            container.innerHTML = `
+                                <div class="visualization-placeholder">
+                                    <p>Error initializing FORNA: ${error.message}</p>
+                                    <p style="font-size: 12px; color: #999; margin-top: 8px;">
+                                        Check browser console for details
+                                    </p>
+                                </div>
+                            `;
+                        }
+                    }).catch((error) => {
+                        console.error('FORNA loading error:', error);
+                        container.innerHTML = `
+                            <div class="visualization-placeholder">
+                                <p><strong>FORNA library not loaded</strong></p>
+                                <p style="font-size: 12px; color: #999; margin-top: 8px;">
+                                    ${error.message}<br><br>
+                                    Please check:
+                                    <ul style="text-align: left; display: inline-block; margin-top: 8px;">
+                                        <li>Internet connection</li>
+                                        <li>CDN availability (jsdelivr.net)</li>
+                                        <li>Browser console (F12) for errors</li>
+                                    </ul>
+                                </p>
+                                <div style="margin-top: 16px; padding: 12px; background: #f5f5f5; border-radius: 4px; font-family: monospace; font-size: 11px; text-align: left;">
+                                    <strong>Structure:</strong> ${viz.structure}<br>
+                                    <strong>Sequence:</strong> ${viz.sequence}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    // Display structure information in info tab
+                    let structureInfo = '';
+                    if (viz.structure) {
+                        const structure = viz.structure;
+                        const seq = viz.sequence;
+                        let formattedStructure = '';
+                        let formattedSequence = '';
+                        const lineLength = 60;
+                        for (let i = 0; i < structure.length; i += lineLength) {
+                            formattedSequence += seq.substring(i, i + lineLength) + '\n';
+                            formattedStructure += structure.substring(i, i + lineLength) + '\n';
+                        }
+                        structureInfo = `
+                            <div style="margin: 12px 0;">
+                                <p><strong>Secondary Structure (dot-bracket notation):</strong></p>
+                                <pre style="background: #f5f5f5; padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 11px; overflow-x: auto; margin: 8px 0;">${formattedSequence.trim()}\n${formattedStructure.trim()}</pre>
+                            </div>
+                        `;
+                    }
+                    
+                    let energyInfo = '';
+                    if (viz.energy !== undefined && viz.energy !== null) {
+                        energyInfo = `<p><strong>Free Energy:</strong> ${viz.energy.toFixed(2)} kcal/mol</p>`;
+                    }
+                    
+                    let graphInfo = '';
+                    if (viz.graph_data) {
+                        graphInfo = `
+                            <p><strong>Graph Nodes:</strong> ${viz.graph_nodes || 0}</p>
+                            <p><strong>Graph Edges:</strong> ${viz.graph_edges || 0}</p>
+                        `;
+                    }
+                    
+                    let statusInfo = '';
+                    if (viz.rnaglib_available) {
+                        statusInfo = `
+                            <div style="margin-top: 20px; padding: 16px; background: #d4edda; border-radius: 8px; border-left: 4px solid #28a745;">
+                                <p style="margin: 0; font-size: 14px; color: #155724;">
+                                    <strong>✓ rnaglib available</strong>
+                                </p>
+                                <p style="margin: 8px 0 0 0; font-size: 12px; color: #155724;">
+                                    Structure predicted successfully. rnaglib graph generated.
+                                </p>
+                            </div>
+                        `;
+                    } else if (viz.note) {
+                        statusInfo = `
+                            <div style="margin-top: 20px; padding: 16px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                <p style="margin: 0; font-size: 14px; color: #856404;">
+                                    <strong>Note:</strong>
+                                </p>
+                                <p style="margin: 8px 0 0 0; font-size: 12px; color: #856404;">
+                                    ${viz.note}
+                                </p>
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('structureInfo').innerHTML = `
+                        <div>
+                            <p><strong>RNA Structure Information</strong></p>
+                            <p><strong>Sequence:</strong> ${viz.sequence}</p>
+                            <p><strong>Length:</strong> ${viz.length} nucleotides</p>
+                            ${energyInfo}
+                            ${graphInfo}
+                            ${viz.method ? `<p><strong>Method:</strong> ${viz.method}</p>` : ''}
+                            ${structureInfo}
+                            ${statusInfo}
+                        </div>
+                    `;
+                } else {
+                    // Structure prediction failed
+                    document.getElementById('visualizationTabs').style.display = 'none';
+                    let errorInfo = '';
+                    if (viz.error) {
+                        errorInfo = `
+                            <div style="margin-top: 20px; padding: 16px; background: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545;">
+                                <p style="margin: 0; font-size: 14px; color: #721c24;">
+                                    <strong>Error:</strong>
+                                </p>
+                                <p style="margin: 8px 0 0 0; font-size: 12px; color: #721c24;">
+                                    ${viz.error}
+                                </p>
+                            </div>
+                        `;
+                    }
+                    
+                    let noteInfo = '';
+                    if (viz.note) {
+                        noteInfo = `
+                            <div style="margin-top: 20px; padding: 16px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                <p style="margin: 0; font-size: 14px; color: #856404;">
+                                    <strong>Note:</strong>
+                                </p>
+                                <p style="margin: 8px 0 0 0; font-size: 12px; color: #856404;">
+                                    ${viz.note}
+                                </p>
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('visualizationContainer').innerHTML = `
+                        <div style="padding: 20px;">
+                            <p><strong>Sequence Information</strong></p>
+                            <p><strong>Sequence:</strong> ${viz.sequence}</p>
+                            <p><strong>Length:</strong> ${viz.length} nucleotides</p>
+                            ${errorInfo}
+                            ${noteInfo}
+                        </div>
+                    `;
+                    document.getElementById('structureInfo').innerHTML = '';
+                }
+                
+            } catch (error) {
+                visualizationContainer.innerHTML = `
+                    <div class="visualization-placeholder">
+                        <p style="color: #c33;">Error generating visualization: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

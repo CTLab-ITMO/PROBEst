@@ -1,0 +1,82 @@
+data/test/general/
+data/test/grid/fasta_base
+data/test/grid/blastn_base
+data/test/grid/output
+data/test/grid/contigs
+data/test/grid2
+data/param_search
+src/PROBESt/__pycache__
+tests/PROBESt/__pycache__
+tests_outs/
+test_outs/
+test_download/
+data/databases/open/probeBase_false_formatted.csv
+data/databases/open/probeBase_false_genome_results.csv
+data/databases/open/probeBase_formatted.csv
+data/databases/open/probeBase_formamide.tsv
+data/databases/open/probeBase_genome_results.csv
+data/databases/open/test_ML_database_tokenized.csv
+genome_parse_results.csv
+data/genomes/
+data/articles2/
+data/test/*
+benchmark*
+OligoMiner
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Distribution
+*.tar.gz
+*.zip
+
+# Logs
+*.log
+
+# Local development
+*.xml
+*.fasta
+*.fna
+*.faa
+*.out
+PROBEst.Rproj
+.Rproj.user
+.Rhistory
+articles.tar.bz2
+data/databases/articles/artificial_database_structure

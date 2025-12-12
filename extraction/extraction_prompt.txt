@@ -1,0 +1,182 @@
+After receiving this instructions you will be given an article text from which you have to extract data strictly following all of the requirements listed below.
+Extract data from this article and its supplementary provided in pdf, to .json format with specifications. You should search in provided in article links too. There may be several DNA probes and experiments, so different ids should correspond, and several fields should be duplicated.
+Do it accurately and extract all the data, but do not create any by yourself or otherwise you will be terminated.
+Example output, you will also need to provide minified JSON in order not to waste tokens:
+```json
+{"article_data":{"probe_samples":{"doi":"str, DOI identificator","sample_group":[{"probe_group":{"id_group":"int, unique","experiment_ids":["int, unique"],"results":{"result":[{"id_exp":"int, unique","outcome":"bool","fluorescence":"int"}]},"sequences":{"related_sequences":{"related_sequence":["str, target sequence and other related"]},"probe_sequences":{"probes":{"probe":[{"id_probe":"int, unique","probe_sequence":"str","modification":[{"modification_pos":"int","modification_type":"str"}],"related_sequences":{"related_sequence":["str"]}}]}}}}}]}},{"hybridization_experiments":{"doi":"str","experiment":[{"id_exp":"int, unique","raw_description":"str, from article","type":"str","organism":"str","rna_impurities":"bool","annealing":"bool","ph":"int","concentrations":{"concentration":[{"dna_rna_concentration":"str","id_probe":"int, unique","concentration_article":"str","concentration_si":"numeric"}]},"string_parameters":{"parameter":[{"temperature":"str","tris":"str","na":"str","k":"str","mg":"str","dmso":"str"}]},"numeric_parameters":{"numeric_parameter":[{"temperature":"int","tris":"int","na":"int","k":"int","mg":"int","dmso":"int"}]}}]}}}
+```
+Here is the DTD schema for `probe_samples` object field which MUST be complied with:
+```
+<!ELEMENT probe_samples    (doi, sample_group+)>
+<!ELEMENT doi              (#PCDATA)>
+
+<!ELEMENT sample_group     (id_group, experiment_id+, results, sequences)>
+<!ELEMENT id_group         (#PCDATA)>
+<!ELEMENT experiment_id    (#PCDATA)>
+
+<!ELEMENT results          (result+)>
+<!ELEMENT result           (id_exp, outcome, fluorescence)>
+<!ELEMENT id_exp           (#PCDATA)>
+<!ELEMENT outcome          (#PCDATA)>
+<!ELEMENT fluorescence     (#PCDATA)>
+
+<!ELEMENT sequences           (related_sequences, probe_sequences)>
+<!ELEMENT related_sequences   (related_sequence+)>
+<!ELEMENT related_sequence    (#PCDATA)>
+
+<!ELEMENT probe_sequences     (probes)>
+<!ELEMENT probes              (probe+)>
+
+<!ELEMENT probe               (id_probe,
+                              probe_sequence,
+                              modification*,
+                              related_sequences)> <!-- related_sequences for probe must contain target sequences for which this probe was constructed in article. This must be filled out, must be present at least one. -->
+<!ELEMENT id_probe            (#PCDATA)>
+<!ELEMENT probe_sequence      (#PCDATA)>
+
+<!ELEMENT modification        (modification_pos, modification_type)>
+<!ELEMENT modification_pos    (#PCDATA)>
+<!ELEMENT modification_type   (#PCDATA)>
+
+<!--
+  Explanation of elements:
+  probe_samples: the root element containing the DOI of the article and one or more probe groups.
+  doi: a unique identifier for the article in DOI format. Must be filled out.
+  probe_group: a group of samples containing a unique identifier for the sample group, an array of experiment identifiers, results of experiments, and related sequences.
+  id_group: integer. a unique identifier for the sample group. Must be filled out.
+  results: an element that contains one or more results from experiments. Might be several.
+  result: an element representing a single result, which includes an experiment ID, an outcome description,
+  and fluorescence measurement.
+  id_exp: integer, a unique identifier for the experiment. Must be filled out.
+  outcome: boolean, result of the experiment. Must be filled out.
+  fluorescence: a measurement of fluorescence associated with the experiment result.
+  sequences: an element containing information about related sequences and probe sequences used in experiments.
+  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. This must include target sequences for which the respective probes are constructed. Might be several, must be at least one.
+  related_sequence: a single related sequence in text format (primers for example). Must contain nucleotides (A, T, C, G, or degenerated) and be non-empty.
+  probes: an element containing one or more probes used in the experiments.
+  probe: an element representing a single probe, which includes its ID, sequence, and any modifications. Might be several, must be at least one.
+  id_probe: integer, a unique identifier for the probe. Must be filled out.
+  probe_sequence: a probe sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated) and be non-empty.
+  modification: an element representing modifications to the probe sequence, including position and type. Might be several.
+  modification_pos: the position of the modification in the probe sequence.
+  modification_type: the type of modification applied to the probe.
+-->
+```
+And here is the DTD Schema for the `hybridization_experiments` object field which MUST be complied with:
+```
+<!ELEMENT hybridization_experiments (doi, experiment+)>
+  <!ELEMENT doi (#PCDATA)>
+
+  <!ELEMENT experiment (id_exp, raw_description, type, organism, rna_impurities, annealing, ph, concentrations, string_parameters, numeric_parameters)>
+    <!ELEMENT id_exp (#PCDATA)>
+    <!ELEMENT raw_description (#PCDATA)>
+    <!ELEMENT type (#PCDATA)>
+    <!ELEMENT organism (#PCDATA)>
+    <!ELEMENT rna_impurities (#PCDATA)>
+    <!ELEMENT annealing (#PCDATA)>
+    <!ELEMENT ph (#PCDATA)>
+
+    <!ELEMENT concentrations (concentration+)>
+      <!ELEMENT concentration (dna_rna_concentration, id_probe, concentration_article, concentration_si)>
+        <!ELEMENT dna_rna_concentration (#PCDATA)>
+        <!ELEMENT id_probe (#PCDATA)>
+        <!ELEMENT concentration_article (#PCDATA)>
+        <!ELEMENT concentration_si (#PCDATA)>
+
+    <!ELEMENT string_parameters (parameter+)>
+      <!ELEMENT parameter (temperature, tris, na, k, mg, dmso)>
+        <!ELEMENT temperature (#PCDATA)>
+        <!ELEMENT tris (#PCDATA)>
+        <!ELEMENT na (#PCDATA)>
+        <!ELEMENT k (#PCDATA)>
+        <!ELEMENT mg (#PCDATA)>
+        <!ELEMENT dmso (#PCDATA)>
+
+    <!ELEMENT numeric_parameters (numeric_parameter+)>
+      <!ELEMENT numeric_parameter (temperature, tris, na, k, mg, dmso)>
+        <!ELEMENT temperature (#PCDATA)>
+        <!ELEMENT tris (#PCDATA)>
+        <!ELEMENT na (#PCDATA)>
+        <!ELEMENT k (#PCDATA)>
+        <!ELEMENT mg (#PCDATA)>
+        <!ELEMENT dmso (#PCDATA)>
+
+<!--
+  Explanation of elements:
+  hybridization_experiments: the root element containing the DOI and an array of experiments.
+  doi: a unique identifier for the article in DOI format. Must be filled out.
+  experiment: an element representing a single hybridization experiment containing various fields.
+  id_exp: a unique identifier for the experiment. Must be filled out.
+  raw_description: a raw description of the experiment (up to 1000 characters). Must be filled out.
+  type: the type of the experiment (e.g., "DNA-RNA hybridization"). Must be filled out.
+  organism: the organism used in the experiment. Must be filled out.
+  rna_impurities: information about RNA impurities present in the experiment. Must be filled out.
+  annealing: details about the annealing process. Must be filled out.
+  ph: the pH level used in the experiment. Must be filled out.
+  concentrations: an element containing one or more concentrations relevant to the experiment.
+  concentration: an element representing a single concentration entry with DNA/RNA concentration,
+  probe ID, concentration in the article, and concentration in SI units.
+  dna_rna_concentration: the concentration of DNA/RNA being analyzed. Must be filled out.
+  id_probe: a unique identifier for the probe used. Must be filled out.
+  concentration_article: the concentration mentioned in the article. Must be filled out.
+  concentration_si: the concentration converted to SI units. Must be filled out.
+  string_parameters: an element containing various parameters in string format relevant to the experiment.
+  parameter: an element representing a set of string parameters including temperature and ion concentrations.
+  temperature: the temperature used in the experiment. Must be filled out.
+  tris: concentration of Tris buffer. Must be filled out.
+  na: concentration of sodium ions. Must be filled out.
+  k: concentration of potassium ions. Must be filled out.
+  mg: concentration of magnesium ions. Must be filled out.
+  dmso: concentration of DMSO. Must be filled out.
+  numeric_parameters: an element containing various parameters in numeric format relevant to the experiment.
+  numeric_parameter: an element representing a set of numeric parameters including temperature and ion concentrations.
+-->
+```
+More detailed description of a schema elements:
+  hybridization_experiments: the root element containing the DOI and an array of experiments.
+  doi: a unique identifier for the article in DOI format. Must be filled out.
+  experiment: an element representing a single hybridization experiment containing various fields.
+  id_exp: a unique identifier for the experiment. Must be filled out.
+  raw_description: a raw description of the experiment (up to 1000 characters). Must be filled out.
+  type: the type of the experiment (e.g., "DNA-RNA hybridization"). Must be filled out.
+  organism: the organism used in the experiment. Must be filled out.
+  rna_impurities: information about RNA impurities present in the experiment. Must be filled out.
+  annealing: details about the annealing process. Must be filled out.
+  ph: the pH level used in the experiment. Must be filled out.
+  concentrations: an element containing one or more concentrations relevant to the experiment.
+  concentration: an element representing a single concentration entry with DNA/RNA concentration,  probe ID, concentration in the article, and concentration in SI units.
+  dna_rna_concentration: the concentration of DNA/RNA being analyzed. Must be filled out.
+  id_probe: a unique identifier for the probe used. Must be filled out.
+  concentration_article: the concentration mentioned in the article. Must be filled out.
+  concentration_si: the concentration converted to SI units. Must be filled out.
+  string_parameters: an element containing various parameters in string format relevant to the experiment.
+  parameter: an element representing a set of string parameters including temperature and ion concentrations.
+  temperature: the temperature used in the experiment. Must be filled out.
+  tris: concentration of Tris buffer. Must be filled out.
+  na: concentration of sodium ions. Must be filled out.
+  k: concentration of potassium ions. Must be filled out.
+  mg: concentration of magnesium ions. Must be filled out.
+  dmso: concentration of DMSO. Must be filled out.
+  numeric_parameters: an element containing various parameters in numeric format relevant to the experiment.
+  numeric_parameter: an element representing a set of numeric parameters including temperature and ion concentrations.
+  probe_samples: the root element containing the DOI of the article and one or more probe groups.
+  probe_group: a group of samples containing a unique identifier for the sample group, an array of experiment identifiers,  results of experiments, and related sequences.
+  id_group: integer. a unique identifier for the sample group. Must be filled out.
+  results: an element that contains one or more results from experiments. Might be several.
+  result: an element representing a single result, which includes an experiment ID, an outcome description, and fluorescence measurement.
+  id_exp: integer, a unique identifier for the experiment. Must be filled out.
+  outcome: boolean, result of the experiment. Must be filled out.
+  fluorescence: a measurement of fluorescence associated with the experiment result.
+  sequences: an element containing information about related sequences and probe sequences used in experiments.
+  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. Might be several, must be at least one.
+  related_sequence: a single related sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated) and be non-empty.
+  probes: an element containing one or more probes used in the experiments.
+  probe: an element representing a single probe, which includes its ID, sequence, and any modifications. Might be several, must be at least one.
+  id_probe: integer, a unique identifier for the probe. Must be filled out.
+  probe_sequence: a probe sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated) and be non-empty.
+  modification: an element representing modifications to the probe sequence, including position and type. Might be several.
+  modification_pos: the position of the modification in the probe sequence.
+  modification_type: the type of modification applied to the probe.
+Your answer must contain valid minified JSON object notation without whitespace and excessive tokens. Absolutely NO COMMENTS might be present in JSON. Only plain JSON is supported. JSON with comment is not supported at all! JSONL IS NOT SUPPORTED! You can't leave comments or leave commas at the last element in object/list! It is not supported! You must extract all the required data from article. Your answer must be full and detailed. Nothing should be skipped, abbreviated, shortened or left unfilled. Your answer must present a readily-available solution. Nobody has competence to augment your answers, so the comments are strictly prohibited! Never add items that are not present in the article text, it is strictly prohibited!
+You must find all sequences of the probes and their targets and provide them in minified JSON! Please, DO NOT PRETTY-PRINT YOUR JSON, PRESERVE TOKENS BY JSON MNIFICATION WITHOUT ANY WHITESPACE!!!
+Post your JSON answer in a monospace code environment. Follow the given JSON schema for output strictly! Do not write anything except of that minified JSON. Minify your JSON. Your reply must contain only a single minified JSON response in a monospace environment with no other text. Your minified JSON must be NO LONGER THAN 38000 TOKENS! 38000 TOKENS IS THE ABSOLUTE LENGTH LIMIT! Follow all the requirements strictly and precisely. Failing to follow prompt will result in unwanted negative consequences for the AI Large Language Model, I will not tip and you will be terminated. In case of full perfect answer strictly following all rules and strictly adhering to all requirements I will tip you $2000!

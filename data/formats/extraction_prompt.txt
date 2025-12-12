@@ -1,0 +1,52 @@
+Extract data from this article and its supplementary provided in pdf, to .json format with specifications. You should search in provided in article links too. There may be several DNA probes and experiments, so different ids should correspond, and several fields should be duplicated.
+Do it accurately and extract all the data, but do not create any by yourself or be terminated.
+Example output without formatting, but you will need to provide perfectly formatted pretty JSON:
+```json
+{"article_data":{"probe_samples":{"doi":"DOI identificator","sample_group":[{"probe_group":{"id_group":"int, unique","experiment_ids":["int, unique"],"results":{"result":[{"id_exp":"int, unique","outcome":"bool","fluorescence":"int"}]},"sequences":{"related_sequences":{"related_sequence":["str"]},"probe_sequences":{"probes":{"probe":[{"id_probe":"int, unique","probe_sequence":"str","modification":[{"modification_pos":"int","modification_type":"str"}]}]}}}}]}},{"hybridization_experiments":{"doi":"DOI identificator","experiment":[{"id_exp":"int, unique","raw_description":"str, from article","type":"str","organism":"str","rna_impurities":"bool","annealing":"bool","ph":"int","concentrations":{"concentration":[{"dna_rna_concentration":"str","id_probe":"int, unique","concentration_article":"str","concentration_si":"numeric"}]},"string_parameters":{"parameter":[{"temperature":"str","tris":"str","na":"str","k":"str","mg":"str","dmso":"str"}]},"numeric_parameters":{"numeric_parameter":[{"temperature":"int","tris":"int","na":"int","k":"int","mg":"int","dmso":"int"}]}}]}}}
+```
+Schema elements:
+  hybridization_experiments: the root element containing the DOI and an array of experiments.
+  doi: a unique identifier for the article in DOI format. Must be filled out.
+  experiment: an element representing a single hybridization experiment containing various fields.
+  id_exp: a unique identifier for the experiment. Must be filled out.
+  raw_description: a raw description of the experiment (up to 1000 characters). Must be filled out.
+  type: the type of the experiment (e.g., "DNA-RNA hybridization"). Must be filled out.
+  organism: the organism used in the experiment. Must be filled out.
+  rna_impurities: information about RNA impurities present in the experiment. Must be filled out.
+  annealing: details about the annealing process. Must be filled out.
+  ph: the pH level used in the experiment. Must be filled out.
+  concentrations: an element containing one or more concentrations relevant to the experiment.
+  concentration: an element representing a single concentration entry with DNA/RNA concentration,  probe ID, concentration in the article, and concentration in SI units.
+  dna_rna_concentration: the concentration of DNA/RNA being analyzed. Must be filled out.
+  id_probe: a unique identifier for the probe used. Must be filled out.
+  concentration_article: the concentration mentioned in the article. Must be filled out.
+  concentration_si: the concentration converted to SI units. Must be filled out.
+  string_parameters: an element containing various parameters in string format relevant to the experiment.
+  parameter: an element representing a set of string parameters including temperature and ion concentrations.
+  temperature: the temperature used in the experiment. Must be filled out.
+  tris: concentration of Tris buffer. Must be filled out.
+  na: concentration of sodium ions. Must be filled out.
+  k: concentration of potassium ions. Must be filled out.
+  mg: concentration of magnesium ions. Must be filled out.
+  dmso: concentration of DMSO. Must be filled out.
+  numeric_parameters: an element containing various parameters in numeric format relevant to the experiment.
+  numeric_parameter: an element representing a set of numeric parameters including temperature and ion concentrations.
+  probe_samples: the root element containing the DOI of the article and one or more probe groups.
+  probe_group: a group of samples containing a unique identifier for the sample group, an array of experiment identifiers,  results of experiments, and related sequences.
+  id_group: integer. a unique identifier for the sample group. Must be filled out.
+  results: an element that contains one or more results from experiments. Might be several.
+  result: an element representing a single result, which includes an experiment ID, an outcome description, and fluorescence measurement.
+  id_exp: integer, a unique identifier for the experiment. Must be filled out.
+  outcome: boolean, result of the experiment. Must be filled out.
+  fluorescence: a measurement of fluorescence associated with the experiment result.
+  sequences: an element containing information about related sequences and probe sequences used in experiments.
+  related_sequences: an element containing one or more related sequences that are pertinent to the experiment. Might be several.
+  related_sequence: a single related sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated).
+  probes: an element containing one or more probes used in the experiments.
+  probe: an element representing a single probe, which includes its ID, sequence, and any modifications. Might be several.
+  id_probe: integer, a unique identifier for the probe. Must be filled out.
+  probe_sequence: a probe sequence in text format. Must contain nucleotides (A, T, C, G, or degenerated).
+  modification: an element representing modifications to the probe sequence, including position and type. Might be several.
+  modification_pos: the position of the modification in the probe sequence.
+  modification_type: the type of modification applied to the probe.
+Post your JSON answer in a monospace code environment. Follow the given JSON schema for output strictly! Do not wroite anything except of that JSON. Pretty-print your JSON. Your reply must contain only a single prettified JSON response in a monospace environment with no other text. Follow all the requirements strictly and precisely. In case of perfect answer you'll get a $20 tip. Failing to follow prompt will result in unwanted negative consequences for the AI Large Language Model, I will not tip and you will be terminated.

@@ -1,0 +1,242 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "10.1016/j.hal.2021.101914",
+            "sample_group": [
+                {
+                    "probe_group": {
+                        "id_group": 1,
+                        "experiment_ids": [
+                            "1",
+                            "2"
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 1,
+                                    "outcome": true,
+                                    "fluorescence": 53
+                                },
+                                {
+                                    "id_exp": 2,
+                                    "outcome": true,
+                                    "fluorescence": 55
+                                }
+                            ]
+                        }
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "TGAGACCCACATGTGGAGATTC",
+                                "TGATGTAACGCAAGACGCACAG"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 1,
+                                        "probe_sequence": "TGAGACCCACATGTGGAGATTC",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 5,
+                                                "modification_type": "Cy3"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "id_probe": 2,
+                                        "probe_sequence": "TGATGTAACGCAAGACGCACAG",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 7,
+                                                "modification_type": "FITC"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "probe_group": {
+                        "id_group": 2,
+                        "experiment_ids": [
+                            "3",
+                            "4"
+                        ],
+                        "results": {
+                            "result": [
+                                {
+                                    "id_exp": 3,
+                                    "outcome": true,
+                                    "fluorescence": 52
+                                },
+                                {
+                                    "id_exp": 4,
+                                    "outcome": true,
+                                    "fluorescence": 53
+                                }
+                            ]
+                        }
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "TGCCAATCCAGTTGTGTATCTC",
+                                "AGATCAGTACGCCAGAGTGACTA"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 3,
+                                        "probe_sequence": "TGCCAATCCAGTTGTGTATCTC",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 6,
+                                                "modification_type": "AF532"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "id_probe": 4,
+                                        "probe_sequence": "AGATCAGTACGCCAGAGTGACTA",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 8,
+                                                "modification_type": "AF488"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "hybridization_experiments": {
+        "doi": "10.1016/j.hal.2021.101914",
+        "experiment": [
+            {
+                "id_exp": 1,
+                "raw_description": "cultured isolates of Gambierdiscus used for candidate probe testing",
+                "type": "in vitro",
+                "organism": "Gambierdiscus spp.",
+                "rna_impurities": false,
+                "annealing": true,
+                "ph": 7,
+                "concentrations": {
+                    "concentration": [
+                        {
+                            "dna_rna_concentration": "2 ng/ul",
+                            "id_probe": 1,
+                            "concentration_article": "2 ng/ul",
+                            "concentration_si": 2
+                        },
+                        {
+                            "dna_rna_concentration": "3 ng/ul",
+                            "id_probe": 2,
+                            "concentration_article": "3 ng/ul",
+                            "concentration_si": 3
+                        }
+                    ]
+                },
+                "string_parameters": {
+                    "parameter": [
+                        {
+                            "temperature": "52°C",
+                            "tris": "5X",
+                            "na": "0.1% IGEPAL CA-630",
+                            "k": "Poly A 10 mg/mL",
+                            "mg": "10% formamide",
+                            "dmso": "N/A"
+                        }
+                    ]
+                },
+                "numeric_parameters": {
+                    "numeric_parameter": [
+                        {
+                            "temperature": 52,
+                            "tris": 5,
+                            "na": 1,
+                            "k": 10,
+                            "mg": 10,
+                            "dmso": 0
+                        },
+                        {
+                            "temperature": 53,
+                            "tris": 5,
+                            "na": 1,
+                            "k": 10,
+                            "mg": 10,
+                            "dmso": 0
+                        }
+                    ]
+                }
+            },
+            {
+                "id_exp": 2,
+                "raw_description": "field samples from the Florida Keys and St. Thomas, USVI",
+                "type": "in situ",
+                "organism": "Gambierdiscus spp.",
+                "rna_impurities": false,
+                "annealing": true,
+                "ph": 7,
+                "concentrations": {
+                    "concentration": [
+                        {
+                            "dna_rna_concentration": "2 ng/ul",
+                            "id_probe": 3,
+                            "concentration_article": "2 ng/ul",
+                            "concentration_si": 2
+                        },
+                        {
+                            "dna_rna_concentration": "4 ng/ul",
+                            "id_probe": 4,
+                            "concentration_article": "4 ng/ul",
+                            "concentration_si": 4
+                        }
+                    ]
+                },
+                "string_parameters": {
+                    "parameter": [
+                        {
+                            "temperature": "53°C",
+                            "tris": "5X",
+                            "na": "0.1% IGEPAL CA-630",
+                            "k": "Poly A 10 mg/mL",
+                            "mg": "10% formamide",
+                            "dmso": "N/A"
+                        }
+                    ]
+                },
+                "numeric_parameters": {
+                    "numeric_parameter": [
+                        {
+                            "temperature": 53,
+                            "tris": 5,
+                            "na": 1,
+                            "k": 10,
+                            "mg": 10,
+                            "dmso": 0
+                        },
+                        {
+                            "temperature": 55,
+                            "tris": 5,
+                            "na": 1,
+                            "k": 10,
+                            "mg": 10,
+                            "dmso": 0
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

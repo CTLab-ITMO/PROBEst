@@ -1,0 +1,176 @@
+{
+    "article_data": {
+        "probe_samples": {
+            "doi": "https://doi.org/10.1038/s41598-020-62173-x",
+            "sample_group": [
+                {
+                    "id_group": 1,
+                    "experiment_ids": ["1", "2"],
+                    "results": {
+                        "result": [
+                            {
+                                "id_exp": 1,
+                                "outcome": true,
+                                "fluorescence": 50
+                            },
+                            {
+                                "id_exp": 2,
+                                "outcome": false,
+                                "fluorescence": 30
+                            }
+                        ]
+                    },
+                    "sequences": {
+                        "related_sequences": {
+                            "related_sequence": [
+                                "acttgtggtagttggagctggtggc",
+                                "aaggcactcttgcctacgccaccag"
+                            ]
+                        },
+                        "probe_sequences": {
+                            "probes": {
+                                "probe": [
+                                    {
+                                        "id_probe": 1,
+                                        "probe_sequence": "ROX-acttgtggtagttggagctggtggc-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 3,
+                                                "modification_type": "fluorescent"
+                                            },
+                                            {
+                                                "modification_pos": 25,
+                                                "modification_type": "quencher"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "acttgtggtagttggagctggtggc"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "id_probe": 2,
+                                        "probe_sequence": "Cy5-aaggcactcttgcctacgccaccag-BHQ2",
+                                        "modification": [
+                                            {
+                                                "modification_pos": 3,
+                                                "modification_type": "fluorescent"
+                                            },
+                                            {
+                                                "modification_pos": 25,
+                                                "modification_type": "quencher"
+                                            }
+                                        ],
+                                        "related_sequences": {
+                                            "related_sequence": [
+                                                "aaggcactcttgcctacgccaccag"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "hybridization_experiments": {
+            "doi": "https://doi.org/10.1038/s41598-020-62173-x",
+            "experiment": [
+                {
+                    "id_exp": 1,
+                    "raw_description": "PCR was performed in 25-μl reactions in 96-well plates on a CFX96 instrument (Bio-Rad Laboratories, Hercules, CA). The incubation mixture contained 67 mM Tris-HCl, pH 8.8; 16.6 mM (NH4)SO4; 0.01% Tween 20; 2.5 mM MgCl2; 0.25 mM each of deoxynucleoside triphosphates; 0.2 μM forward and reverse combined primers; 0.2 μM TaqMan probes (sense and antisense, either alone or together); 1 unit Hot-rescue Taq polymerase (Syntol, Russia); 5 μl of DNA solution (10–30 ng) in water.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Human colorectal carcinoma cell line SW480",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 8.8,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10–30 ng DNA solution",
+                                "id_probe": 1,
+                                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
+                                "concentration_si": 3.2e-8
+                            },
+                            {
+                                "dna_rna_concentration": "10–30 ng DNA solution",
+                                "id_probe": 2,
+                                "concentration_article": "5 μl of DNA solution (10–30 ng) in water.",
+                                "concentration_si": 3.2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "72 °C",
+                                "tris": "67 mM",
+                                "na": "16.6 mM",
+                                "k": "0.01%",
+                                "mg": "2.5 mM",
+                                "dmso": "0.25 mM"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 72,
+                                "tris": 67,
+                                "na": 16.6,
+                                "k": 0.01,
+                                "mg": 2.5,
+                                "dmso": 0.25
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_exp": 2,
+                    "raw_description": "PCR was performed in 25-μl reactions in 96-well plates on a CFX96 instrument (Bio-Rad Laboratories, Hercules, CA). The incubation mixture contained 67 mm Tris-HCl, pH 8.8; 16.6 mM (NH4)SO4; 0.01% Tween 20; 2.5 mM MgCl2; 0.2 μM forward and reverse K2(114) primers; 1.25 μl of intercalating dye 20 x EvaGreen (Dialat, Moscow, Russia); 0.25 mM each of deoxynucleoside triphosphates; 1 unit Hot-rescue Taq polymerase (Syntol, Moscow, Russia); 5 μl of DNA solution (10 ng) in water.",
+                    "type": "DNA-RNA hybridization",
+                    "organism": "Human colorectal carcinoma cell line SW480",
+                    "rna_impurities": false,
+                    "annealing": true,
+                    "ph": 8.8,
+                    "concentrations": {
+                        "concentration": [
+                            {
+                                "dna_rna_concentration": "10 ng DNA solution",
+                                "id_probe": 3,
+                                "concentration_article": "5 μl of DNA solution (10 ng) in water.",
+                                "concentration_si": 2e-8
+                            }
+                        ]
+                    },
+                    "string_parameters": {
+                        "parameter": [
+                            {
+                                "temperature": "72 °C",
+                                "tris": "67 mm",
+                                "na": "16.6 mM",
+                                "k": "0.01%",
+                                "mg": "2.5 mM",
+                                "dmso": "0.25 mM"
+                            }
+                        ]
+                    },
+                    "numeric_parameters": {
+                        "numeric_parameter": [
+                            {
+                                "temperature": 72,
+                                "tris": 67,
+                                "na": 16.6,
+                                "k": 0.01,
+                                "mg": 2.5,
+                                "dmso": 0.25
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

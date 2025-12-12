@@ -1,0 +1,95 @@
+<!ELEMENT hybridization_experiments (doi, experiment+)>
+  <!ELEMENT doi (#PCDATA)>
+
+  <!ELEMENT experiment (id_exp, raw_description, type, organism, rna_impurities, annealing, ph, concentrations, string_parameters, numeric_parameters)>
+    <!ELEMENT id_exp (#PCDATA)>
+    <!ELEMENT raw_description (#PCDATA)>
+    <!ELEMENT type (#PCDATA)>
+    <!ELEMENT organism (#PCDATA)>
+    <!ELEMENT rna_impurities (#PCDATA)>
+    <!ELEMENT annealing (#PCDATA)>
+    <!ELEMENT ph (#PCDATA)>
+
+    <!ELEMENT concentrations (concentration+)>
+      <!ELEMENT concentration (dna_rna_concentration, id_probe, concentration_article, concentration_si)>
+        <!ELEMENT dna_rna_concentration (#PCDATA)>
+        <!ELEMENT id_probe (#PCDATA)>
+        <!ELEMENT concentration_article (#PCDATA)>
+        <!ELEMENT concentration_si (#PCDATA)>
+
+    <!ELEMENT string_parameters (parameter+)>
+      <!ELEMENT parameter (temperature, tris, na, k, mg, dmso)>
+        <!ELEMENT temperature (#PCDATA)>
+        <!ELEMENT tris (#PCDATA)>
+        <!ELEMENT na (#PCDATA)>
+        <!ELEMENT k (#PCDATA)>
+        <!ELEMENT mg (#PCDATA)>
+        <!ELEMENT dmso (#PCDATA)>
+
+    <!ELEMENT numeric_parameters (numeric_parameter+)>
+      <!ELEMENT numeric_parameter (temperature, tris, na, k, mg, dmso)>
+        <!ELEMENT temperature (#PCDATA)>
+        <!ELEMENT tris (#PCDATA)>
+        <!ELEMENT na (#PCDATA)>
+        <!ELEMENT k (#PCDATA)>
+        <!ELEMENT mg (#PCDATA)>
+        <!ELEMENT dmso (#PCDATA)>
+
+<!--
+  Explanation of elements:
+  
+  hybridization_experiments: the root element containing the DOI and an array of experiments.
+  
+  doi: a unique identifier for the article in DOI format. Must be filled out.
+  
+  experiment: an element representing a single hybridization experiment containing various fields.
+  
+  id_exp: a unique identifier for the experiment. Must be filled out.
+  
+  raw_description: a raw description of the experiment (up to 1000 characters). Must be filled out.
+  
+  type: the type of the experiment (e.g., "DNA-RNA hybridization"). Must be filled out.
+  
+  organism: the organism used in the experiment. Must be filled out.
+  
+  rna_impurities: information about RNA impurities present in the experiment. Must be filled out.
+  
+  annealing: details about the annealing process. Must be filled out.
+  
+  ph: the pH level used in the experiment. Must be filled out.
+  
+  concentrations: an element containing one or more concentrations relevant to the experiment.
+  
+  concentration: an element representing a single concentration entry with DNA/RNA concentration,
+  probe ID, concentration in the article, and concentration in SI units.
+  
+  dna_rna_concentration: the concentration of DNA/RNA being analyzed. Must be filled out.
+  
+  id_probe: a unique identifier for the probe used. Must be filled out.
+  
+  concentration_article: the concentration mentioned in the article. Must be filled out.
+  
+  concentration_si: the concentration converted to SI units. Must be filled out.
+  
+  string_parameters: an element containing various parameters in string format relevant to the experiment.
+  
+  parameter: an element representing a set of string parameters including temperature and ion concentrations.
+  
+  temperature: the temperature used in the experiment. Must be filled out.
+  
+  tris: concentration of Tris buffer. Must be filled out.
+  
+  na: concentration of sodium ions. Must be filled out.
+  
+  k: concentration of potassium ions. Must be filled out.
+  
+  mg: concentration of magnesium ions. Must be filled out.
+  
+  dmso: concentration of DMSO. Must be filled out.
+  
+  numeric_parameters: an element containing various parameters in numeric format relevant to the experiment.
+  
+  numeric_parameter: an element representing a set of numeric parameters including temperature and ion concentrations.
+-->
+
+<!-- EOF -->
