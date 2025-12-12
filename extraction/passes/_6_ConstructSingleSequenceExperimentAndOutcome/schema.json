@@ -1,0 +1,849 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "SequencesPerExperiment (generation schema)",
+    "type": "object",
+    "additionalProperties": false,
+    "unevaluatedProperties": false,
+    "required": [
+        "id_exp",
+        "probe",
+        "target_sequence",
+        "primer_sequences",
+        "related_sequences",
+        "hybridization_experiment_parameters",
+        "hybridization_experiment_outcome"
+    ],
+    "$defs": {
+        "measurement_lite": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "raw",
+                "value",
+                "unit"
+            ],
+            "properties": {
+                "raw": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Textual value representation."
+                },
+                "value": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "Numeric value representation."
+                },
+                "unit": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 50,
+                    "description": "Measurement unit for the numeric value representation."
+                }
+            }
+        }
+    },
+    "properties": {
+        "id_exp": {
+            "type": "string"
+        },
+        "probe": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "name",
+                "amplicon_id",
+                "fluorophore",
+                "quencher",
+                "sense_antisense",
+                "notes",
+                "oligo"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "amplicon_id": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                },
+                "fluorophore": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                },
+                "quencher": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                },
+                "sense_antisense": {
+                    "enum": [
+                        "sense",
+                        "antisense",
+                        null
+                    ]
+                },
+                "notes": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                },
+                "oligo": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "raw",
+                        "sequence",
+                        "length_bases",
+                        "prime_prefix",
+                        "five_prime_label",
+                        "three_prime_label",
+                        "sense_antisense",
+                        "modifications"
+                    ],
+                    "properties": {
+                        "raw": {
+                            "type": "string",
+                            "maxLength": 500
+                        },
+                        "sequence": {
+                            "type": "string",
+                            "minLength": 5,
+                            "maxLength": 500,
+                            "pattern": "^[ACGUTRYSWKMBDHVN]+$"
+                        },
+                        "length_bases": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1
+                        },
+                        "prime_prefix": {
+                            "enum": [
+                                3,
+                                5,
+                                null
+                            ]
+                        },
+                        "five_prime_label": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "three_prime_label": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "sense_antisense": {
+                            "enum": [
+                                "sense",
+                                "antisense",
+                                null
+                            ]
+                        },
+                        "modifications": {
+                            "type": "array",
+                            "minItems": 0,
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "modification_position",
+                                    "modification_type",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "modification_position": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 1
+                                    },
+                                    "modification_type": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 100
+                                    },
+                                    "description": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "target_sequence": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "raw",
+                "sequence",
+                "length_bases",
+                "prime_prefix",
+                "five_prime_label",
+                "three_prime_label",
+                "sense_antisense",
+                "modifications",
+                "fluorophore",
+                "quencher"
+            ],
+            "properties": {
+                "raw": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "sequence": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 5,
+                    "maxLength": 500,
+                    "pattern": "^[ACGUTRYSWKMBDHVN]+$",
+                    "description": "Provide IUPAC sequence for the target of this probe, if it's present in article. Otherwise put null here and just put name and description into the raw field."
+                },
+                "length_bases": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "minimum": 1
+                },
+                "prime_prefix": {
+                    "enum": [
+                        3,
+                        5,
+                        null
+                    ]
+                },
+                "five_prime_label": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                },
+                "three_prime_label": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                },
+                "sense_antisense": {
+                    "enum": [
+                        "sense",
+                        "antisense",
+                        null
+                    ]
+                },
+                "modifications": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "modification_position",
+                            "modification_type",
+                            "description"
+                        ],
+                        "properties": {
+                            "modification_position": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "minimum": 1
+                            },
+                            "modification_type": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            },
+                            "description": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            }
+                        }
+                    }
+                },
+                "fluorophore": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                },
+                "quencher": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 100
+                }
+            }
+        },
+        "primer_sequences": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "forward",
+                "reverse"
+            ],
+            "properties": {
+                "forward": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "raw",
+                        "sequence",
+                        "length_bases",
+                        "prime_prefix",
+                        "five_prime_label",
+                        "three_prime_label",
+                        "sense_antisense",
+                        "modifications",
+                        "fluorophore",
+                        "quencher"
+                    ],
+                    "properties": {
+                        "raw": {
+                            "type": "string",
+                            "maxLength": 500
+                        },
+                        "sequence": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "minLength": 5,
+                            "maxLength": 500,
+                            "pattern": "^[ACGUTRYSWKMBDHVN]+$"
+                        },
+                        "length_bases": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1
+                        },
+                        "prime_prefix": {
+                            "enum": [
+                                3,
+                                5,
+                                null
+                            ]
+                        },
+                        "five_prime_label": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "three_prime_label": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "sense_antisense": {
+                            "enum": [
+                                "sense",
+                                "antisense",
+                                null
+                            ]
+                        },
+                        "modifications": {
+                            "type": "array",
+                            "minItems": 0,
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "modification_position",
+                                    "modification_type",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "modification_position": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 1
+                                    },
+                                    "modification_type": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 100
+                                    },
+                                    "description": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 100
+                                    }
+                                }
+                            }
+                        },
+                        "fluorophore": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "quencher": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    }
+                },
+                "reverse": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "raw",
+                        "sequence",
+                        "length_bases",
+                        "prime_prefix",
+                        "five_prime_label",
+                        "three_prime_label",
+                        "sense_antisense",
+                        "modifications",
+                        "fluorophore",
+                        "quencher"
+                    ],
+                    "properties": {
+                        "raw": {
+                            "type": "string",
+                            "maxLength": 500
+                        },
+                        "sequence": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "minLength": 5,
+                            "maxLength": 500,
+                            "pattern": "^[ACGUTRYSWKMBDHVN]+$"
+                        },
+                        "length_bases": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1
+                        },
+                        "prime_prefix": {
+                            "enum": [
+                                3,
+                                5,
+                                null
+                            ]
+                        },
+                        "five_prime_label": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "three_prime_label": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "sense_antisense": {
+                            "enum": [
+                                "sense",
+                                "antisense",
+                                null
+                            ]
+                        },
+                        "modifications": {
+                            "type": "array",
+                            "minItems": 0,
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "modification_position",
+                                    "modification_type",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "modification_position": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 1
+                                    },
+                                    "modification_type": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 100
+                                    },
+                                    "description": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 100
+                                    }
+                                }
+                            }
+                        },
+                        "fluorophore": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        },
+                        "quencher": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    }
+                }
+            }
+        },
+        "related_sequences": {
+            "type": "array",
+            "minItems": 0,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "related_sequence",
+                    "description"
+                ],
+                "properties": {
+                    "related_sequence": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "raw",
+                            "sequence",
+                            "length_bases",
+                            "prime_prefix",
+                            "five_prime_label",
+                            "three_prime_label",
+                            "sense_antisense",
+                            "modifications",
+                            "fluorophore",
+                            "quencher"
+                        ],
+                        "properties": {
+                            "raw": {
+                                "type": "string",
+                                "maxLength": 500
+                            },
+                            "sequence": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "minLength": 5,
+                                "maxLength": 500,
+                                "pattern": "^[ACGUTRYSWKMBDHVN]+$"
+                            },
+                            "length_bases": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "minimum": 1
+                            },
+                            "prime_prefix": {
+                                "enum": [
+                                    3,
+                                    5,
+                                    null
+                                ]
+                            },
+                            "five_prime_label": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            },
+                            "three_prime_label": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            },
+                            "sense_antisense": {
+                                "enum": [
+                                    "sense",
+                                    "antisense",
+                                    null
+                                ]
+                            },
+                            "modifications": {
+                                "type": "array",
+                                "minItems": 0,
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "modification_position",
+                                        "modification_type",
+                                        "description"
+                                    ],
+                                    "properties": {
+                                        "modification_position": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ],
+                                            "minimum": 1
+                                        },
+                                        "modification_type": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "maxLength": 100
+                                        },
+                                        "description": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "maxLength": 100
+                                        }
+                                    }
+                                }
+                            },
+                            "fluorophore": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            },
+                            "quencher": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            }
+                        }
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 200
+                    }
+                }
+            }
+        },
+        "hybridization_experiment_parameters": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "organism",
+                "technology",
+                "annealing",
+                "pH",
+                "rna_impurities",
+                "temperature",
+                "Tris",
+                "Na",
+                "K",
+                "Mg",
+                "DMSO"
+            ],
+            "properties": {
+                "organism": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 200
+                },
+                "technology": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 200
+                },
+                "temperature": {
+                    "$ref": "#/$defs/measurement_lite"
+                },
+                "Tris": {
+                    "$ref": "#/$defs/measurement_lite"
+                },
+                "Na": {
+                    "$ref": "#/$defs/measurement_lite"
+                },
+                "K": {
+                    "$ref": "#/$defs/measurement_lite"
+                },
+                "Mg": {
+                    "$ref": "#/$defs/measurement_lite"
+                },
+                "DMSO": {
+                    "$ref": "#/$defs/measurement_lite"
+                },
+                "annealing": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "quantitative",
+                                "qualitative"
+                            ],
+                            "properties": {
+                                "quantitative": {
+                                    "$ref": "#/$defs/measurement_lite"
+                                },
+                                "qualitative": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "pH": {
+                    "$ref": "#/$defs/measurement_lite"
+                },
+                "rna_impurities": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "quantitative",
+                                "qualitative"
+                            ],
+                            "properties": {
+                                "quantitative": {
+                                    "$ref": "#/$defs/measurement_lite"
+                                },
+                                "qualitative": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            }
+        },
+        "hybridization_experiment_outcome": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "outcome",
+                "fluorescence",
+                "comparative_notes"
+            ],
+            "properties": {
+                "outcome": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "description": "Put true in case of successful hybridization, false if unsuccessful, null if could not be onferred from the article text."
+                },
+                "fluorescence": {
+                    "$ref": "#/$defs/measurement_lite",
+                    "description": "Amount of fluorescence in this hybridization experiment."
+                },
+                "comparative_notes": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "maxLength": 500
+                }
+            }
+        }
+    }
+}

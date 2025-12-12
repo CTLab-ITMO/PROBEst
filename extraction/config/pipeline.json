@@ -1,0 +1,203 @@
+{
+    "model_names": [
+        "myaniu/qwen2.5-1m:7b",     
+        "deepseek-r1:1.5b",           
+        "qwen2.5-coder:3b",
+        "phi4-mini-reasoning:latest",
+        "gemma3:4b",
+        "phi3:latest",
+        "llama3.1:latest",
+        "myaniu/qwen2.5-1m:14b",
+        "phi4:14b",
+        "gemma3:27b"
+    ],
+    "ollama_parameters": {
+        "num_ctx": 65536,
+        "num_predict": 65536,
+        "temperature": 0.1,
+        "seed": 42
+    },
+    "ollama_base_url": "http://127.0.0.1:11434",
+    "timeout_s": 60,
+    "__input_dir": "/mnt/Models/articles2_marker/no_llm/small_md/",
+    "___input_dir": "/mnt/Models/articles2_marker/no_llm/markdown/",
+    "input_dir": "/mnt/Models/articles2_marker/no_llm/bench_md/",
+    "_input_dir": "input/md",
+    "out_dir": "outlines_output_db",
+    "full_schema_path": "schema/json/article.json",
+    "common_prompt_path": "passes/common.txt",
+    "db_path": "outlines_output_db/massive.sqlite",
+    "article_glob": "**/*.md",
+    "_pre_passes": [
+        {
+            "name": "SeqPrompt",
+            "schema": "passes/_1_SeqPrompt/schema.json",
+            "prompt": "passes/_1_SeqPrompt/prompt.txt",
+            "timeout": 60
+        },
+        {
+            "name": "SeqPrompt_strict",
+            "schema": "passes/_1_SeqPrompt/schema_strict.json",
+            "prompt": "passes/_1_SeqPrompt/prompt_strict.txt",
+            "timeout": 60
+        }
+    ],
+    "pre_passes": [
+        {
+            "name": "SeqPrompt_strict",
+            "schema": "passes/_1_SeqPrompt/schema_strict.json",
+            "prompt": "passes/_1_SeqPrompt/prompt_strict.txt",
+            "timeout": 60
+        },
+                {
+            "name": "SeqPrompt",
+            "schema": "passes/_1_SeqPrompt/schema.json",
+            "prompt": "passes/_1_SeqPrompt/prompt.txt",
+            "timeout": 60
+        }
+    ],
+    "construct_single_experiment_passes": [
+        {
+            "name": "_4_ConstructSingleSmallExperiment",
+            "schema": "passes/_4_ConstructSingleSmallExperiment/schema.json",
+            "prompt": "passes/_4_ConstructSingleSmallExperiment/prompt.txt",
+            "timeout": 60
+        },
+        {
+            "name": "_6_ConstructSingleSequenceExperimentAndOutcome",
+            "schema": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/schema.json",
+            "prompt": "passes/_6_ConstructSingleSequenceExperimentAndOutcome/prompt.txt",
+            "timeout": 60
+        }
+    ],
+    "passes": [
+        {
+            "name": "A_core",
+            "schema": "passes/A_core/schema.json",
+            "prompt": "passes/A_core/prompt.txt",
+            "timeout": 60
+        },
+        {
+            "name": "B_index",
+            "schema": "passes/B_index/schema.json",
+            "prompt": "passes/B_index/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "B1_index_types",
+            "schema": "passes/B1_index_types/schema.json",
+            "prompt": "passes/B1_index_types/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "B2_index_desc",
+            "schema": "passes/B2_index_desc/schema.json",
+            "prompt": "passes/B2_index_desc/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "C5_probes_opt_target",
+            "schema": "passes/C5_probes_opt_target/schema.json",
+            "prompt": "passes/C5_probes_opt_target/prompt.txt",
+            "timeout": 900
+        },
+        {
+            "name": "C_sequences",
+            "schema": "passes/C_sequences/schema.json",
+            "prompt": "passes/C_sequences/prompt.txt",
+            "timeout": 900
+        },
+        {
+            "name": "C1_probe_core",
+            "schema": "passes/C1_probe_core/schema.json",
+            "prompt": "passes/C1_probe_core/prompt.txt"
+        },
+        {
+            "name": "C2_target_primers",
+            "schema": "passes/C2_target_primers/schema.json",
+            "prompt": "passes/C2_target_primers/prompt.txt"
+        },
+        {
+            "name": "C3_related",
+            "schema": "passes/C3_related/schema.json",
+            "prompt": "passes/C3_related/prompt.txt"
+        },
+        {
+            "name": "D_parameters",
+            "schema": "passes/D_parameters/schema.json",
+            "prompt": "passes/D_parameters/prompt.txt"
+        },
+        {
+            "name": "E_outcomes",
+            "schema": "passes/E_outcomes/schema.json",
+            "prompt": "passes/E_outcomes/prompt.txt"
+        },
+        {
+            "name": "F_pairings",
+            "schema": "passes/F_pairings/schema.json",
+            "prompt": "passes/F_pairings/prompt.txt"
+        }
+    ],
+    "ignored_passes": [
+        {
+            "name": "B_index",
+            "schema": "passes/B_index/schema.json",
+            "prompt": "passes/B_index/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "B2_index_desc",
+            "schema": "passes/B2_index_desc/schema.json",
+            "prompt": "passes/B2_index_desc/prompt.txt",
+            "timeout": 600
+        },
+        {
+            "name": "C5_probes_opt_target",
+            "schema": "passes/C5_probes_opt_target/schema.json",
+            "prompt": "passes/C5_probes_opt_target/prompt.txt",
+            "timeout": 900
+        },
+        {
+            "name": "C_sequences",
+            "schema": "passes/C_sequences/schema.json",
+            "prompt": "passes/C_sequences/prompt.txt",
+            "timeout": 900
+        },
+        {
+            "name": "C1_probe_core",
+            "schema": "passes/C1_probe_core/schema.json",
+            "prompt": "passes/C1_probe_core/prompt.txt"
+        },
+        {
+            "name": "C2_target_primers",
+            "schema": "passes/C2_target_primers/schema.json",
+            "prompt": "passes/C2_target_primers/prompt.txt"
+        },
+        {
+            "name": "C3_related",
+            "schema": "passes/C3_related/schema.json",
+            "prompt": "passes/C3_related/prompt.txt"
+        },
+        {
+            "name": "D_parameters",
+            "schema": "passes/D_parameters/schema.json",
+            "prompt": "passes/D_parameters/prompt.txt"
+        },
+        {
+            "name": "E_outcomes",
+            "schema": "passes/E_outcomes/schema.json",
+            "prompt": "passes/E_outcomes/prompt.txt"
+        },
+        {
+            "name": "F_pairings",
+            "schema": "passes/F_pairings/schema.json",
+            "prompt": "passes/F_pairings/prompt.txt"
+        },
+        {
+            "name": "full_schema",
+            "schema": "schemas/article.json",
+            "prompt": "passes/common.txt",
+            "timeout": 900
+        }
+    ]
+}

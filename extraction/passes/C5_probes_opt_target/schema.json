@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SequencesPerExperiment (generation schema)",
+  "type": "array",
+  "additionalProperties": false,
+  "required": ["items", "extraction_report"],
+  "description": "This JSON object represents a list of all probes present in article together with their target sequences and primers (if present, must be filled out). Each experiment represents a single object in this array.",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id_exp", "probe", "target_sequence", "primer_sequences"],
+    "description": "This object represents a single experiment record defined by the probe. There must be exclusive record for each probe found in the full article text.",
+    "properties": {
+      "id_exp": { "type": "string", "maxLength": 100, "description": "ID of the experiment, unique string taken either from the article or synthesized to be unique and consequtive in the array." },
+      "probe": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "raw", "sequence", "sense_antisense"],
+        "description": "This object represents a single probe found in the article. Such object must be created for each probe present in the article.",
+        "properties": {
+          "name": { "type": "string", "maxLength": 500, "description": "Name of the probe as provided in the article or description of the probe created by you." },
+          "raw": { "type": "string", "maxLength": 500, "description": "Direct text quote from the article describing current single probe." },
+          "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$", "description": "IUPAC sequence of the probe in the same order as given in the article." },
+          "sense_antisense": { "enum": ["sense", "antisense", null], "description": "Whether the sequence of this probe provided in the article was sense or antisense. Set to null if and only if strand of this probe can't be inferred from the article text." }
+        }
+      },
+
+      "target_sequence": {
+        "type": ["object", "null"],
+        "additionalProperties": false,
+        "required": ["raw", "sequence", "sense_antisense"],
+        "description": "This object describes the target sequence for which the probe from the current experiment record was constructed. Omit by providing null if and only if article does not provide the target sequence explicitly.",
+        "properties": {
+          "raw": { "type": "string", "maxLength": 500, "description": "Target sequence for which the probe from the current experiment was constructed. Provide a name or other mention exactly how it is specified in article." },
+          "sequence": { "type": ["string", "null"], "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$", "description": "Target sequence in IUPAC format. Must be specified if present in article for the current probe of the current experiment. Omit by providing null if and only if article does not specify target sequence and only provides its name or otherwise non-IUPAC definition." },
+          "sense_antisense": { "enum": ["sense", "antisense", null], "description": "Whether the provided target sequence of this probe was sense or antisense. Set to null if and only if strand of this probe can't be inferred from the article text." }
+        }
+      },
+
+      "primer_sequences": {
+        "type": ["object", "null"],
+        "additionalProperties": false,
+        "required": ["forward", "reverse"],
+        "description": "This object holds information about the primers used for the current experiment record for the probe. Omit by providing null here if and only if primers are not specified for the current probe in the article text.",
+        "properties": {
+          "forward": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["raw", "sequence", "sense_antisense"],
+            "description": "Forward primer in this experiment. Omit by providing null here if and only if forward is not specified for the current probe in the article text.",
+            "properties": {
+              "raw": { "type": "string", "maxLength": 500, "description": "Forward primer sequence used for the probe from the current experiment. Provide a name or other mention exactly how it is specified in article." },
+              "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$", "description": "Forward primer sequence in IUPAC format for the current probe in the current experiment. Must be specified if present in article for the current probe of the current experiment. Omit by providing null if and only if article does not specify forward primer sequence and only provides its name or otherwise non-IUPAC definition." },
+              "sense_antisense": { "enum": ["sense", "antisense", null], "description": "Whether the provided forward primer sequence of this probe was sense or antisense. Set to null if and only if strand of this forward primer can't be inferred from the article text." }
+            }
+          },
+          "reverse": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["raw", "sequence", "sense_antisense"],
+            "description": "Reverse primer in this experiment. Omit by providing null here if and only if reverse is not specified for the current probe in the article text.",
+            "properties": {
+              "raw": { "type": "string", "maxLength": 500, "description": "Reverse primer sequence used for the probe from the current experiment. Provide a name or other mention exactly how it is specified in article." },
+              "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$", "description": "Reverse primer sequence in IUPAC format for the current probe in the current experiment. Must be specified if present in article for the current probe of the current experiment. Omit by providing null if and only if article does not specify reverse primer sequence and only provides its name or otherwise non-IUPAC definition." },
+              "sense_antisense": { "enum": ["sense", "antisense", null], "description": "Whether the provided reverse primer sequence of this probe was sense or antisense. Set to null if and only if strand of this reverse primer can't be inferred from the article text." }
+            }
+          }
+        }
+      },
+
+      "related_sequences": {
+        "type": "array",
+        "description": "Array containing any other related sequences relating to the probe, target or primers in the current experiment if present in article. Omit by providing an empty array if and only if article does not specify any related sequences for the current experiment.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["related_sequence", "description"],
+          "properties": {
+            "related_sequence": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["raw", "sequence", "sense_antisense"],
+              "description": "Related sequence record for the current experiment.",
+              "properties": {
+                "raw": { "type": "string", "maxLength": 500, "description": "Related sequence used for the probe from the current experiment. Provide a name or other mention exactly how it is specified in article." },
+                "sequence": { "type": "string", "minLength": 5, "maxLength": 500, "pattern": "^[ACGUTRYSWKMBDHVN]+$", "description": "Related sequence in IUPAC format for the current probe in the current experiment. Must be specified if present in article for the current probe of the current experiment. Omit by providing null if and only if article does not specify related sequence and only provides its name or otherwise non-IUPAC definition." },
+                "sense_antisense": { "enum": ["sense", "antisense", null], "description": "Whether the provided related sequence of this probe was sense or antisense. Set to null if and only if strand of this related can't be inferred from the article text." }
+              }
+            },
+            "description": { "type": "string", "maxLength": 500, "description": "Name and/or description of this related sequence, explaining its relation to the current experiment."}
+          }
+        }
+      },
+      "extraction_report": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["missing", "uncertain", "notes"],
+        "description": "Information about technical specifics of the current experiment extraction.",
+        "properties": {
+          "missing": { "type": "array", "items": { "type": "string", "maxLength": 500 }, "description": "Array describing missing elements which where set to null or omitted. Each record must be a JSON path to corresponding field." },
+          "uncertain": { "type": "array", "items": { "type": "string", "maxLength": 500 }, "description": "Array describing uncertain elements which article mentions vaguely or controversely. Each record must be a JSON path to corresponding field." },
+          "notes": { "type": "string", "description": "Any other notes related to the extraction of this experiment", "maxLength": 500 }
+        }
+      }
+    }
+  }
+}

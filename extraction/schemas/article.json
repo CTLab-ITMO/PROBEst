@@ -1,0 +1,514 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/schemas/hybridization-article.schema.json",
+  "title": "Hybridization Article",
+  "description": "Per-article extraction of hybridization experiments as target-probe pairs (plus primers/related sequences). Includes decorated oligos (fluorophores/quenchers, 5'/3' marks, sense/antisense), and parameters stored as raw text and normalized SI.",
+  "type": "object",
+  "unevaluatedProperties": false,
+
+  "$defs": {
+    "extractionReport": {
+      "type": "object",
+      "description": "Structured way to declare missing/uncertain items to avoid hallucination. Use JSON Pointers for field locations.",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": {
+          "type": "array",
+          "description": "JSON Pointers to fields that are truly unavailable in the article.",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 0
+        },
+        "uncertain": {
+          "type": "array",
+          "description": "JSON Pointers to fields that are ambiguous or weakly supported.",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 0
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Free-text clarifications, e.g., OCR issues, mapping choices."
+        }
+      }
+    },
+
+    "iupacBases": {
+      "type": "string",
+      "description": "DNA/RNA bases in uppercase IUPAC alphabet: A C G U/T R Y S W K M B D H V N. No separators and no ellipsis inside the sequence.",
+      "pattern": "^[ACGUTRYSWKMBDHVN]+$",
+      "minLength": 5,
+      "maxLength": 5000
+    },
+
+    "provenance": {
+      "type": "object",
+      "description": "Where a value was obtained in the source document.",
+      "additionalProperties": false,
+      "required": ["source_type", "page", "section", "quote", "notes"],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["pdf", "html", "other", "unknown"],
+          "description": "Type of source the extractor processed."
+        },
+        "page": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Page number in the source (1-based), if applicable."
+        },
+        "section": {
+          "type": ["string", "null"],
+          "description": "Section header or caption in which the value appears."
+        },
+        "quote": {
+          "type": ["string", "null"],
+          "description": "Short verbatim snippet that directly supports the value."
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Extractor notes (e.g., OCR artifact, inferred mapping)."
+        }
+      }
+    },
+
+    "measurement": {
+      "type": "object",
+      "description": "Numeric (or quasi-numeric) item holding raw text, optional parsed value/unit, and normalized SI value/unit.",
+      "additionalProperties": false,
+      "required": ["raw", "value", "unit", "si_value", "si_unit", "assumptions", "provenance"],
+      "properties": {
+        "raw": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Exact text as written in the article (e.g., '58 °C', '2 mM', '10%')."
+        },
+        "value": {
+          "type": ["number", "null"],
+          "description": "Parsed numeric value if present in raw."
+        },
+        "unit": {
+          "type": ["string", "null"],
+          "description": "Unit as written in the article (e.g., '°C', 'mM', '%')."
+        },
+        "si_value": {
+          "type": ["number", "null"],
+          "description": "Value converted to SI. Examples: temperature in K; concentrations in mol/m^3; fractions 0-1 for percent."
+        },
+        "si_unit": {
+          "type": ["string", "null"],
+          "enum": ["K", "mol/m^3", "Pa", "kg/m^3", "s", "dimensionless"],
+          "description": "SI unit after conversion."
+        },
+        "assumptions": {
+          "type": ["string", "null"],
+          "description": "Conversion assumptions (e.g., density used, ionic strength conventions)."
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+
+    "decoratedOligo": {
+      "type": "object",
+      "description": "An oligonucleotide possibly decorated at 5'/3' with labels (fluorophores/quenchers). Keeps raw string and parsed parts.",
+      "additionalProperties": false,
+      "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "labels", "sense_antisense", "provenance"],
+      "properties": {
+        "raw": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200,
+          "description": "Exact oligo string as seen. MUST CONTAIN NUCLEOTIDES, NOT ONLY NAMES. DO NOT COPY THIS SEQUENCE FROM THE EXAMPLE! NEVER USE ELLIPSIS OR SKIP ANY DATA IN YOUR RESPONSE!!!"
+        },
+        "sequence": {
+          "$ref": "#/$defs/iupacBases",
+          "description": "Bare base sequence with IUPAC letters only (no labels/hyphens)."
+        },
+        "length_bases": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Base length if given or derivable (e.g., '(27 b)')."
+        },
+        "prime_prefix": {
+          "type": ["integer", "null"],
+          "enum": [3, 5, null],
+          "description": "Leading prime marker if present (3 or 5). Accepts OCR artifacts like 50/5O/5' during parsing."
+        },
+        "five_prime_label": {
+          "type": ["string", "null"],
+          "description": "Label at the 5' end if indicated (e.g., FAM, ROX)."
+        },
+        "three_prime_label": {
+          "type": ["string", "null"],
+          "description": "Label at the 3' end if indicated (e.g., BHQ1, BHQ2, RTQ1)."
+        },
+        "labels": {
+          "type": "array",
+          "description": "All labels found in textual order, including 5' and 3' labels.",
+          "minItems": 0,
+          "maxItems": 10,
+          "items": { "type": "string" }
+        },
+        "sense_antisense": {
+          "type": ["string", "null"],
+          "enum": ["sense", "antisense", null],
+          "description": "If the oligo is explicitly designated as sense (s) or antisense (as) in the article."
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+
+    "primerPair": {
+      "type": "object",
+      "description": "PCR primer pair associated with an amplicon/experiment.",
+      "additionalProperties": false,
+      "required": ["forward", "reverse"],
+      "properties": {
+        "forward": {
+          "$ref": "#/$defs/decoratedOligo",
+          "description": "Forward primer as decorated oligo."
+        },
+        "reverse": {
+          "$ref": "#/$defs/decoratedOligo",
+          "description": "Reverse primer as decorated oligo."
+        }
+      }
+    },
+
+    "probe": {
+      "type": "object",
+      "description": "A hybridization probe with name, optional amplicon ID, and decorated oligo details.",
+      "additionalProperties": false,
+      "required": ["name", "oligo", "amplicon_id", "fluorophore", "quencher", "sense_antisense", "notes"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "description": "Probe name exactly as used (e.g., 'N3-FAM(27)s')."
+        },
+        "amplicon_id": {
+          "type": ["string", "null"],
+          "description": "Amplicon tag associated with the probe (e.g., 'K2', 'K3', 'N2', 'N3', 'B15')."
+        },
+        "oligo": {
+          "$ref": "#/$defs/decoratedOligo",
+          "description": "The probe's decorated oligo (sequence, labels, direction)."
+        },
+        "fluorophore": {
+          "type": "string",
+          "description": "Fluorophore name if identifiable; otherwise null."
+        },
+        "quencher": {
+          "type": "string",
+          "description": "Quencher name if identifiable; otherwise null."
+        },
+        "sense_antisense": {
+          "type": ["string", "null"],
+          "enum": ["sense", "antisense", null],
+          "description": "Sense/antisense designation inferred from probe name suffix (e.g., 's' or 'as')."
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Free-text notes about the probe (ambiguities, special chemistry)."
+        }
+      }
+    }
+  },
+
+  "oneOf": [
+    {
+      "title": "Article with experiments/probes",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["doi", "abstract", "topic", "experiments", "extraction_report"],
+      "properties": {
+        "doi": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 100,
+          "description": "Digital Object Identifier for the article."
+        },
+        "abstract": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 2000,
+          "description": "Abstract or summary as extracted."
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Short topic/category label (e.g., 'mutation scanning by DMA')."
+        },
+        "experiments": {
+          "type": "array",
+          "description": "Each element corresponds to a target-probe pair (plus primers/related sequences) and the full experimental context.",
+          "minItems": 1,
+          "maxItems": 2000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id_exp", "raw_description", "type", "description", "metadata", "sequences","experiment_properties", "outcome", "pairing", "extraction_report"],
+            "properties": {
+              "id_exp": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "description": "Unique experiment identifier (derive if needed from amplicon + probe name, e.g., 'N3-FAM-27-s')."
+              },
+              "raw_description": {
+                "type": ["string", "null"],
+                "minLength": 1,
+                "maxLength": 1000,
+                "description": "Verbatim or lightly tidied description of the experiment from the article."
+              },
+              "type": {
+                "type": ["string", "null"],
+                "minLength": 2,
+                "maxLength": 120,
+                "description": "Experiment type (e.g., 'DNA-RNA hybridization', 'real-time PCR', 'DMA')."
+              },
+              "description": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 1000,
+                "description": "Concise human-readable summary of this specific target-probe experiment."
+              },
+
+              "metadata": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "High-level descriptors linked to this experiment.",
+                "required": ["organism", "technology", "annealing", "pH", "rna_impurities"],
+                "properties": {
+                  "organism": {
+                    "type": ["string", "null"],
+                    "minLength": 2,
+                    "maxLength": 120,
+                    "description": "Organism (e.g., 'human')."
+                  },
+                  "technology": {
+                    "type": ["string", "null"],
+                    "minLength": 2,
+                    "maxLength": 120,
+                    "description": "Assay/technology label per article usage (e.g., 'real-time PCR', 'DMA')."
+                  },
+                  "annealing": {
+                    "type": ["object", "null"],
+                    "additionalProperties": false,
+                    "description": "Annealing process details, with optional quantitative and qualitative components.",
+                    "required": ["quantitative", "qualitative"],
+                    "properties": {
+                      "quantitative": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Numeric representation (e.g., time or temperature), kept as raw + SI."
+                      },
+                      "qualitative": {
+                        "type": ["boolean", "null"],
+                        "description": "If the article states a qualitative annealing outcome/criterion."
+                      }
+                    }
+                  },
+                  "pH": {
+                    "$ref": "#/$defs/measurement",
+                    "description": "pH as raw text with optional parsed numeric; SI stored as dimensionless (same numeric value)."
+                  },
+                  "rna_impurities": {
+                    "type": ["object", "null"],
+                    "additionalProperties": false,
+                    "description": "RNA impurity information, if discussed.",
+                    "required": ["quantitative", "qualitative"],
+                    "properties": {
+                      "quantitative": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Quantity/percentage of RNA impurities."
+                      },
+                      "qualitative": {
+                        "type": ["boolean", "null"],
+                        "description": "Presence/absence or a qualitative statement regarding RNA impurities."
+                      }
+                    }
+                  }
+                }
+              },
+
+              "sequences": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "All sequences relevant to this target-probe experiment.",
+                "required": ["target_sequence", "probe", "primer_sequences", "related_sequences"],
+                "properties": {
+                  "target_sequence": {
+                    "oneOf": [
+                      { "$ref": "#/$defs/decoratedOligo" },
+                      { "type": "null" }
+                    ],
+                    "description": "Target genomic sequence if explicitly given; store as decorated oligo only if labels are present; otherwise just sequence and length."
+                  },
+                  "probe": {
+                    "$ref": "#/$defs/probe",
+                    "description": "The hybridization probe for this experiment."
+                  },
+                  "primer_sequences": {
+                    "oneOf": [
+                      { "$ref": "#/$defs/primerPair" },
+                      { "type": "null" }
+                    ],
+                    "description": "PCR primers associated with this experiment/amplicon if provided."
+                  },
+                  "related_sequences": {
+                    "type": "array",
+                    "description": "Additional related sequences (controls, references), if any.",
+                    "minItems": 0,
+                    "maxItems": 50,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["related_sequence", "description"],
+                      "properties": {
+                        "related_sequence": {
+                          "$ref": "#/$defs/decoratedOligo",
+                          "description": "A related sequence (plain or decorated)."
+                        },
+                        "description": {
+                          "type": ["string", "null"],
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "description": "Short explanation of the related sequence's role."
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+
+              "experiment_properties": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Quantitative and buffer parameters for this experiment.",
+                "required": ["concentrations", "parameters_SI"],
+                "properties": {
+                  "concentrations": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "Concentration-related values.",
+                    "required": ["dna_rna_concentration", "concentration_SI"],
+                    "properties": {
+                      "dna_rna_concentration": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Analyte concentration as reported (raw) plus normalized SI (mol/m^3)."
+                      },
+                      "concentration_SI": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Optional redundant SI-only concentration if the article already used SI; keep raw text synchronized."
+                      }
+                    }
+                  },
+                  "parameters_SI": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "Assay buffer/condition parameters, represented as raw + SI. If any value is not present, fill-in measurements fields as null.",
+                    "required": ["temperature", "Tris", "Na", "K", "Mg", "DMSO"],
+                    "properties": {
+                      "temperature": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Temperature (e.g., '58 °C'), with SI in Kelvin."
+                      },
+                      "Tris": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Tris buffer concentration; SI in mol/m^3 (1 mM = 1 mol/m^3)."
+                      },
+                      "Na": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Sodium ion concentration; SI in mol/m^3."
+                      },
+                      "K": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Potassium ion concentration; SI in mol/m^3."
+                      },
+                      "Mg": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "Magnesium ion concentration; SI in mol/m^3."
+                      },
+                      "DMSO": {
+                        "$ref": "#/$defs/measurement",
+                        "description": "DMSO amount (often % v/v); SI as dimensionless fraction (percent/100)."
+                      }
+                    }
+                  }
+                }
+              },
+
+              "outcome": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Results for this target-probe pairing.",
+                "required": ["outcome", "fluorescence", "comparative_notes"],
+                "properties": {
+                  "outcome": {
+                    "type": ["boolean", "null"],
+                    "description": "Boolean result if explicitly stated (e.g., success/failure). If not explicit, leave null."
+                  },
+                  "fluorescence": {
+                    "$ref": "#/$defs/measurement",
+                    "description": "Fluorescence or signal measurement (raw text + normalized form if numeric). If comparative only, keep statement in 'raw' and numeric fields null."
+                  },
+                  "comparative_notes": {
+                    "type": ["string", "null"],
+                    "minLength": 0,
+                    "maxLength": 500,
+                    "description": "Comparative statements (e.g., 'N3-FAM stronger in real-time PCR; N3-Cy5 stronger in DMA')."
+                  }
+                }
+              },
+
+              "pairing": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Optional cross-references to paired/reciprocal probes within the same article.",
+                "required": ["paired_with_probe_name", "relationship"],
+                "properties": {
+                  "paired_with_probe_name": {
+                    "type": ["string", "null"],
+                    "description": "Name of the other probe in a reciprocal comparison (e.g., 'N3-Cy5(27)s')."
+                  },
+                  "relationship": {
+                    "type": ["string", "null"],
+                    "description": "Short label describing the relation (e.g., 'reciprocal comparison', 'same sequence different labels')."
+                  }
+                }
+              },
+
+              "extraction_report": { "$ref": "#/$defs/extractionReport" }
+            }
+          }
+        },
+
+        "extraction_report": { "$ref": "#/$defs/extractionReport" }
+      }
+    },
+
+    {
+      "title": "Article with no hybridization probe sequences",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["doi", "explanation_why_does_not_this_article_have_any_hybridization_probes_sequences", "extraction_report"],
+      "properties": {
+        "doi": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 100,
+          "description": "Digital Object Identifier for the article."
+        },
+        "explanation_why_does_not_this_article_have_any_hybridization_probes_sequences": {
+          "type": "string",
+          "minLength": 50,
+          "maxLength": 2000,
+          "description": "A detailed justification straight from the article explaining the absence of probe sequences."
+        },
+        "extraction_report": { "$ref": "#/$defs/extractionReport" }
+      }
+    }
+  ]
+}

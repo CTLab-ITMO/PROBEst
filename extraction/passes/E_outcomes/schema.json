@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OutcomesPerExperiment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "extraction_report"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id_exp", "outcome", "fluorescence", "comparative_notes"],
+        "properties": {
+          "id_exp": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "outcome": { "type": ["boolean", "null"] },
+          "fluorescence": { "$ref": "#/$defs/measurement_lite" },
+          "comparative_notes": { "type": ["string", "null"], "maxLength": 500 }
+        }
+      }
+    },
+    "extraction_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "uncertain": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "$defs": {
+    "measurement_lite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw", "value", "unit"],
+      "properties": {
+        "raw": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "value": { "type": ["number", "null"] },
+        "unit": { "type": ["string", "null"], "maxLength": 50 }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RelatedSequencesPerExperiment (generation schema)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "extraction_report"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id_exp", "related_sequences"],
+        "properties": {
+          "id_exp": { "type": "string" },
+          "related_sequences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["related_sequence", "description"],
+              "properties": {
+                "related_sequence": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
+                  "properties": {
+                    "raw": { },
+                    "sequence": { },
+                    "length_bases": { },
+                    "prime_prefix": { },
+                    "five_prime_label": { },
+                    "three_prime_label": { },
+                    "sense_antisense": { },
+                    "modifications": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["modification_position", "modification_type", "description"],
+                        "properties": {
+                          "modification_position": { },
+                          "modification_type": { },
+                          "description": { }
+                        }
+                      }
+                    },
+                    "fluorophore": { },
+                    "quencher": { }
+                  }
+                },
+                "description": { }
+              }
+            }
+          }
+        }
+      }
+    },
+    "extraction_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "uncertain": { "type": "array", "items": { "type": "string" } },
+        "notes": { }
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AllHybridizationExperiments",
+  "description": "All hybridization experiments described in article",
+  "type": "array",
+  "minItems": 0,
+  "items": {
+    "description": "A single instance of hybridization experiment from the article.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "target": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 100,
+        "description": "What is the target in this instance of hybridization experiment? If possible, please provide the sequence. If sequence is not available, describe the target in a free form."
+      },
+      "probe": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 100,
+        "description": "The hybridization probe in this instance of hybridization experiment."
+      },
+      "parameters": {
+        "type": "string",
+        "minLength": 20,
+        "maxLength": 200,
+        "description": "Briefly describe the laboratory parameters used for setting up for this hybridization experiment."
+      },
+      "hybridization_experiment_description": {
+        "type": "string",
+        "minLength": 20,
+        "maxLength": 200,
+        "description": "Explain, what was tested in this instance of hybridization experiment."
+      }
+    }
+  }
+}

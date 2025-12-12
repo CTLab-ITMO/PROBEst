@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TargetAndPrimersPerExperiment (generation schema)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "extraction_report"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id_exp", "target_sequence", "primer_sequences"],
+        "properties": {
+          "id_exp": { "type": "string" },
+
+          "target_sequence": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
+            "properties": {
+              "raw": { },
+              "sequence": { },
+              "length_bases": { },
+              "prime_prefix": { },
+              "five_prime_label": { },
+              "three_prime_label": { },
+              "sense_antisense": { },
+              "modifications": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["modification_position", "modification_type", "description"],
+                  "properties": {
+                    "modification_position": { },
+                    "modification_type": { },
+                    "description": { }
+                  }
+                }
+              },
+              "fluorophore": { },
+              "quencher": { }
+            }
+          },
+
+          "primer_sequences": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["forward", "reverse"],
+            "properties": {
+              "forward": {
+                "type": ["object", "null"],
+                "additionalProperties": false,
+                "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
+                "properties": {
+                  "raw": { },
+                  "sequence": { },
+                  "length_bases": { },
+                  "prime_prefix": { },
+                  "five_prime_label": { },
+                  "three_prime_label": { },
+                  "sense_antisense": { },
+                  "modifications": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["modification_position", "modification_type", "description"],
+                      "properties": {
+                        "modification_position": { },
+                        "modification_type": { },
+                        "description": { }
+                      }
+                    }
+                  },
+                  "fluorophore": { },
+                  "quencher": { }
+                }
+              },
+              "reverse": {
+                "type": ["object", "null"],
+                "additionalProperties": false,
+                "required": ["raw", "sequence", "length_bases", "prime_prefix", "five_prime_label", "three_prime_label", "sense_antisense", "modifications", "fluorophore", "quencher"],
+                "properties": {
+                  "raw": {  },
+                  "sequence": { },
+                  "length_bases": { },
+                  "prime_prefix": { },
+                  "five_prime_label": { },
+                  "three_prime_label": { },
+                  "sense_antisense": { },
+                  "modifications": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["modification_position", "modification_type", "description"],
+                      "properties": {
+                        "modification_position": { },
+                        "modification_type": { },
+                        "description": { }
+                      }
+                    }
+                  },
+                  "fluorophore": { },
+                  "quencher": { }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "extraction_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["missing", "uncertain", "notes"],
+      "properties": {
+        "missing": { "type": "array", "items": { "type": "string" } },
+        "uncertain": { "type": "array", "items": { "type": "string" } },
+        "notes": { }
+      }
+    }
+  }
+}
