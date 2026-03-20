@@ -50,9 +50,11 @@ def arguments_parse():
     Usage:
     1. Provide an input FASTA file for probe generation (-i), or omit -i to use the first
        FASTA from the true base (-tb) when -tb is a FASTA file or directory of FASTA files.
-    2. Specify BLAST databases for primer adjustment (-tb) and, optionally, for non-specific
-       testing (-fb). If -fb is omitted, off-target BLAST steps are skipped and empty negative
-       hit files are used so the rest of the pipeline still runs.
+       If -tb is omitted, -i is required: each sequence in -i is split into a separate file
+       and used as the target (true) BLAST base.
+    2. Specify BLAST databases for primer adjustment (-tb), or rely on (-i) only as above;
+       optionally use non-specific testing (-fb). If -fb is omitted, off-target BLAST steps
+       are skipped and empty negative hit files are used so the rest of the pipeline still runs.
     3. Configure evolutionary algorithm parameters and primer3/blastn settings.
     """
 
@@ -63,11 +65,12 @@ def arguments_parse():
                         required=False,
                         default=None,
                         nargs="*",
-                        help="Input FASTA file(s) or directory(ies) for probe generation. Can be a single file/directory or multiple files/directories. If a directory is provided, all *.fa, *.fna, *.fasta files (and their .gz versions) will be processed. Probes are generated for different contigs separately. Only gene-coding regions are recommended (.fna). If omitted, the first FASTA file from --true_base is used (same name sorting as directory scans); --true_base must then be a FASTA file or a directory of FASTA files, not a BLAST DB path only.")
+                        help="Input FASTA file(s) or directory(ies) for probe generation. Can be a single file/directory or multiple files/directories. If a directory is provided, all *.fa, *.fna, *.fasta files (and their .gz versions) will be processed. Probes are generated for different contigs separately. Only gene-coding regions are recommended (.fna). If omitted, the first FASTA file from --true_base is used (same name sorting as directory scans); --true_base must then be a FASTA file or a directory of FASTA files, not a BLAST DB path only. If --true_base is omitted, -i is required: each sequence becomes one sample for the target BLAST database.")
 
     parser.add_argument("-tb", "--true_base",
-                        required=True,
-                        help="Path to the BLAST database for primer adjustment, or a directory of FASTA files used to build that database. This database ensures primer specificity. Use several FASTA files that share common sites (e.g. homologous or syntenic regions); without multiple such sequences this workflow is not usable.")
+                        required=False,
+                        default=None,
+                        help="Path to the BLAST database for primer adjustment, or a directory of FASTA files used to build that database. If omitted, each sequence from -i is written as a separate FASTA under the output directory and used as the true base (requires -i). When provided, use several FASTA files that share common sites when possible (e.g. homologous or syntenic regions).")
 
     parser.add_argument("-fb", "--false_base",
                         required=False,
@@ -324,9 +327,21 @@ def arguments_parse():
         args.false_base = []
     else:
         args.false_base = [p for p in args.false_base if p and str(p).strip()]
-    # Correct true/false bases. Trim trailing spaces in db path to avoid blastn crash
-    args.true_base = args.true_base[:-
-                                    1] if args.true_base.endswith('/') else args.true_base
+    if args.input is None:
+        args.input = []
+    else:
+        args.input = [p for p in args.input if p and str(p).strip()]
+
+    if args.true_base is not None and str(args.true_base).strip():
+        args.true_base = args.true_base[:-1] if args.true_base.endswith('/') else args.true_base
+    else:
+        args.true_base = None
+
+    if not args.true_base and not args.input:
+        parser.error(
+            "When -tb/--true_base is omitted, -i/--input is required "
+            "(FASTA paths to split into one file per sequence for the target BLAST base)."
+        )
     for i, db_neg in enumerate(args.false_base):
         if db_neg.endswith('/'):
             args.false_base[i] = db_neg[:-1]

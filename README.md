@@ -6,9 +6,9 @@
 [![ITMO](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge.svg)](https://itmo.ru/) 
 [![conda build](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml/badge.svg)](https://github.com/CTLab-ITMO/PROBEst/actions/workflows/build.yml) 
 
-**PROBEst** is a tool designed for generating nucleotide probes with specified properties, leveraging advanced algorithms and AI-driven techniques to ensure high-quality results. The tool is particularly useful for researchers and bioinformaticians who require probes with tailored universality and specificity for applications such as PCR, hybridization, and sequencing. By integrating a wrapped evolutionary algorithm, PROBEst optimizes probe generation through iterative refinement, ensuring that the final probes meet stringent biological and computational criteria.
+**PROBEst** is a tool designed for generating nucleotide probes with specified properties. It uses a wrapped evolutionary algorithm to iteratively refine the probes by introducing mutations and evaluating their performance, ensuring that the final output is both specific to the target and universally applicable across related sequences.
 
-At the core of PROBEst is an AI-enhanced workflow that combines Primer3 or OligoMiner for initial oligonucleotide generation, BLASTn for specificity and universality checks, and a mutation module for probe optimization. The tool allows users to input target sequences, select reference files for universality and specificity validation, and customize layouts for probe design. The evolutionary algorithm iteratively refines the probes by introducing mutations and evaluating their performance, ensuring that the final output is both specific to the target and universally applicable across related sequences.
+In general, tool is usefull for the probes generation to match the long target list and still have good specificity.
 
 
 # Download and installation
@@ -34,8 +34,9 @@ PROBEst can be run using the following command:
 ```bash
 #conda activate probest
 python pipeline.py \
-  -i {INPUT} \ # fasta // .fa.gz; may be ommited, than the first file from the `-tb` directory will be used
-  -tb {TRUE_BASE} \ # directory with blastn database / fasta files for nucleotide adjusting & improvement
+  -i {INPUT} \ # fasta // .fa.gz; if ommited, the first file from 
+  the `-tb` directory will be used
+  -tb {TRUE_BASE} \ # optional; BLAST DB or FASTA directory for oligo improvement; if omitted, true base is built from per-sequence split of `-i`
   -fb [FALSE_BASE ...] \ # same as TB, but for off-target search; optional; omit to skip off-target search
   -c {CONTIG_TABLE} \ # .tsv table with BLAST database information (optional; defaults to `{OUTPUT}/contigs.tsv` when using FASTA directories).
   -o {OUTPUT} \ # output directory
@@ -45,7 +46,7 @@ python pipeline.py \
 
 #### Key arguments:
 - `-i INPUT`: Input FASTA file (or directory with fasta / fasta.gz file) for the initial probe set generation.
-- `-tb TRUE_BASE`: BLASTn database path *or* directory of FASTA files for primer adjusting (directories are converted under `{OUTPUT}/.blast_db/`).
+- `-tb TRUE_BASE`: BLASTn database path *or* directory of FASTA files for primer adjusting (directories are converted under `{OUTPUT}/.blast_db/`). **Optional**: omit to build the true base from `-i` by writing one `.fna` per sequence under `{OUTPUT}/.true_base_from_input/` (then `-i` is required).
 - `-fb FALSE_BASE`: BLASTn database path(s) *or* FASTA directories for non-specific testing. **Optional**: if omitted, off-target `blastn` is skipped and an empty `negative_hits.tsv` is used each iteration (the rest of the pipeline still runs).
 - `-c CONTIG_TABLE`: .tsv table with BLAST database information (optional; defaults to `{OUTPUT}/contigs.tsv` when using FASTA directories).
 - `-o OUTPUT`: Output path for results.
@@ -133,7 +134,9 @@ For detailed web app documentation, see [app/README.md](app/README.md)
       
    d. **Mutation in Probe**
    
-   e. **AI corrections**
+   e. **AI corrections** (if `-AI` is enabled)
+
+   f. **De-degeneration** (if `-degeneration` is enabled)
 
 ```mermaid
 ---

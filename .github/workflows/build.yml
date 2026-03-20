@@ -29,6 +29,8 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install -e .
+        command -v PROBESt
+        PROBESt --help >/dev/null
     - name: Lint with flake8
       shell: bash -l {0}
       run: |

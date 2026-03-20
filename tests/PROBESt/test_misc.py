@@ -33,7 +33,9 @@ from PROBESt.misc import (
     calculate_gc_content, 
     get_sequence_from_fasta,
     load_sequences_from_fasta,
-    extend_blast_output_with_parameters
+    extend_blast_output_with_parameters,
+    split_fasta_inputs_into_true_base_dir,
+    iter_fasta_records,
 )
 
 
@@ -151,3 +153,20 @@ def test_extend_blast_output_with_parameters(tmp_path):
     # Check that length was calculated from sstart and send
     assert extended_df.loc[0, 'length'] == 8  # send - sstart + 1 = 8 - 1 + 1 = 8
     assert extended_df.loc[1, 'length'] == 8  # 17 - 10 + 1 = 8
+
+
+def test_iter_fasta_records_multi_line(tmp_path):
+    fp = tmp_path / "in.fa"
+    fp.write_text(">s1\nAT\nGC\n>s2\nGG\n")
+    rows = list(iter_fasta_records(str(fp)))
+    assert rows == [("s1", "ATGC"), ("s2", "GG")]
+
+
+def test_split_fasta_inputs_into_true_base_dir(tmp_path):
+    fp = tmp_path / "in.fna"
+    fp.write_text(">a\nAAA\n>b\nTT\n")
+    out = tmp_path / "split"
+    n = split_fasta_inputs_into_true_base_dir([str(fp)], str(out))
+    assert n == 2
+    got = sorted(out.glob("*.fna"))
+    assert len(got) == 2

@@ -28,6 +28,7 @@ import os
 import re
 import subprocess
 import glob
+import gzip
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Optional, TYPE_CHECKING
@@ -164,6 +165,60 @@ def collect_fasta_files(inputs: List[str]) -> List[str]:
         raise ValueError("No FASTA files found in any of the provided inputs")
     
     return sorted(fasta_files)
+
+
+def _open_fasta_text(path: str):
+    if path.endswith('.gz'):
+        return gzip.open(path, 'rt', encoding='utf-8', errors='replace')
+    return open(path, 'r', encoding='utf-8', errors='replace')
+
+
+def iter_fasta_records(path: str):
+    """Yield (header_without_gt, sequence) for each record in a FASTA (or .gz) file."""
+    with _open_fasta_text(path) as fh:
+        header = None
+        seq_parts: List[str] = []
+        for raw in fh:
+            line = raw.strip()
+            if not line:
+                continue
+            if line.startswith('>'):
+                if header is not None:
+                    yield header, ''.join(seq_parts)
+                header = line[1:]
+                seq_parts = []
+            else:
+                seq_parts.append(line)
+        if header is not None:
+            yield header, ''.join(seq_parts)
+
+
+def split_fasta_inputs_into_true_base_dir(fasta_paths: List[str], directory: str) -> int:
+    """
+    Write each sequence from the given FASTA files as a separate .fna file in ``directory``.
+
+    Used when no external -tb is provided: one file per sequence acts as independent
+    samples for building the target BLAST database.
+
+    Returns:
+        Number of sequences written.
+
+    Raises:
+        ValueError: If no sequences were written.
+    """
+    os.makedirs(directory, exist_ok=True)
+    written = 0
+    for fpath in fasta_paths:
+        for header, seq in iter_fasta_records(fpath):
+            if not seq:
+                continue
+            written += 1
+            out_name = os.path.join(directory, f"sample_{written:06d}.fna")
+            with open(out_name, 'w', encoding='utf-8') as out:
+                out.write(f">{header}\n{seq}\n")
+    if written == 0:
+        raise ValueError("No FASTA records found in inputs for true-base split")
+    return written
 
 
 def process_multiple_inputs(
