@@ -53,7 +53,7 @@ src_dir = os.path.join(os.path.dirname(__file__), 'src')
 
 setup(
     name='PROBESt',
-    version='0.2.1',
+    version='0.2.2',
     packages=find_packages(where=src_dir),
     package_dir={'': src_dir},
     python_requires='>=3.12',

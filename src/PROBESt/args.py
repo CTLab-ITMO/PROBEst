@@ -48,7 +48,8 @@ def arguments_parse():
     non-specific probes.
 
     Usage:
-    1. Provide an input FASTA file for probe generation.
+    1. Provide an input FASTA file for probe generation (-i), or omit -i to use the first
+       FASTA from the true base (-tb) when -tb is a FASTA file or directory of FASTA files.
     2. Specify BLAST databases for primer adjustment and non-specific testing.
     3. Configure evolutionary algorithm parameters and primer3/blastn settings.
     """
@@ -57,13 +58,14 @@ def arguments_parse():
 
     # Main arguments
     parser.add_argument("-i", "--input",
-                        required=True,
+                        required=False,
+                        default=None,
                         nargs="*",
-                        help="Input FASTA file(s) or directory(ies) for probe generation. Can be a single file/directory or multiple files/directories. If a directory is provided, all *.fa, *.fna, *.fasta files (and their .gz versions) will be processed. Probes are generated for different contigs separately. Only gene-coding regions are recommended (.fna).")
+                        help="Input FASTA file(s) or directory(ies) for probe generation. Can be a single file/directory or multiple files/directories. If a directory is provided, all *.fa, *.fna, *.fasta files (and their .gz versions) will be processed. Probes are generated for different contigs separately. Only gene-coding regions are recommended (.fna). If omitted, the first FASTA file from --true_base is used (same name sorting as directory scans); --true_base must then be a FASTA file or a directory of FASTA files, not a BLAST DB path only.")
 
     parser.add_argument("-tb", "--true_base",
                         required=True,
-                        help="Path to the BLAST database for primer adjustment. This database is used to ensure primer specificity.")
+                        help="Path to the BLAST database for primer adjustment, or a directory of FASTA files used to build that database. This database ensures primer specificity. Use several FASTA files that share common sites (e.g. homologous or syntenic regions); without multiple such sequences this workflow is not usable.")
 
     parser.add_argument("-fb", "--false_base",
                         required=True,
@@ -329,5 +331,17 @@ def arguments_parse():
     # Set default contig_table if not provided
     if args.contig_table is None:
         args.contig_table = args.output + "/contigs.tsv"
-    
+
+    if not args.input:
+        from PROBESt.misc import collect_fasta_files
+        try:
+            inferred = collect_fasta_files([args.true_base])
+        except ValueError as exc:
+            parser.error(
+                "When -i/--input is omitted, --true_base must be a FASTA file or a directory "
+                "containing FASTA files (so the input can match the first file found). "
+                f"Could not infer input: {exc}"
+            )
+        args.input = [inferred[0]]
+
     return args

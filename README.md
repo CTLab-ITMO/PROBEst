@@ -19,6 +19,8 @@ At the core of PROBEst is an AI-enhanced workflow that combines Primer3 or Oligo
 git clone https://github.com/CTLab-ITMO/PROBESt.git
 cd PROBEst
 bash setup/install.sh
+# or if you prefer to install with pip (may cause conflicts):
+# pip install -e .
 #validate installation with 
 #setup/test_generator.sh
 ```
@@ -30,8 +32,9 @@ bash setup/install.sh
 PROBEst can be run using the following command:
 
 ```bash
+#conda activate probest
 python pipeline.py \
-  -i {INPUT} \ # fasta // .fa.gz
+  -i {INPUT} \ # fasta // .fa.gz; may be ommited, than the first file from the `-tb` directory will be used
   -tb {TRUE_BASE} \ # directory with blastn database / fasta files
   -fb [FALSE_BASE ...] \ # directories with blastn database / fasta files
   -c {CONTIG_TABLE} \ # .tsv table with BLAST database information (optional; defaults to `{OUTPUT}/contigs.tsv` when using FASTA directories).

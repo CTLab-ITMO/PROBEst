@@ -94,7 +94,7 @@ args.script_path = os.path.dirname(
     "/scripts/generator/"
 
 # 1. Initial set generation ----
-print("\n---- PROBESt v.0.2.0 ----\n")
+print("\n---- PROBESt v.0.2.2 ----\n")
 print("Arguments passed")
 
 # Create output directory early (needed for BLAST database preparation)
