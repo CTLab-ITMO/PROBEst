@@ -33,7 +33,9 @@ from pathlib import Path
 
 # Add the project root directory to the Python path
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+# This project uses a `src/` layout, so we need to add `src/` (not repo root)
+# for `import PROBESt` to resolve to the local sources.
+sys.path.insert(0, str(project_root / "src"))
 
 @pytest.fixture(autouse=True)
 def setup_test_env():
