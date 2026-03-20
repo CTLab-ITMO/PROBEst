@@ -56,6 +56,7 @@ setup(
     version='0.2.2',
     packages=find_packages(where=src_dir),
     package_dir={'': src_dir},
+    py_modules=['pipeline'],
     python_requires='>=3.12',
     install_requires=read_requirements(),
     author='CTLab',
@@ -73,6 +74,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
+            'PROBESt=PROBESt.pipeline_entry:main',
             'probebase=PROBESt.scripts.probebase:main',
             'genome_operations=PROBESt.genome_operations:main',
         ],

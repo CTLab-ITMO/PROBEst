@@ -155,6 +155,8 @@ ACTIVATE_SCRIPT="$CONDA_ENV_PATH/etc/conda/activate.d/probest_vars.sh"
 mkdir -p "$(dirname "$ACTIVATE_SCRIPT")"
 cat > "$ACTIVATE_SCRIPT" << EOF
 #!/bin/bash
+# Console scripts (PROBESt, probebase, genome_operations) live in the env bin
+export PATH="\${CONDA_PREFIX}/bin:\${PATH}"
 export OLIGOMINER_PATH="$OLIGOMINER_DIR"
 # Set Python 2.7 path for OligoMiner (from separate environment)
 if [ -f "$OLIGOMINER_ENV_PATH/bin/python2.7" ]; then
@@ -179,5 +181,6 @@ echo "  conda activate $ENV_NAME"
 echo ""
 echo "To test the installation:"
 echo "  conda activate $ENV_NAME"
+echo "  PROBESt --help"
 echo "  bash setup/test_generator.sh"
 
