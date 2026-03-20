@@ -35,16 +35,13 @@ import os
 import subprocess
 import pandas as pd
 import tempfile
-import warnings
 import random
-# Suppress Biopython deprecation warning for pairwise2 before importing
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="Bio.pairwise2")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.gridspec import GridSpec
 import numpy as np
 from Bio import SeqIO
-from Bio import pairwise2
+from Bio.Align import PairwiseAligner
 from Bio.Seq import Seq
 from typing import Dict, Tuple, Optional
 import RNA
@@ -585,7 +582,15 @@ def create_visualization(
     probe_dna = probe_rna.replace('U', 'T')
     
     # Perform pairwise alignment
-    alignments = pairwise2.align.globalxx(probe_dna, target_dna)
+    aligner = PairwiseAligner()
+    aligner.mode = "global"
+    # globalxx: match=1, mismatch=0, gap-open=0, gap-extend=0
+    aligner.match_score = 1.0
+    aligner.mismatch_score = 0.0
+    aligner.open_gap_score = 0.0
+    aligner.extend_gap_score = 0.0
+
+    alignments = aligner.align(probe_dna, target_dna)
     if not alignments:
         # Fallback: use sequences as-is if alignment fails
         aligned_probe = probe_dna
@@ -593,8 +598,18 @@ def create_visualization(
         match_line = ''.join(['|' if p == t else ' ' for p, t in zip(probe_dna[:len(target_dna)], target_dna[:len(probe_dna)])])
     else:
         best_alignment = alignments[0]
-        aligned_probe = best_alignment.seqA
-        aligned_target = best_alignment.seqB
+        # PairwiseAligner does not provide seqA/seqB like pairwise2; extract aligned strings
+        # (including '-' gap characters) from the formatted alignment.
+        fmt_lines = best_alignment.format().splitlines()
+        target_line = next((l for l in fmt_lines if l.strip().startswith("target")), "")
+        query_line = next((l for l in fmt_lines if l.strip().startswith("query")), "")
+        target_tokens = target_line.split()
+        query_tokens = query_line.split()
+        aligned_probe = target_tokens[-2] if len(target_tokens) >= 4 else probe_dna
+        aligned_target = query_tokens[-2] if len(query_tokens) >= 4 else target_dna
+        if len(aligned_probe) != len(aligned_target):
+            aligned_probe = probe_dna
+            aligned_target = target_dna
         match_line = ''.join(['|' if a == b else ' ' for a, b in zip(aligned_probe, aligned_target)])
     
     # Calculate energies
