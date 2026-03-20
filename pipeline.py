@@ -184,12 +184,15 @@ for iter in range(1, args.iterations+1):
 
     # false bases: first DB uses '>' so negative_hits.tsv is not appended to stale files
     neg_path = out_dir(iter) + "negative_hits.tsv"
-    for i, db_neg in enumerate(args.false_base):
-        redir = " > " if i == 0 else " >> "
-        blastn_db = blastn_iter + " -db " + db_neg + redir + neg_path
-        subprocess.run(blastn_db, shell=True)
-
-    print("Negative hits counted")
+    if args.false_base:
+        for i, db_neg in enumerate(args.false_base):
+            redir = " > " if i == 0 else " >> "
+            blastn_db = blastn_iter + " -db " + db_neg + redir + neg_path
+            subprocess.run(blastn_db, shell=True)
+        print("Negative hits counted")
+    else:
+        open(neg_path, "w").close()
+        print("No false bases (-fb): skipped off-target blastn; wrote empty negative_hits.tsv")
 
     # 2.5. like domain supersecondary organization ----
     if getattr(args, 'AI', True):  # Default to True if not set

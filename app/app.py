@@ -169,7 +169,8 @@ def run_pipeline(args_dict, session_id):
         # Add required arguments
         cmd.extend(['-i', args_dict['input']])
         cmd.extend(['-tb', args_dict['true_base']])
-        cmd.extend(['-fb'] + args_dict['false_base'])
+        if args_dict.get('false_base'):
+            cmd.extend(['-fb'] + args_dict['false_base'])
         cmd.extend(['-c', args_dict['contig_table']])
         cmd.extend(['-o', temp_dir])
         
@@ -344,44 +345,44 @@ def process():
         args_dict['true_base'] = true_base_db_path
         args_dict['contig_table'] = contig_table_path
         
-        # Offtarget database databases - extract FASTA and create BLAST databases
+        # Offtarget database databases - extract FASTA and create BLAST databases (optional)
         false_base_files = request.files.getlist('false_base_files')
-        if not false_base_files or not any(f.filename for f in false_base_files):
-            return jsonify({'error': 'At least one offtarget database database is required'}), 400
-        
         args_dict['false_base'] = []
-        for i, false_base_file in enumerate(false_base_files):
-            if false_base_file.filename:
-                false_base_filename = secure_filename(false_base_file.filename)
-                
-                if not false_base_filename.endswith(('.zip', '.tar.gz', '.tgz', '.tar')):
-                    return jsonify({'error': f'Offtarget database {i+1} must be a .zip or .tar.gz archive containing FASTA files'}), 400
-                
-                false_base_archive_path = os.path.join(app.config['UPLOAD_FOLDER'], 
-                                                      session_id + f'_false_base_{i}_archive')
-                false_base_file.save(false_base_archive_path)
-                
-                # Extract archive
-                false_base_extract_dir = os.path.join(app.config['UPLOAD_FOLDER'], 
-                                                     session_id + f'_false_base_{i}_extracted')
-                extract_archive(false_base_archive_path, false_base_extract_dir)
-                
-                # Find FASTA files
-                false_base_fasta_files = find_fasta_files(false_base_extract_dir)
-                if not false_base_fasta_files:
-                    return jsonify({'error': f'No FASTA files found in offtarget database {i+1} archive'}), 400
-                
-                # Create BLAST database using prep_db.sh
-                false_base_db_path = os.path.join(app.config['UPLOAD_FOLDER'], 
-                                                  session_id + f'_false_base_{i}_db')
-                false_base_tmp_dir = os.path.join(app.config['UPLOAD_FOLDER'], 
-                                                  session_id + f'_false_base_{i}_tmp')
-                
-                run_prep_db(false_base_fasta_files, false_base_db_path, 
-                           os.path.join(app.config['UPLOAD_FOLDER'], session_id + f'_false_base_{i}_contig.tsv'),
-                           false_base_tmp_dir, prep_db_script)
-                
-                args_dict['false_base'].append(false_base_db_path)
+        if not false_base_files or not any(f.filename for f in false_base_files):
+            pass
+        else:
+            for i, false_base_file in enumerate(false_base_files):
+                if false_base_file.filename:
+                    false_base_filename = secure_filename(false_base_file.filename)
+                    
+                    if not false_base_filename.endswith(('.zip', '.tar.gz', '.tgz', '.tar')):
+                        return jsonify({'error': f'Offtarget database {i+1} must be a .zip or .tar.gz archive containing FASTA files'}), 400
+                    
+                    false_base_archive_path = os.path.join(app.config['UPLOAD_FOLDER'], 
+                                                          session_id + f'_false_base_{i}_archive')
+                    false_base_file.save(false_base_archive_path)
+                    
+                    # Extract archive
+                    false_base_extract_dir = os.path.join(app.config['UPLOAD_FOLDER'], 
+                                                         session_id + f'_false_base_{i}_extracted')
+                    extract_archive(false_base_archive_path, false_base_extract_dir)
+                    
+                    # Find FASTA files
+                    false_base_fasta_files = find_fasta_files(false_base_extract_dir)
+                    if not false_base_fasta_files:
+                        return jsonify({'error': f'No FASTA files found in offtarget database {i+1} archive'}), 400
+                    
+                    # Create BLAST database using prep_db.sh
+                    false_base_db_path = os.path.join(app.config['UPLOAD_FOLDER'], 
+                                                      session_id + f'_false_base_{i}_db')
+                    false_base_tmp_dir = os.path.join(app.config['UPLOAD_FOLDER'], 
+                                                      session_id + f'_false_base_{i}_tmp')
+                    
+                    run_prep_db(false_base_fasta_files, false_base_db_path, 
+                               os.path.join(app.config['UPLOAD_FOLDER'], session_id + f'_false_base_{i}_contig.tsv'),
+                               false_base_tmp_dir, prep_db_script)
+                    
+                    args_dict['false_base'].append(false_base_db_path)
         
         # Optional parameters
         args_dict['threads'] = request.form.get('threads', '1')

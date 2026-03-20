@@ -50,7 +50,9 @@ def arguments_parse():
     Usage:
     1. Provide an input FASTA file for probe generation (-i), or omit -i to use the first
        FASTA from the true base (-tb) when -tb is a FASTA file or directory of FASTA files.
-    2. Specify BLAST databases for primer adjustment and non-specific testing.
+    2. Specify BLAST databases for primer adjustment (-tb) and, optionally, for non-specific
+       testing (-fb). If -fb is omitted, off-target BLAST steps are skipped and empty negative
+       hit files are used so the rest of the pipeline still runs.
     3. Configure evolutionary algorithm parameters and primer3/blastn settings.
     """
 
@@ -68,9 +70,10 @@ def arguments_parse():
                         help="Path to the BLAST database for primer adjustment, or a directory of FASTA files used to build that database. This database ensures primer specificity. Use several FASTA files that share common sites (e.g. homologous or syntenic regions); without multiple such sequences this workflow is not usable.")
 
     parser.add_argument("-fb", "--false_base",
-                        required=True,
+                        required=False,
+                        default=None,
                         nargs="*",
-                        help="Path(s) to the BLAST database(s) for non-specific testing. These databases are used to filter out non-specific probes. Wildcards are not accepted.")
+                        help="Path(s) to the BLAST database(s) for non-specific testing. These databases are used to filter out non-specific probes. Wildcards are not accepted. If omitted or empty, blastn against false databases is skipped and an empty negative_hits file is written each iteration (downstream probe_check still runs; off-target filtering uses only true hits and --negative_max).")
 
     parser.add_argument("-c", "--contig_table",
                         required=False,
@@ -317,6 +320,10 @@ def arguments_parse():
     args = parser.parse_args()
     
     # Correct args
+    if args.false_base is None:
+        args.false_base = []
+    else:
+        args.false_base = [p for p in args.false_base if p and str(p).strip()]
     # Correct true/false bases. Trim trailing spaces in db path to avoid blastn crash
     args.true_base = args.true_base[:-
                                     1] if args.true_base.endswith('/') else args.true_base

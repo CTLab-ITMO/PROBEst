@@ -35,8 +35,8 @@ PROBEst can be run using the following command:
 #conda activate probest
 python pipeline.py \
   -i {INPUT} \ # fasta // .fa.gz; may be ommited, than the first file from the `-tb` directory will be used
-  -tb {TRUE_BASE} \ # directory with blastn database / fasta files
-  -fb [FALSE_BASE ...] \ # directories with blastn database / fasta files
+  -tb {TRUE_BASE} \ # directory with blastn database / fasta files for nucleotide adjusting & improvement
+  -fb [FALSE_BASE ...] \ # same as TB, but for off-target search; optional; omit to skip off-target search
   -c {CONTIG_TABLE} \ # .tsv table with BLAST database information (optional; defaults to `{OUTPUT}/contigs.tsv` when using FASTA directories).
   -o {OUTPUT} \ # output directory
 ```
@@ -46,7 +46,7 @@ python pipeline.py \
 #### Key arguments:
 - `-i INPUT`: Input FASTA file (or directory with fasta / fasta.gz file) for the initial probe set generation.
 - `-tb TRUE_BASE`: BLASTn database path *or* directory of FASTA files for primer adjusting (directories are converted under `{OUTPUT}/.blast_db/`).
-- `-fb FALSE_BASE`: BLASTn database path(s) *or* FASTA directories for non-specific testing.
+- `-fb FALSE_BASE`: BLASTn database path(s) *or* FASTA directories for non-specific testing. **Optional**: if omitted, off-target `blastn` is skipped and an empty `negative_hits.tsv` is used each iteration (the rest of the pipeline still runs).
 - `-c CONTIG_TABLE`: .tsv table with BLAST database information (optional; defaults to `{OUTPUT}/contigs.tsv` when using FASTA directories).
 - `-o OUTPUT`: Output path for results.
 - `-t THREADS`: Number of threads to use.

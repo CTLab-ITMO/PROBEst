@@ -94,3 +94,59 @@ def test_integration_fish(tmp_path):
     viz_dir = output / "visualizations"
     assert viz_dir.is_dir()
     assert any(viz_dir.glob("*_visualization.png"))
+
+
+
+@pytest.mark.integration
+def test_integration_primer(tmp_path):
+    """Same CLI as: …/test.fna, fasta_base true/false dirs, -N 3, --visualize True --AI True.
+
+    True-base genomes must be present in git as ``*.fna.gz`` under ``fasta_base/true_base``
+    (plain ``*.fna`` is gitignored); false bases already use gz in the repo.
+    """
+    _require_blast_tools()
+
+    output = tmp_path / "output"
+    cmd = [
+        sys.executable,
+        str(PROJECT_ROOT / "pipeline.py"),
+        "-i",
+        str(PROJECT_ROOT / "data/test/general/test.fna"),
+        "-o",
+        str(output),
+        "-tb",
+        str(PROJECT_ROOT / "data/test/general/fasta_base/true_base"),
+        "-fb",
+        str(PROJECT_ROOT / "data/test/general/fasta_base/false_base_1"),
+        str(PROJECT_ROOT / "data/test/general/fasta_base/false_base_2"),
+        "-a",
+        "primer",
+        "--PRIMER_PICK_PRIMER",
+        "5",
+        "--PRIMER_NUM_RETURN",
+        "5",
+        "-N",
+        "3",
+        "--visualize",
+        "True",
+        "--AI",
+        "True",
+    ]
+
+    result = subprocess.run(
+        cmd,
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        pytest.fail(
+            f"pipeline.py exited {result.returncode}\n"
+            f"--- stdout ---\n{result.stdout}\n--- stderr ---\n{result.stderr}"
+        )
+
+    assert (output / "modeling_results.tsv").is_file()
+    assert (output / "output_dedegenerated.fa").is_file()
+    viz_dir = output / "visualizations"
+    assert viz_dir.is_dir()
+    assert any(viz_dir.glob("*_visualization.png"))

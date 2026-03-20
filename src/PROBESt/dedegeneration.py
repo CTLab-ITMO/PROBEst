@@ -189,11 +189,14 @@ def run_dedegeneration_iteration(
         " > " + os.path.join(output_dir, "positive_hits.tsv")
     subprocess.run(blastn_db, shell=True)
     
-    # Run BLASTn against false bases
-    for db_neg in args.false_base:
-        blastn_db = blastn_iter + " -db " + db_neg + \
-            " >> " + os.path.join(output_dir, "negative_hits.tsv")
-        subprocess.run(blastn_db, shell=True)
+    neg_path = os.path.join(output_dir, "negative_hits.tsv")
+    if args.false_base:
+        for i, db_neg in enumerate(args.false_base):
+            redir = " > " if i == 0 else " >> "
+            blastn_db = blastn_iter + " -db " + db_neg + redir + neg_path
+            subprocess.run(blastn_db, shell=True)
+    else:
+        open(neg_path, "w").close()
     
     # Run probe check
     probe_check_iter = probe_check_cmd + \
