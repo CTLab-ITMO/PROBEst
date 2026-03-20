@@ -31,11 +31,11 @@ PROBEst can be run using the following command:
 
 ```bash
 python pipeline.py \
-  -i {INPUT} \
-  -tb {TRUE_BASE} \
-  -fb [FALSE_BASE ...] \
-  -c {CONTIG_TABLE} \
-  -o {OUTPUT}
+  -i {INPUT} \ # fasta // .fa.gz
+  -tb {TRUE_BASE} \ # directory with blastn database / fasta files
+  -fb [FALSE_BASE ...] \ # directories with blastn database / fasta files
+  -c {CONTIG_TABLE} \ # .tsv table with BLAST database information (optional; defaults to `{OUTPUT}/contigs.tsv` when using FASTA directories).
+  -o {OUTPUT} \ # output directory
 ```
 
 **Blastn databases** and **contig table** are produced by ```prep_db.sh``` (or built automatically when `-tb` / `-fb` point at **directories of FASTA files**). After each automatic build, the contig table is **deduplicated by contig ID** (duplicate rows from merged FASTAs or repeated runs keep the last mapping).

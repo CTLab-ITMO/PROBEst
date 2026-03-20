@@ -23,7 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Integration test equivalent to repo root test.sh (general FISH dataset)."""
+"""Integration test: general FISH dataset with JIT FASTA bases, AI + visualization."""
 
 import shutil
 import subprocess
@@ -42,8 +42,8 @@ def _require_blast_tools():
 
 
 @pytest.mark.integration
-def test_pipeline_general_fish_from_test_sh(tmp_path):
-    """Mirror `test.sh` snippet: small general run (AI enabled by default, visualize disabled)."""
+def test_integration_fish(tmp_path):
+    """Same CLI as: …/test.fna, fasta_base true/false dirs, -N 3, --visualize True --AI True."""
     _require_blast_tools()
 
     output = tmp_path / "output"
@@ -67,6 +67,10 @@ def test_pipeline_general_fish_from_test_sh(tmp_path):
         "5",
         "-N",
         "3",
+        "--visualize",
+        "True",
+        "--AI",
+        "True",
     ]
 
     result = subprocess.run(
@@ -83,5 +87,6 @@ def test_pipeline_general_fish_from_test_sh(tmp_path):
 
     assert (output / "modeling_results.tsv").is_file()
     assert (output / "output_dedegenerated.fa").is_file()
-    # Visualizations are only created when `--visualize` is enabled.
-    assert not (output / "visualizations").exists()
+    viz_dir = output / "visualizations"
+    assert viz_dir.is_dir()
+    assert any(viz_dir.glob("*_visualization.png"))

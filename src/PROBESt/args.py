@@ -73,7 +73,7 @@ def arguments_parse():
     parser.add_argument("-c", "--contig_table",
                         required=False,
                         default=None,
-                        help="Path to a .tsv table containing BLAST database information. If not provided and FASTA directories are used for bases, it will be auto-generated in the output directory.")
+                        help="Path to the genome/contig .tsv (prep_db.sh -c format). If omitted, defaults to <output>/contigs.tsv. When -tb/-fb are FASTA directories, all bases contribute rows to this file (same as running prep_db.sh with one shared -c).")
 
     parser.add_argument("-o", "--output",
                         required=True,

@@ -182,10 +182,11 @@ for iter in range(1, args.iterations+1):
 
     print("Positive hits counted")
 
-    # false bases
-    for db_neg in args.false_base:
-        blastn_db = blastn_iter + " -db " + db_neg + \
-            " >> " + out_dir(iter) + "negative_hits.tsv"
+    # false bases: first DB uses '>' so negative_hits.tsv is not appended to stale files
+    neg_path = out_dir(iter) + "negative_hits.tsv"
+    for i, db_neg in enumerate(args.false_base):
+        redir = " > " if i == 0 else " >> "
+        blastn_db = blastn_iter + " -db " + db_neg + redir + neg_path
         subprocess.run(blastn_db, shell=True)
 
     print("Negative hits counted")
