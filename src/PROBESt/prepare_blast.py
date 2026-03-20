@@ -42,6 +42,11 @@ from typing import Dict, List, Tuple, Optional
 FASTA_EXTENSIONS = {'.fa', '.fasta', '.fna', '.fa.gz', '.fasta.gz', '.fna.gz'}
 
 
+def _logical_fasta_key(basename: str) -> str:
+    """Plain and gzip of the same file share a key (e.g. a.fna and a.fna.gz -> a.fna)."""
+    return basename[:-3] if basename.endswith(".gz") else basename
+
+
 def deduplicate_contig_table(contig_table_path: str, contig_id_col: int = 1) -> None:
     """
     Deduplicate a contig table in-place by contig ID (second column by default).
@@ -112,17 +117,35 @@ def get_fasta_files(directory: str) -> List[str]:
     """
     Get all FASTA files from a directory.
     
+    If both ``assembly.fna`` and ``assembly.fna.gz`` exist, keep only the ``.gz``
+    path so directories may ship compressed assets (CI) while developers keep
+    uncompressed copies locally.
+    
     Args:
         directory: Path to the directory containing FASTA files.
         
     Returns:
         List of paths to FASTA files.
     """
-    fasta_files = []
+    seen: List[str] = []
     for ext in FASTA_EXTENSIONS:
         pattern = os.path.join(directory, f"*{ext}")
-        fasta_files.extend(glob.glob(pattern))
-    return sorted(fasta_files)
+        seen.extend(glob.glob(pattern))
+
+    by_key: Dict[str, str] = {}
+    for path in sorted(set(seen)):
+        key = _logical_fasta_key(os.path.basename(path))
+        prev = by_key.get(key)
+        if prev is None:
+            by_key[key] = path
+        elif path.endswith(".gz") and not prev.endswith(".gz"):
+            by_key[key] = path
+        elif prev.endswith(".gz") and not path.endswith(".gz"):
+            pass
+        else:
+            by_key[key] = min(path, prev)
+
+    return sorted(by_key.values())
 
 
 def prepare_blast_database(

@@ -71,6 +71,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test package installation and imports
       run: |
+        # Full test suite (including BLAST/primer3 integration) runs in conda-build only.
         # Verify package can be imported
         python -c "import PROBESt; print('PROBESt imported successfully')"
         python -c "from PROBESt.args import arguments_parse; print('Args module imported successfully')"

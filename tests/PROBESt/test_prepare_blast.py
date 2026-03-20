@@ -31,6 +31,7 @@ import os
 import sys
 import tempfile
 import shutil
+import gzip
 from pathlib import Path
 
 # Add the project root directory to the Python path
@@ -181,6 +182,20 @@ class TestGetFastaFiles:
         
         fasta_files = get_fasta_files(str(ext_dir))
         assert len(fasta_files) == 3
+
+    def test_prefers_gzip_when_plain_and_gzip_same_stem(self, tmp_path):
+        """Same assembly as .fna and .fna.gz should count once; prefer .gz."""
+        d = tmp_path / "dup"
+        d.mkdir()
+        plain = d / "GCA_asm.fna"
+        plain.write_text(">ctg1\nATGC\n")
+        gzpath = d / "GCA_asm.fna.gz"
+        with gzip.open(gzpath, "wb") as gz:
+            gz.write(b">ctg1\nATGC\n")
+
+        paths = get_fasta_files(str(d))
+        assert len(paths) == 1
+        assert paths[0].endswith(".fna.gz")
 
 
 class TestPrepareBlastDatabase:

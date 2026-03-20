@@ -43,7 +43,11 @@ def _require_blast_tools():
 
 @pytest.mark.integration
 def test_integration_fish(tmp_path):
-    """Same CLI as: …/test.fna, fasta_base true/false dirs, -N 3, --visualize True --AI True."""
+    """Same CLI as: …/test.fna, fasta_base true/false dirs, -N 3, --visualize True --AI True.
+
+    True-base genomes must be present in git as ``*.fna.gz`` under ``fasta_base/true_base``
+    (plain ``*.fna`` is gitignored); false bases already use gz in the repo.
+    """
     _require_blast_tools()
 
     output = tmp_path / "output"
