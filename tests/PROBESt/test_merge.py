@@ -61,6 +61,13 @@ def test_dir(tmp_path):
     input_fasta_primer = tmp_path / "input_primer.fasta"
     with open(input_fasta_primer, "w") as f:
         f.write(">seq1_LEFT\nATGC\n>seq1_RIGHT\nCGTA\n>seq2_LEFT\nTTAA\n>seq2_RIGHT\nGGCC\n")
+    input_fasta_primer3 = tmp_path / "input_primer3_style.fasta"
+    with open(input_fasta_primer3, "w") as f:
+        # Same pattern as primer3.primer2fasta: {id}_{pair}_{LEFT|RIGHT}
+        f.write(
+            ">contigA_0_LEFT\nATGC\n>contigA_0_RIGHT\nCGTA\n"
+            ">contigA_1_LEFT\nTTAA\n>contigA_1_RIGHT\nGGCC\n"
+        )
 
     # Create a sample input FASTA file for FISH merging
     input_fasta_fish = tmp_path / "input_fish.fasta"
@@ -74,11 +81,31 @@ def test_dir(tmp_path):
 
     return {
         "input_fasta_primer": str(input_fasta_primer),
+        "input_fasta_primer3": str(input_fasta_primer3),
         "input_fasta_fish": str(input_fasta_fish),
         "output_primer": str(output_primer),
         "output_fish": str(output_fish),
-        "tmp_file": str(tmp_file)
+        "tmp_file": str(tmp_file),
     }
+
+def test_merge_primer_primer3_indexed_headers(test_dir, mock_script):
+    """Primer3 FASTA uses {id}_{pair}_LEFT / _RIGHT (primer3.primer2fasta)."""
+    out = str(test_dir["output_primer"]) + "_p3"
+    tmp = str(test_dir["tmp_file"]) + "_p3"
+    merge("primer", test_dir["input_fasta_primer3"], out, tmp, 5, mock_script)
+    with open(out, "r") as f:
+        body = f.read()
+    assert body == ">contigA_0\nATGCNNNNNCGTA\n>contigA_1\nTTAANNNNNGGCC\n"
+
+
+def test_merge_primer_already_merged_is_passthrough(test_dir, mock_script, tmp_path):
+    """Evolution / dedeg output: one record per probe — copy without pair merge."""
+    inp = tmp_path / "single.fa"
+    inp.write_text(">probe1\nAAAAANNNNNBBBB\n", encoding="utf-8")
+    out = tmp_path / "out.fa"
+    merge("primer", str(inp), str(out), str(tmp_path / "t.tsv"), 5, mock_script)
+    assert out.read_text(encoding="utf-8") == ">probe1\nAAAAANNNNNBBBB\n"
+
 
 def test_merge_primer_algorithm(test_dir, mock_script):
     """Test the merge function with the 'primer' algorithm."""

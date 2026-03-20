@@ -27,13 +27,32 @@
 import subprocess
 from shutil import copyfile
 
+
+def _primer_fasta_is_paired(fasta_path: str) -> bool:
+    """True if Primer3-style LEFT/RIGHT records; False if already merged or mutation output."""
+    with open(fasta_path, "r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if line.startswith(">"):
+                return "_LEFT" in line or "_RIGHT" in line
+    return False
+
+
+def _parse_primer_side_header(line: str, side: str) -> str:
+    """Id for one amplicon: full header without *_LEFT / *_RIGHT (keeps primer pair index)."""
+    s = line.rstrip("\r\n")
+    suf = "_LEFT" if side == "LEFT" else "_RIGHT"
+    if not s.endswith(suf):
+        raise LookupError(f"Malformed {side} primer header: {s!r}")
+    return s[: -len(suf)]
+
+
 def merge(algo, input, output, tmp, NNN, script_path):
     '''
     Merges primer sequences from a FASTA file based on the specified algorithm.
 
     Parameters:
     algo (str): The algorithm to use for merging; parse form args.algorithm.
-    input (str): Path to the input FASTA file containing primer pairs. 
+    input (str): Path to the input FASTA file containing primer pairs.
                  Pairs should be specified as 'LEFT' and 'RIGHT'.
     output (str): Path to the output file where merged sequences will be written.
     tmp (str): Path to a temporary file for storing the converted FASTA table.
@@ -45,41 +64,36 @@ def merge(algo, input, output, tmp, NNN, script_path):
     KeyError: If an unsupported algorithm is specified.
     '''
 
-    # Construct the command to convert FASTA to a table format using a bash script
-    fasta2table_command = f"bash {script_path}fasta2table.sh -i {input} -o {tmp}"
+    if algo == "primer" and not _primer_fasta_is_paired(input):
+        copyfile(input, output)
+        print("Primers merged successfully.")
+        return
 
-    # Execute the bash command
+    fasta2table_command = f"bash {script_path}fasta2table.sh -i {input} -o {tmp}"
     subprocess.run(fasta2table_command, shell=True)
 
     if algo == "primer":
-        # Open the temporary FASTA table for reading
         with open(tmp, "r") as fasta_table, open(output, "w") as output_fasta:
-            sepN = "N" * NNN  # Create a separator string of 'N's
+            sepN = "N" * NNN
 
-            # Iterate through lines in the FASTA table
             for i, line in enumerate(fasta_table):
-                dev = i % 4  # Determine the line type based on its position
+                dev = i % 4
                 if dev == 0:
-                    inp_name = line[:-6]  # Extract input name (remove trailing characters)
+                    inp_name = _parse_primer_side_header(line, "LEFT")
                 elif dev == 1:
-                    left = line.strip()  # Get the left primer sequence (remove newline)
+                    left = line.strip()
                 elif dev == 2:
-                    # Verify that sequence names match; raise an error if not
-                    if hash(inp_name) != hash(line[0:(len(line)-7)]):
+                    right_base = _parse_primer_side_header(line, "RIGHT")
+                    if inp_name != right_base:
                         raise LookupError(f"Error on line {i}: check names in FASTA file")
-                        break
                 else:
-                    right = line.strip()  # Get the right primer sequence
-                    # Write the merged sequence to the output file
+                    right = line.strip()
                     output_fasta.write(f"{inp_name}\n{left}{sepN}{right}\n")
 
         print("Primers merged successfully.")
 
     elif algo == "FISH":
-        # For FISH algorithm, simply copy the temporary file to output
         copyfile(tmp, output)
 
     else:
-        # Raise an error if an unsupported algorithm is provided
         raise KeyError("Algorithm not implemented yet; see docs or help.")
-

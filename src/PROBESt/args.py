@@ -26,6 +26,18 @@
 
 import argparse
 
+
+def _str2bool(value):
+    if isinstance(value, bool):
+        return value
+    v = str(value).strip().lower()
+    if v in ("1", "true", "t", "yes", "y", "on"):
+        return True
+    if v in ("0", "false", "f", "no", "n", "off"):
+        return False
+    raise argparse.ArgumentTypeError(f"expected a boolean string, got {value!r}")
+
+
 def arguments_parse():
     """
     Parses command-line arguments for the probe generation tool.
@@ -152,7 +164,7 @@ def arguments_parse():
     
     parser.add_argument("--dedegeneration_append",
                         required=False,
-                        default=True, type=bool,
+                        default=True, type=_str2bool,
                         help="Whether to append the best probes to the array in the de-degeneration algorithm. Default is True.")
     
     parser.add_argument("--dedegeneration_rate",
@@ -215,7 +227,7 @@ def arguments_parse():
     parser.add_argument("--oligominer_keep_tmp",
                         required=False,
                         default=False,
-                        type=bool,
+                        type=_str2bool,
                         help="OligoMiner option: Whether to keep temporary files after processing. Default is False.")
 
     # Primer3 template arguments
@@ -311,13 +323,13 @@ def arguments_parse():
     parser.add_argument("--visualize",
                         required=False,
                         default=False,
-                        type=bool,
+                        type=_str2bool,
                         help="Whether to create visualizations for probe-target pairs. Default is False.")
 
     parser.add_argument("--AI",
                         required=False,
                         default=True,
-                        type=bool,
+                        type=_str2bool,
                         help="Whether to apply AI-based filtration to probes. Default is True. Set to False to disable AI filtration.")
 
     args = parser.parse_args()
