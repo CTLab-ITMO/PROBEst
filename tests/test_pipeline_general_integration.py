@@ -43,7 +43,7 @@ def _require_blast_tools():
 
 @pytest.mark.integration
 def test_pipeline_general_fish_from_test_sh(tmp_path):
-    """Mirror test.sh: small general run with visualization and AI enabled."""
+    """Mirror `test.sh` snippet: small general run (AI enabled by default, visualize disabled)."""
     _require_blast_tools()
 
     output = tmp_path / "output"
@@ -67,10 +67,6 @@ def test_pipeline_general_fish_from_test_sh(tmp_path):
         "5",
         "-N",
         "3",
-        "--visualize",
-        "True",
-        "--AI",
-        "True",
     ]
 
     result = subprocess.run(
@@ -87,5 +83,5 @@ def test_pipeline_general_fish_from_test_sh(tmp_path):
 
     assert (output / "modeling_results.tsv").is_file()
     assert (output / "output_dedegenerated.fa").is_file()
-    assert (output / "visualizations").is_dir()
-    assert any((output / "visualizations").iterdir())
+    # Visualizations are only created when `--visualize` is enabled.
+    assert not (output / "visualizations").exists()

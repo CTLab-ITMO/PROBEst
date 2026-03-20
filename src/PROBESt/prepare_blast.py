@@ -222,7 +222,9 @@ def prepare_bases_if_needed(
         true_base: Path to true base (BLAST database or FASTA directory).
         false_bases: List of paths to false bases (BLAST databases or FASTA directories).
         output_dir: Output directory for created BLAST databases.
-        contig_table_path: Path for the contig names output file.
+        contig_table_path: Path for the contig names TSV (genome id, sseqid). When
+            bases are built from FASTA directories, true and all false bases append
+            into this file, matching repeated ``prep_db.sh -c`` usage.
         tmp_dir: Optional temporary directory for intermediate files.
         script_path: Path to the directory containing prep_db.sh script.
         
@@ -231,38 +233,43 @@ def prepare_bases_if_needed(
     """
     blast_db_dir = os.path.join(output_dir, ".blast_db")
     os.makedirs(blast_db_dir, exist_ok=True)
-    
+
+    # One contig table for all JIT-prepared bases (same as repeated prep_db.sh -c file).
+    shared_contig_table = (
+        contig_table_path
+        if os.path.dirname(contig_table_path)
+        else os.path.join(blast_db_dir, contig_table_path)
+    )
+
     # Process true base
     if is_fasta_directory(true_base):
         dir_name = os.path.basename(true_base.rstrip('/'))
         processed_true_base = os.path.join(blast_db_dir, f"true_{dir_name}")
-        true_contig_table = contig_table_path if os.path.dirname(contig_table_path) else os.path.join(blast_db_dir, contig_table_path)
-        
+
         print(f"Preparing BLAST database from FASTA directory: {true_base}")
         prepare_blast_database(
             fasta_dir=true_base,
             output_db_path=processed_true_base,
-            contig_table_path=true_contig_table,
+            contig_table_path=shared_contig_table,
             tmp_dir=tmp_dir,
             script_path=script_path
         )
         print(f"Created BLAST database: {processed_true_base}")
     else:
         processed_true_base = true_base
-    
+
     # Process false bases
     processed_false_bases = []
     for i, false_base in enumerate(false_bases):
         if is_fasta_directory(false_base):
             dir_name = os.path.basename(false_base.rstrip('/'))
             processed_false_base = os.path.join(blast_db_dir, f"false_{i}_{dir_name}")
-            false_contig_table = os.path.join(blast_db_dir, f"contigs_false_{i}.tsv")
-            
+
             print(f"Preparing BLAST database from FASTA directory: {false_base}")
             prepare_blast_database(
                 fasta_dir=false_base,
                 output_db_path=processed_false_base,
-                contig_table_path=false_contig_table,
+                contig_table_path=shared_contig_table,
                 tmp_dir=tmp_dir,
                 script_path=script_path
             )
