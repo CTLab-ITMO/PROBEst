@@ -35,11 +35,55 @@ them to BLAST databases using the prep_db.sh script.
 import os
 import subprocess
 import glob
-from typing import List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
 
 
 # Supported FASTA file extensions
 FASTA_EXTENSIONS = {'.fa', '.fasta', '.fna', '.fa.gz', '.fasta.gz', '.fna.gz'}
+
+
+def deduplicate_contig_table(contig_table_path: str, contig_id_col: int = 1) -> None:
+    """
+    Deduplicate a contig table in-place by contig ID (second column by default).
+
+    Lines are tab-separated as produced by ``prep_db.sh``:
+    column 0 = genome/FASTA stem, column 1 = contig header id (BLAST ``sseqid``).
+
+    ``prep_db.sh`` appends via ``>>``; repeated runs can duplicate rows. For each
+    contig id, the **last** row wins so re-runs stay idempotent.
+
+    Args:
+        contig_table_path: Path to the TSV file to read and rewrite.
+        contig_id_col: Zero-based index of the contig id column (default ``1``).
+    """
+    if not os.path.isfile(contig_table_path) or os.path.getsize(contig_table_path) == 0:
+        return
+
+    with open(contig_table_path, "r", encoding="utf-8", errors="replace") as f:
+        lines = f.read().splitlines()
+
+    last_idx_by_key: Dict[str, int] = {}
+    line_by_key: Dict[str, str] = {}
+
+    for idx, line in enumerate(lines):
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        if len(parts) <= contig_id_col:
+            parts = line.split()
+        if len(parts) <= contig_id_col:
+            key = "__unparsed__%d" % idx
+        else:
+            key = parts[contig_id_col]
+
+        last_idx_by_key[key] = idx
+        line_by_key[key] = line
+
+    ordered_keys = sorted(last_idx_by_key.keys(), key=lambda k: last_idx_by_key[k])
+    out_lines = [line_by_key[k] for k in ordered_keys]
+    text = ("\n".join(out_lines) + "\n") if out_lines else ""
+    with open(contig_table_path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
 
 
 def is_fasta_directory(path: str) -> bool:
@@ -153,7 +197,9 @@ def prepare_blast_database(
             f"stdout: {result.stdout}\n"
             f"stderr: {result.stderr}"
         )
-    
+
+    deduplicate_contig_table(contig_table_path)
+
     return output_db_path
 
 

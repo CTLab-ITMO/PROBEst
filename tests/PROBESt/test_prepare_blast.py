@@ -43,6 +43,7 @@ from src.PROBESt.prepare_blast import (
     get_fasta_files,
     prepare_blast_database,
     prepare_bases_if_needed,
+    deduplicate_contig_table,
     FASTA_EXTENSIONS
 )
 
@@ -81,6 +82,33 @@ def temp_non_fasta_dir(tmp_path):
     txt_file.write_text("Not a FASTA file")
     
     return non_fasta_dir
+
+
+class TestDeduplicateContigTable:
+    """Tests for deduplicate_contig_table."""
+
+    def test_empty_file_is_noop(self, tmp_path):
+        p = tmp_path / "contigs.tsv"
+        p.write_text("")
+        deduplicate_contig_table(str(p))
+        assert p.read_text() == ""
+
+    def test_keeps_last_row_per_contig_id(self, tmp_path):
+        p = tmp_path / "contigs.tsv"
+        p.write_text(
+            "genomeA\tctg1\n"
+            "genomeB\tctg1\n"
+            "genomeC\tctg2\n"
+        )
+        deduplicate_contig_table(str(p))
+        assert p.read_text() == "genomeB\tctg1\ngenomeC\tctg2\n"
+
+    def test_unique_rows_preserved(self, tmp_path):
+        p = tmp_path / "contigs.tsv"
+        content = "g1\ta\nG2\tb\n"
+        p.write_text(content)
+        deduplicate_contig_table(str(p))
+        assert p.read_text() == content
 
 
 class TestIsFastaDirectory:
