@@ -12,8 +12,8 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Default directories
 GENOMES_DIR="$PROJECT_ROOT/test_out/all_genomes"
-BLASTDB_DIR="$PROJECT_ROOT/test_out/all_blastdb"
-OUTPUT_DIR="$PROJECT_ROOT/test_out/all_output"
+BLASTDB_DIR="$PROJECT_ROOT/test_out/all_blast"
+OUTPUT_DIR="$PROJECT_ROOT/test_out/all_output_fast"
 CONTIGS_DIR="$PROJECT_ROOT/test_out/modeling/contigs"
 cat $PROJECT_ROOT/test_out/modeling/contigs/* > $PROJECT_ROOT/test_out/fullcontig
 CONTIG_DIR="$PROJECT_ROOT/test_out/fullcontig"
@@ -110,8 +110,19 @@ for species_name in "${SPECIES_LIST[@]}"; do
         continue
     fi
     
+    # Randomly select only 3 false databases
+    if [ ${#false_bases[@]} -gt 3 ]; then
+        # Create a temporary array with shuffled indices
+        indices=($(seq 0 $((${#false_bases[@]} - 1)) | shuf | head -n 3))
+        selected_false_bases=()
+        for idx in "${indices[@]}"; do
+            selected_false_bases+=("${false_bases[$idx]}")
+        done
+        false_bases=("${selected_false_bases[@]}")
+    fi
+    
     echo "True base: $species_blastdb"
-    echo "False bases: ${#false_bases[@]} databases"
+    echo "False bases: ${#false_bases[@]} databases (randomly selected from available)"
     echo "Input FASTA: $species_genomes_dir"
     echo "Output: $species_output_dir"
     echo ""

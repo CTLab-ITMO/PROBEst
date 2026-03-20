@@ -8,7 +8,9 @@ data/param_search
 src/PROBESt/__pycache__
 tests/PROBESt/__pycache__
 tests_outs/
+tests_out/
 test_outs/
+test_out/
 test_download/
 data/databases/open/probeBase_false_formatted.csv
 data/databases/open/probeBase_false_genome_results.csv
@@ -75,8 +77,12 @@ htmlcov/
 *.fna
 *.faa
 *.out
+*gz
+scripts/loop_generation/
 PROBEst.Rproj
 .Rproj.user
 .Rhistory
 articles.tar.bz2
 data/databases/articles/artificial_database_structure
+data/databases/articles/unvalidated.txt
+scripts/databases/combine_databases.py
