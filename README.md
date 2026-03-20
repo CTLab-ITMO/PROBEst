@@ -38,13 +38,13 @@ python pipeline.py \
   -o {OUTPUT}
 ```
 
-**Blastn databases** and **contig table** are results of the ```prep_db.sh```
+**Blastn databases** and **contig table** are produced by ```prep_db.sh``` (or built automatically when `-tb` / `-fb` point at **directories of FASTA files**). After each automatic build, the contig table is **deduplicated by contig ID** (duplicate rows from merged FASTAs or repeated runs keep the last mapping).
 
 #### Key arguments:
-- `-i INPUT`: Input FASTA file (or directory with fasta / fasta.gz file) for the initial probe setgeneration.
-- `-tb TRUE_BASE`: Input BLASTn database path for primer adjusting.
-- `-fb FALSE_BASE`: Input BLASTn database path for non-specific testing.
-- `-c CONTIG_TABLE`: .tsv table with BLAST database information.
+- `-i INPUT`: Input FASTA file (or directory with fasta / fasta.gz file) for the initial probe set generation.
+- `-tb TRUE_BASE`: BLASTn database path *or* directory of FASTA files for primer adjusting (directories are converted under `{OUTPUT}/.blast_db/`).
+- `-fb FALSE_BASE`: BLASTn database path(s) *or* FASTA directories for non-specific testing.
+- `-c CONTIG_TABLE`: .tsv table with BLAST database information (optional; defaults to `{OUTPUT}/contigs.tsv` when using FASTA directories).
 - `-o OUTPUT`: Output path for results.
 - `-t THREADS`: Number of threads to use.
 - `-a ALGORITHM`: Algorithm for probe generation (`FISH` or `primer`).
@@ -63,10 +63,25 @@ python test_parameters.py \
   -p {JSON}
 ```
 
+Example usage:
+```bash
+python pipeline.py \
+  -i data/test/general/test.fna \
+  -o data/test/general/output \
+  -tb data/test/general/fasta_base/true_base \
+  -fb data/test/general/fasta_base/false_base_1 \
+      data/test/general/fasta_base/false_base_2 \
+  -a FISH \
+  --PRIMER_PICK_PRIMER 5 \
+  --PRIMER_NUM_RETURN 5 \
+  -N 3 \
+  --visualize True --AI True
+```
+
 
 ### Manual preparation
 
-`pipeline.py` relies on pre-prepared BLASTn databases. To create the required `true_base`, `false_base`, and `contig_table`, you can use the following script:
+You can pre-build BLASTn databases yourself (e.g. when inputs are already `makeblastdb` outputs). To create `true_base`, `false_base`, and `contig_table` from FASTA files, use:
 
 ```bash
 bash scripts/generator/prep_db.sh \
